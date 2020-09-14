@@ -1,4 +1,5 @@
 using System;
+using System.Net.Http;
 using System.Windows.Forms;
 using EarthBackground.Captors;
 using EarthBackground.Oss;
@@ -51,12 +52,12 @@ namespace EarthBackground
             services.AddHttpClient(NameConsts.Himawari8, client =>
             {
                 client.BaseAddress = new Uri("https://himawari8-dl.nict.go.jp/himawari8/");
-            });
+            }).ConfigurePrimaryHttpMessageHandler(builder => new HttpClientHandler { ServerCertificateCustomValidationCallback = (m, c, a3, a4) => true }); 
 
             services.AddHttpClient(NameConsts.Cloudinary, client =>
             {
                 client.BaseAddress = new Uri($"https://res.cloudinary.com/{config["OssOptions:UserName"]}/image/fetch/");
-            });
+            }).ConfigurePrimaryHttpMessageHandler(builder => new HttpClientHandler { ServerCertificateCustomValidationCallback = (m, c, a3, a4) => true });
 
             services.AddLogging(builder =>
             {

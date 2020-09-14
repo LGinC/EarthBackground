@@ -34,14 +34,9 @@ namespace EarthBackground.Oss
             {
                 Directory.CreateDirectory(directory);
             }
-            var files = Directory.GetFiles(directory);
+
             foreach (var (url, file) in images)
             {
-                if (files.Contains(file))
-                {
-                    continue;
-                }
-
                 string filePath = Path.Combine(directory, file);
                 await DownLoadImageAsync(url, Path.Combine(directory, file));
                 result.Add((url, filePath));

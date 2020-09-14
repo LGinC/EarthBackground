@@ -112,7 +112,7 @@ namespace EarthBackground
             }
             else
             {
-                int new_size = (int)(bitmap.Height * _option.Zoom * 1.0 / 100);
+                int new_size =  (int)(bitmap.Height * _option.Zoom * 1.0 / 100);
                 using Bitmap zoom_bitmap = new Bitmap(new_size, new_size);
                 using Graphics g_2 = Graphics.FromImage(zoom_bitmap);
                 g_2.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
