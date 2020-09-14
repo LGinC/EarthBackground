@@ -1,6 +1,7 @@
 using System;
 using System.Net.Http;
 using System.Windows.Forms;
+using EarthBackground.Background;
 using EarthBackground.Captors;
 using EarthBackground.Oss;
 using Microsoft.Extensions.Configuration;
@@ -21,7 +22,6 @@ namespace EarthBackground
             Application.SetHighDpiMode(HighDpiMode.SystemAware);
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-
             Application.Run(ConfigureServices().GetRequiredService<MainForm>());
         }
 
@@ -49,6 +49,10 @@ namespace EarthBackground
             services.AddTransient<IOssDownloader, CloudinaryDownloader>();
             services.AddTransient<IOssDownloader, QiniuDownloader>();
 
+            //×¢Èë±ÚÖ½ÉèÖÃÆ÷
+            services.AddTransient<IBackgroudSetProvider, BackgroudSetProvider>();
+            services.AddTransient<IBackgroundSetter, WindowsBackgroudSetter>();
+
             services.AddHttpClient(NameConsts.Himawari8, client =>
             {
                 client.BaseAddress = new Uri("https://himawari8-dl.nict.go.jp/himawari8/");
@@ -57,6 +61,13 @@ namespace EarthBackground
             services.AddHttpClient(NameConsts.Cloudinary, client =>
             {
                 client.BaseAddress = new Uri($"https://res.cloudinary.com/{config["OssOptions:UserName"]}/image/fetch/");
+            }).ConfigurePrimaryHttpMessageHandler(builder => new HttpClientHandler { ServerCertificateCustomValidationCallback = (m, c, a3, a4) => true });
+
+            services.AddHttpClient(NameConsts.Qiqiuyun, client =>
+            {
+                client.BaseAddress = new Uri($"https://qiniu.com/{config["OssOptions:UserName"]}");
+                client.DefaultRequestHeaders.Add("Content-Type", "application/json");
+                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Qiniu", "");
             }).ConfigurePrimaryHttpMessageHandler(builder => new HttpClientHandler { ServerCertificateCustomValidationCallback = (m, c, a3, a4) => true });
 
             services.AddLogging(builder =>
