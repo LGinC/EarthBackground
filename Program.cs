@@ -21,6 +21,11 @@ namespace EarthBackground
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
+            Application.Run(ConfigureServices().GetRequiredService<MainForm>());
+        }
+
+        static IServiceProvider ConfigureServices()
+        {
             //添加配置读取
             var config = new ConfigurationBuilder().AddJsonFile(ConfigFile, optional: true, reloadOnChange: true)
                 .Build();
@@ -43,22 +48,23 @@ namespace EarthBackground
             services.AddTransient<IOssDownloader, CloudinaryDownloader>();
             services.AddTransient<IOssDownloader, QiniuDownloader>();
 
-            services.AddHttpClient("himawari8");
+            services.AddHttpClient(NameConsts.Himawari8, client =>
+            {
+                client.BaseAddress = new Uri("https://himawari8-dl.nict.go.jp/himawari8/");
+            });
 
             services.AddHttpClient(NameConsts.Cloudinary, client =>
             {
                 client.BaseAddress = new Uri($"https://res.cloudinary.com/{config["OssOptions:UserName"]}/image/fetch/");
             });
-           
+
             services.AddLogging(builder =>
             {
                 builder.AddDebug();
             });
             //添加主窗体为单例
             services.AddSingleton(typeof(MainForm));
-            var serviceProvider = services.BuildServiceProvider();
-
-            Application.Run(services.BuildServiceProvider().GetRequiredService<MainForm>());
+            return services.BuildServiceProvider();
         }
 
     }
