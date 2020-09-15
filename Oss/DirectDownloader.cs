@@ -12,17 +12,17 @@ namespace EarthBackground.Oss
     /// </summary>
     public class DirectDownloader : IOssDownloader
     {
-        public string ProviderName => "DirectDownload";
+        public string ProviderName => NameConsts.DirectDownload;
         private readonly HttpClient _client;
 
         public DirectDownloader(IHttpClientFactory httpClientFactory)
         {
-            _client = httpClientFactory.CreateClient();
+            _client = httpClientFactory.CreateClient(NameConsts.DirectDownload);
         }
 
         public async Task<IEnumerable<(string url, string path)>> DownloadAsync(IEnumerable<(string url, string file)> images, string directory)
         {
-            if(images.IsNullOrEmpty())
+            if (images.IsNullOrEmpty())
             {
                 return new (string, string)[0];
             }

@@ -7,6 +7,8 @@ using EarthBackground.Oss;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Polly;
+using Polly.Extensions.Http;
 
 namespace EarthBackground
 {
@@ -53,22 +55,8 @@ namespace EarthBackground
             services.AddTransient<IBackgroudSetProvider, BackgroudSetProvider>();
             services.AddTransient<IBackgroundSetter, WindowsBackgroudSetter>();
 
-            services.AddHttpClient(NameConsts.Himawari8, client =>
-            {
-                client.BaseAddress = new Uri("https://himawari8-dl.nict.go.jp/himawari8/");
-            }).ConfigurePrimaryHttpMessageHandler(builder => new HttpClientHandler { ServerCertificateCustomValidationCallback = (m, c, a3, a4) => true }); 
+            services.AddHttpClients(config);
 
-            services.AddHttpClient(NameConsts.Cloudinary, client =>
-            {
-                client.BaseAddress = new Uri($"https://res.cloudinary.com/{config["OssOptions:UserName"]}/image/fetch/");
-            }).ConfigurePrimaryHttpMessageHandler(builder => new HttpClientHandler { ServerCertificateCustomValidationCallback = (m, c, a3, a4) => true });
-
-            services.AddHttpClient(NameConsts.Qiqiuyun, client =>
-            {
-                client.BaseAddress = new Uri($"https://qiniu.com/{config["OssOptions:UserName"]}");
-                client.DefaultRequestHeaders.Add("Content-Type", "application/json");
-                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Qiniu", "");
-            }).ConfigurePrimaryHttpMessageHandler(builder => new HttpClientHandler { ServerCertificateCustomValidationCallback = (m, c, a3, a4) => true });
 
             services.AddLogging(builder =>
             {
@@ -77,6 +65,40 @@ namespace EarthBackground
             //添加主窗体为单例
             services.AddSingleton(typeof(MainForm));
             return services.BuildServiceProvider();
+        }
+
+        /// <summary>
+        /// 3次重试策略
+        /// </summary>
+        /// <returns></returns>
+        private static Polly.Retry.AsyncRetryPolicy<HttpResponseMessage> GetRetryPolicy() => HttpPolicyExtensions.HandleTransientHttpError().RetryAsync(3);
+
+        static void AddHttpClients(this ServiceCollection services, IConfiguration config)
+        {
+            //跳过ssl验证
+            var sslHandler = new HttpClientHandler { ServerCertificateCustomValidationCallback = (m, c, a3, a4) => true };
+
+            services.AddHttpClient(NameConsts.Himawari8, client =>
+            {
+                client.BaseAddress = new Uri("https://himawari8-dl.nict.go.jp/himawari8/");
+            }).ConfigurePrimaryHttpMessageHandler(builder => sslHandler).AddPolicyHandler(GetRetryPolicy());
+
+
+
+            services.AddHttpClient(NameConsts.Cloudinary, client =>
+            {
+                client.BaseAddress = new Uri($"https://res.cloudinary.com/{config["OssOptions:UserName"]}/image/fetch/");
+            }).ConfigurePrimaryHttpMessageHandler(builder => sslHandler).AddPolicyHandler(GetRetryPolicy());
+
+            services.AddHttpClient(NameConsts.Qiqiuyun, client =>
+            {
+                client.BaseAddress = new Uri($"https://qiniu.com/{config["OssOptions:UserName"]}");
+                client.DefaultRequestHeaders.Add("Content-Type", "application/json");
+                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Qiniu", "");
+            }).ConfigurePrimaryHttpMessageHandler(builder => sslHandler).AddPolicyHandler(GetRetryPolicy());
+
+            services.AddHttpClient(NameConsts.DirectDownload)
+                .ConfigurePrimaryHttpMessageHandler(builder => sslHandler).AddPolicyHandler(GetRetryPolicy());
         }
 
     }

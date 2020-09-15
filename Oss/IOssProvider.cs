@@ -8,9 +8,9 @@ namespace EarthBackground.Oss
     public interface IOssProvider
     {
         /// <summary>
-        /// 获取指定名称的下载器
+        /// 获取指定名称的下载器 如name和配置文件都未指定下载器，则默认使用直接下载
         /// </summary>
-        /// <param name="name"></param>
+        /// <param name="name">下载器名称</param>
         /// <returns></returns>
         IOssDownloader GetDownloader(string name = null);
     }
@@ -30,9 +30,9 @@ namespace EarthBackground.Oss
         {
             if (string.IsNullOrEmpty(name))
             {
-                name = _option.IsEnable ? _option.CloudName : "DirectDownload";
+                name = _option.IsEnable ? _option.CloudName : NameConsts.DirectDownload;
             }
-            var downloaders =  _provider.GetServices<IOssDownloader>();
+            var downloaders = _provider.GetServices<IOssDownloader>();
             return downloaders.FirstOrDefault(p => p.ProviderName == name);
         }
     }

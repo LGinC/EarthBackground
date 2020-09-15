@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
+using EarthBackground.Background;
 using Microsoft.Extensions.Logging;
 
 namespace EarthBackground
@@ -8,11 +9,13 @@ namespace EarthBackground
     {
         private ILogger Logger;
         private ICaptor _provider;
+        private IBackgroundSetter _backgroundSetter;
 
-        public MainForm(ILogger<MainForm> logger, ICaptor pictureProvider)
+        public MainForm(ILogger<MainForm> logger, ICaptor pictureProvider, IBackgroudSetProvider backgroudSetProvider)
         {
             Logger = logger;
             _provider = pictureProvider;
+            _backgroundSetter = backgroudSetProvider.GetSetter();
             InitializeComponent();
         }
 
@@ -24,6 +27,7 @@ namespace EarthBackground
                 Logger.LogInformation("已启动");
                 var image = await _provider.GetImagePath();
                 Logger.LogInformation($"壁纸已保存:{image}");
+                await _backgroundSetter.SetBackgroudAsync(image);
                 B_start.Enabled = true;
             }
             catch (Exception ex)

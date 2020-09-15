@@ -68,15 +68,16 @@ namespace EarthBackground
             {
                 for (int j = 0; j < size; j++)
                 {
-                    string filePath = Path.Combine(_option.SavePath, $"{i}_{j}.png");
+                    string image = $"{i}_{j}.png";
+                    string filePath = Path.Combine(_option.SavePath, image);
                     if (!File.Exists(filePath))
                     {
-                        images.Add(($"{imageSource}/{size}d/550/{_option.LastImageId}_{i}_{j}.png", $"{i}_{j}.png"));
+                        images.Add(($"{imageSource}/{size}d/550/{_option.LastImageId}_{image}", image));
                     }
                 }
             }
 
-            if(images.Count == 0)
+            if (images.Count == 0)
             {
                 return;
             }
@@ -94,25 +95,34 @@ namespace EarthBackground
             var size = (int)_option.Resolution;
             using Bitmap bitmap = new Bitmap(550 * size, 550 * size);
             Image[,] tile = new Image[size, size];
-            using Graphics g = Graphics.FromImage(bitmap);
-
-            for (int i = 0; i < size; i++)
+            using (Graphics g = Graphics.FromImage(bitmap))
             {
-                for (int j = 0; j < size; j++)
+                for (int i = 0; i < size; i++)
                 {
-                    tile[i, j] = Image.FromFile(Path.Combine(_option.SavePath, $"{i}_{j}.png"));
-                    g.DrawImage(tile[i, j], 550 * j, 550 * j);
-                    tile[i, j].Dispose();
+                    for (int j = 0; j < size; j++)
+                    {
+                        tile[i, j] = Image.FromFile(Path.Combine(_option.SavePath, $"{i}_{j}.png"));
+                        g.DrawImage(tile[i, j], 550 * i, 550 * j);
+                        tile[i, j].Dispose();
+                    }
                 }
+                g.Save();
             }
 
-            if(_option.Zoom == 100)
+
+
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+
+            if (_option.Zoom == 100)
             {
                 bitmap.Save(path, System.Drawing.Imaging.ImageFormat.Bmp);
             }
             else
             {
-                int new_size =  (int)(bitmap.Height * _option.Zoom * 1.0 / 100);
+                int new_size = (int)(bitmap.Height * _option.Zoom * 1.0 / 100);
                 using Bitmap zoom_bitmap = new Bitmap(new_size, new_size);
                 using Graphics g_2 = Graphics.FromImage(zoom_bitmap);
                 g_2.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
@@ -124,7 +134,7 @@ namespace EarthBackground
             //删除小文件
             foreach (var f in Directory.GetFiles(_option.SavePath).Where(f => f.Contains("_")))
             {
-                File.Delete(f);
+                //File.Delete(f);
             }
 
             return path;
@@ -147,14 +157,14 @@ namespace EarthBackground
                 return path;
             }
             _option.LastImageId = imageId;
-            //await _saver.SaveAsync(_option);
+            await _saver.SaveAsync(_option);
             await SaveImageAsync();
             return JoinImage();
         }
 
         public async Task ResetAsync()
         {
-            if(_downloader != null)
+            if (_downloader != null)
             {
                 await _downloader.ClearOssAsync();
             }
