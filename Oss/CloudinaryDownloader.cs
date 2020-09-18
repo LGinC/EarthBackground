@@ -16,6 +16,9 @@ namespace EarthBackground.Oss
         private readonly OssOption _option;
         private readonly HttpClient _client;
 
+        public event Action<int> SetTotal;
+        public event Action<int> SetCurrentProgress;
+
         public CloudinaryDownloader(IOptionsSnapshot<OssOption> option, IHttpClientFactory httpClientFactory)
         {
             _option = option.Value;
@@ -29,17 +32,21 @@ namespace EarthBackground.Oss
                 return new (string, string)[0];
             }
 
+            SetTotal(images.Count());
+
             var result = new List<(string, string)> { Capacity = images.Count() };
             if (!Directory.Exists(directory))
             {
                 Directory.CreateDirectory(directory);
             }
 
+            int i = 0;
             foreach (var (url, file) in images)
             {
                 string filePath = Path.Combine(directory, file);
                 await DownLoadImageAsync(url, Path.Combine(directory, file));
                 result.Add((url, filePath));
+                SetCurrentProgress(++i);
             }
 
             return result;

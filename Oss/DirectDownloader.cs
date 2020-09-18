@@ -15,6 +15,9 @@ namespace EarthBackground.Oss
         public string ProviderName => NameConsts.DirectDownload;
         private readonly HttpClient _client;
 
+        public event Action<int> SetTotal;
+        public event Action<int> SetCurrentProgress;
+
         public DirectDownloader(IHttpClientFactory httpClientFactory)
         {
             _client = httpClientFactory.CreateClient(NameConsts.DirectDownload);
@@ -27,22 +30,26 @@ namespace EarthBackground.Oss
                 return new (string, string)[0];
             }
 
+            SetTotal(images.Count());
             var result = new List<(string, string)> { Capacity = images.Count() };
             if (!Directory.Exists(directory))
             {
                 Directory.CreateDirectory(directory);
             }
             var files = Directory.GetFiles(directory);
+            int i = 0;
             foreach (var (url, file) in images)
             {
-                if (files.Contains(file))
+                string path = Path.Combine(directory, file);
+                if (files.Contains(path))
                 {
+                    SetCurrentProgress(++i);
                     continue;
                 }
 
-                string filePath = Path.Combine(directory, file);
-                await DownLoadImageAsync(url, Path.Combine(directory, file));
-                result.Add((url, filePath));
+                await DownLoadImageAsync(url, path);
+                result.Add((url, path));
+                SetCurrentProgress(++i);
             }
 
             return result;

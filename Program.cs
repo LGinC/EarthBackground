@@ -71,7 +71,7 @@ namespace EarthBackground
         /// 3¥Œ÷ÿ ‘≤ﬂ¬‘
         /// </summary>
         /// <returns></returns>
-        private static Polly.Retry.AsyncRetryPolicy<HttpResponseMessage> GetRetryPolicy() => HttpPolicyExtensions.HandleTransientHttpError().RetryAsync(3);
+        private static Polly.Retry.AsyncRetryPolicy<HttpResponseMessage> GetRetryPolicy() => HttpPolicyExtensions.HandleTransientHttpError().RetryAsync(5);
 
         static void AddHttpClients(this ServiceCollection services, IConfiguration config)
         {
@@ -80,7 +80,7 @@ namespace EarthBackground
 
             services.AddHttpClient(NameConsts.Himawari8, client =>
             {
-                client.BaseAddress = new Uri("https://himawari8-dl.nict.go.jp/himawari8/");
+                client.BaseAddress = new Uri($"https://rammb-slider.cira.colostate.edu/data/imagery/{DateTime.UtcNow.AddHours(-1.5):yyyyMMdd}/himawari---full_disk/geocolor/");
             }).ConfigurePrimaryHttpMessageHandler(builder => sslHandler).AddPolicyHandler(GetRetryPolicy());
 
 
@@ -97,7 +97,10 @@ namespace EarthBackground
                 client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Qiniu", "");
             }).ConfigurePrimaryHttpMessageHandler(builder => sslHandler).AddPolicyHandler(GetRetryPolicy());
 
-            services.AddHttpClient(NameConsts.DirectDownload)
+            services.AddHttpClient(NameConsts.DirectDownload, client =>
+            {
+                client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36 Edg/85.0.564.51");
+            })
                 .ConfigurePrimaryHttpMessageHandler(builder => sslHandler).AddPolicyHandler(GetRetryPolicy());
         }
 

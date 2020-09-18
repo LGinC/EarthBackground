@@ -8,6 +8,9 @@ namespace EarthBackground.Oss
     {
         public string ProviderName => NameConsts.Qiqiuyun;
 
+        public event Action<int> SetTotal;
+        public event Action<int> SetCurrentProgress;
+
         public Task ClearOssAsync()
         {
             throw new NotImplementedException();
@@ -15,11 +18,14 @@ namespace EarthBackground.Oss
 
         public Task<(string url, string path)> DownloadAsync(IEnumerable<(string url, string file)> images, string directory)
         {
+            
             return null;
         }
 
         Task<IEnumerable<(string url, string path)>> IOssDownloader.DownloadAsync(IEnumerable<(string url, string file)> images, string directory)
         {
+            SetTotal(0);
+            SetCurrentProgress(0);
             throw new NotImplementedException();
         }
     }

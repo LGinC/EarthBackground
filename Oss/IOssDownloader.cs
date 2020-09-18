@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace EarthBackground
@@ -23,5 +24,15 @@ namespace EarthBackground
         /// </summary>
         /// <returns></returns>
         Task ClearOssAsync();
+
+        /// <summary>
+        /// 设置下载总数
+        /// </summary>
+        event Action<int> SetTotal;
+
+        /// <summary>
+        /// 设置当前下载进度
+        /// </summary>
+        event Action<int> SetCurrentProgress;
     }
 }

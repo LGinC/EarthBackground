@@ -57,9 +57,6 @@ namespace EarthBackground
         /// 上一张图片id
         /// </summary>
         public string LastImageId { get; set; }
-
-
-
     }
 
 
@@ -67,31 +64,29 @@ namespace EarthBackground
     public enum Resolution
     {
         /// <summary>
-        /// 550 * 550
+        /// 688 * 688
         /// </summary>
-        r_550 = 1,
+        r_688,
 
         /// <summary>
-        /// 1100 * 1100
+        /// 1376 * 1376
         /// </summary>
-        r_1100 = 1 << 2,
+        r_1376,
 
         /// <summary>
-        /// 2200 * 2200
+        /// 2752 * 2752
         /// </summary>
-        r_2200 = 1 << 3,
+        r_2752,
 
         /// <summary>
-        /// 4400 * 4400
+        /// 5504 * 5504
         /// </summary>
-        r_4400 = 1 << 4,
+        r_5504,
 
         /// <summary>
-        /// 8800 * 8800
+        /// 11008 * 11008
         /// </summary>
-        r_8800 = 1 << 5,
-
-
+        r_11008,
     }
 
     public static class EnumExtension
