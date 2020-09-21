@@ -75,5 +75,10 @@ namespace EarthBackground.Oss
         }
 
         public Task ClearOssAsync() => Task.CompletedTask;
+
+        public void Dispose()
+        {
+            _client.Dispose();
+        }
     }
 }

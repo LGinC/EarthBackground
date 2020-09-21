@@ -1,8 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 namespace EarthBackground
 {
-    public interface ICaptor
+    public interface ICaptor : IDisposable
     {
         IOssDownloader Downloader { get; set; }
 

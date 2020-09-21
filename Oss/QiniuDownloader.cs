@@ -16,6 +16,11 @@ namespace EarthBackground.Oss
             throw new NotImplementedException();
         }
 
+        public void Dispose()
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<(string url, string path)> DownloadAsync(IEnumerable<(string url, string file)> images, string directory)
         {
             

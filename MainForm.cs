@@ -29,15 +29,15 @@ namespace EarthBackground
                 ICaptor provider = _provider.GetRequiredService<ICaptor>();
                 Logger.LogInformation("已启动");
 
-                provider.Downloader.SetTotal += t => BeginInvoke((Action)(() =>
+                provider.Downloader.SetTotal += t => Invoke(() =>
                 {
                     progressBar1.Maximum = t;
                     l_status.Text = "running";
                     l_status.ForeColor = Color.Green;
                     l_progress.Text = $"0/{t}";
-                }));
+                });
 
-                provider.Downloader.SetCurrentProgress += t => BeginInvoke((Action)(() => 
+                provider.Downloader.SetCurrentProgress += t => Invoke(() => 
                 {
                     progressBar1.Value = t;
                     if (t == progressBar1.Maximum)
@@ -47,18 +47,43 @@ namespace EarthBackground
                         l_progress.Text = string.Empty;
                     }
                     l_progress.Text = $"{t}/{l_progress.Text.Split("/")[1]}";
-                }));
+                });
 
+
+                Invoke(() =>
+                {
+                    B_start.Enabled = false;
+                    B_stop.Enabled = true;
+                });
                 var image = await provider.GetImagePath();
                 Logger.LogInformation($"壁纸已保存:{image}");
                 await _backgroundSetter.SetBackgroudAsync(image);
+                Invoke(() =>
+                {
+                    B_start.Enabled = true;
+                    B_stop.Enabled = false;
+                });
             }
             catch (Exception ex)
             {
                 Logger.LogError(ex.Message);
                 Logger.LogError(ex.StackTrace);
-                MessageBox.Show(ex.Message);
+                Invoke(() =>
+                {
+                    l_status.Text = "wait for run";
+                    l_status.ForeColor = Color.Black;
+                    l_progress.Text = string.Empty;
+                    notifyIcon1.Visible = true;
+                    notifyIcon1.ShowBalloonTip(3000, "图片下载失败", ex.Message, ToolTipIcon.Warning);
+                    B_start.Enabled = true;
+                    B_stop.Enabled = false;
+                });
             }
+        }
+
+        private void Invoke(Action action)
+        {
+            BeginInvoke(action);
         }
 
         private  void B_start_Click(object sender, EventArgs e)
@@ -67,6 +92,11 @@ namespace EarthBackground
                 timer = new System.Threading.Timer(e => Timer_Tick(), null, 0, 20 * 60000);
             else
                 timer.Change(0, 20 * 6000);
+        }
+
+        private void B_stop_Click(object sender, EventArgs e)
+        {
+            
         }
     }
 }

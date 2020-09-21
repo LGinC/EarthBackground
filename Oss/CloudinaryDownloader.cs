@@ -94,5 +94,10 @@ namespace EarthBackground.Oss
 
             _client.DefaultRequestHeaders.Remove("Authorization");
         }
+
+        public void Dispose()
+        {
+            _client.Dispose();
+        }
     }
 }

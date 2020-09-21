@@ -177,6 +177,12 @@ namespace EarthBackground
             _option.LastImageId = string.Empty;
             await _saver.SaveAsync(_option);
         }
+
+        public void Dispose()
+        {
+            _client.Dispose();
+            Downloader.Dispose();
+        }
     }
 
     public class DateResult

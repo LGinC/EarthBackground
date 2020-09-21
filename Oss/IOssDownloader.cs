@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace EarthBackground
 {
-    public interface IOssDownloader
+    public interface IOssDownloader : IDisposable
     {
         /// <summary>
         /// 提供器名称
