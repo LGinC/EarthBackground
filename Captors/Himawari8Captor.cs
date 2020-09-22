@@ -45,7 +45,7 @@ namespace EarthBackground
         /// 获取图片id
         /// </summary>
         /// <returns></returns>
-        private Task<string> GetImageIdAsync()
+        private async Task<string> GetImageIdAsync()
         {
             //var response = await _client.GetAsync(_option.ImageIdUrl);
             //if (!response.IsSuccessStatusCode)
@@ -57,15 +57,16 @@ namespace EarthBackground
             //var reStr = await response.Content.ReadAsStringAsync();
             //var json = JsonSerializer.Deserialize<DateResult>(reStr);
             //return json.date.ToString("yyyy/MM/dd/hhmmss");
-            return Task.FromResult(DateTime.UtcNow.AddMinutes(-(DateTime.UtcNow.Minute % 10 + 10))
-                .AddHours(-1).ToString("yyyyMMddHHmm00"));
+            var t = await _client.GetAsync(_option.ImageIdUrl);
+            var str = await t.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<LastestTimes>(str).timestamps_int.First().ToString();
         }
 
         /// <summary>
         /// 保存图片
         /// </summary>
         /// <returns></returns>
-        private async Task SaveImageAsync()
+        private async Task SaveImageAsync(string imageId)
         {
             var size = (int)_option.Resolution;
             int total = 1 << size;
@@ -78,7 +79,7 @@ namespace EarthBackground
                     string filePath = Path.Combine(_option.SavePath, image);
                     if (!File.Exists(filePath))
                     {
-                        images.Add(($"{_client.BaseAddress.AbsoluteUri}{_option.LastImageId}/{size:00}/{image}", $"{i}_{j}.png"));
+                        images.Add(($"{_client.BaseAddress.AbsoluteUri}imagery/{imageId[0..8]}/himawari---full_disk/geocolor/{imageId}/{size:00}/{image}", $"{i}_{j}.png"));
                     }
                 }
             }
@@ -162,10 +163,13 @@ namespace EarthBackground
             {
                 return path;
             }
+            
+            
+            await SaveImageAsync(imageId);
+            var wallpaper = JoinImage();
             _option.LastImageId = imageId;
-            //await _saver.SaveAsync(_option);
-            await SaveImageAsync();
-            return JoinImage();
+            await _saver.SaveAsync(_option);
+            return wallpaper;
         }
 
         public async Task ResetAsync()
@@ -183,6 +187,11 @@ namespace EarthBackground
             _client.Dispose();
             Downloader.Dispose();
         }
+    }
+
+    public class LastestTimes
+    {
+        public long[] timestamps_int { get; set; }
     }
 
     public class DateResult

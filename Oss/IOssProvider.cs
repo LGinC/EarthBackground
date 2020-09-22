@@ -33,7 +33,13 @@ namespace EarthBackground.Oss
                 name = _option.IsEnable ? _option.CloudName : NameConsts.DirectDownload;
             }
             var downloaders = _provider.GetServices<IOssDownloader>();
-            return downloaders.FirstOrDefault(p => p.ProviderName == name);
+            //找不到对应下载器则默认使用直接下载
+            if(!downloaders.Any(d => d.ProviderName == name))
+            {
+                return downloaders.First(d => d.ProviderName == NameConsts.DirectDownload);
+            }
+
+            return downloaders.First(p => p.ProviderName == name);
         }
     }
 }

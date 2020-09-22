@@ -4,21 +4,27 @@ using System.Windows.Forms;
 using EarthBackground.Background;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace EarthBackground
 {
-    public partial class MainForm : System.Windows.Forms.Form
+    public partial class MainForm : Form
     {
         private ILogger Logger;
         private IServiceProvider _provider;
         private IBackgroundSetter _backgroundSetter;
         System.Threading.Timer timer;
+        private readonly IOptionsSnapshot<CaptureOption> _options;
 
-        public MainForm(ILogger<MainForm> logger, IServiceProvider provider, IBackgroudSetProvider backgroudSetProvider)
+        public MainForm(ILogger<MainForm> logger, 
+            IServiceProvider provider, 
+            IBackgroudSetProvider backgroudSetProvider,
+            IOptionsSnapshot<CaptureOption> options)
         {
             Logger = logger;
             _provider = provider;
             _backgroundSetter = backgroudSetProvider.GetSetter();
+            _options = options;
             InitializeComponent();
         }
 
@@ -26,7 +32,7 @@ namespace EarthBackground
         {
             try
             {
-                ICaptor provider = _provider.GetRequiredService<ICaptor>();
+                using ICaptor provider = _provider.GetRequiredService<ICaptor>();
                 Logger.LogInformation("已启动");
 
                 provider.Downloader.SetTotal += t => Invoke(() =>
@@ -46,7 +52,8 @@ namespace EarthBackground
                         l_status.ForeColor = Color.Black;
                         l_progress.Text = string.Empty;
                     }
-                    l_progress.Text = $"{t}/{l_progress.Text.Split("/")[1]}";
+                    else
+                      l_progress.Text = $"{t}/{l_progress.Text.Split("/")[1]}";
                 });
 
 
@@ -57,7 +64,11 @@ namespace EarthBackground
                 });
                 var image = await provider.GetImagePath();
                 Logger.LogInformation($"壁纸已保存:{image}");
-                await _backgroundSetter.SetBackgroudAsync(image);
+                Logger.LogInformation($"保存壁纸: {_options.Value.SetWallpaper}");
+                if (_options.Value.SetWallpaper)
+                {
+                    await _backgroundSetter.SetBackgroudAsync(image);
+                }
                 Invoke(() =>
                 {
                     B_start.Enabled = true;
@@ -97,6 +108,27 @@ namespace EarthBackground
         private void B_stop_Click(object sender, EventArgs e)
         {
             
+        }
+
+        private void notifyIcon1_MouseClick(object sender, MouseEventArgs e)
+        {
+            Show();
+            ShowInTaskbar = true;
+            WindowState = FormWindowState.Normal;
+            notifyIcon1.Visible = false;
+            BringToFront();
+        }
+
+        private void MainForm_Deactivate(object sender, EventArgs e)
+        {
+            if(WindowState != FormWindowState.Minimized)
+            {
+                return;
+            }
+
+            ShowInTaskbar = false;
+            Hide();
+            notifyIcon1.Visible = true;
         }
     }
 }

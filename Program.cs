@@ -80,7 +80,7 @@ namespace EarthBackground
 
             services.AddHttpClient(NameConsts.Himawari8, client =>
             {
-                client.BaseAddress = new Uri($"https://rammb-slider.cira.colostate.edu/data/imagery/{DateTime.UtcNow.AddHours(-1.5):yyyyMMdd}/himawari---full_disk/geocolor/");
+                client.BaseAddress = new Uri($"https://rammb-slider.cira.colostate.edu/data/");
             }).ConfigurePrimaryHttpMessageHandler(builder => sslHandler).AddPolicyHandler(GetRetryPolicy());
 
 
