@@ -29,12 +29,17 @@ namespace EarthBackground
         public bool SetWallpaper { get; set; } = true;
 
         /// <summary>
+        /// 另存为壁纸
+        /// </summary>
+        public bool SaveWallpaper { get; set; }
+
+        /// <summary>
         /// 拼接壁纸保存目录 默认是images
         /// </summary>
         public string WallpaperFolder { get; set; } = "images";
 
         /// <summary>
-        /// 下载图片保存位置  默认是images目录
+        /// 壁纸另存为位置  默认是images目录
         /// </summary>
         public string SavePath { get; set; } = "images";
 
@@ -52,11 +57,6 @@ namespace EarthBackground
         /// 更新频率 单位 min  默认20
         /// </summary>
         public int Interval { get; set; } = 20;
-
-        /// <summary>
-        /// 上一张图片id
-        /// </summary>
-        public string LastImageId { get; set; }
     }
 
 

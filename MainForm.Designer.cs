@@ -41,77 +41,57 @@
             // 
             // l_status
             // 
-            this.l_status.AutoSize = true;
-            this.l_status.Location = new System.Drawing.Point(89, 21);
+            resources.ApplyResources(this.l_status, "l_status");
             this.l_status.Name = "l_status";
-            this.l_status.Size = new System.Drawing.Size(68, 15);
-            this.l_status.TabIndex = 0;
-            this.l_status.Text = "wait for run";
             // 
             // B_start
             // 
-            this.B_start.Location = new System.Drawing.Point(31, 94);
+            resources.ApplyResources(this.B_start, "B_start");
             this.B_start.Name = "B_start";
-            this.B_start.Size = new System.Drawing.Size(60, 24);
-            this.B_start.TabIndex = 1;
-            this.B_start.Text = "start";
             this.B_start.UseVisualStyleBackColor = true;
             this.B_start.Click += new System.EventHandler(this.B_start_Click);
             // 
             // B_stop
             // 
-            this.B_stop.Enabled = false;
-            this.B_stop.Location = new System.Drawing.Point(97, 94);
+            resources.ApplyResources(this.B_stop, "B_stop");
             this.B_stop.Name = "B_stop";
-            this.B_stop.Size = new System.Drawing.Size(60, 24);
-            this.B_stop.TabIndex = 1;
-            this.B_stop.Text = "stop";
             this.B_stop.UseVisualStyleBackColor = true;
             this.B_stop.Click += new System.EventHandler(this.B_stop_Click);
             // 
             // B_settings
             // 
-            this.B_settings.Location = new System.Drawing.Point(163, 94);
+            resources.ApplyResources(this.B_settings, "B_settings");
             this.B_settings.Name = "B_settings";
-            this.B_settings.Size = new System.Drawing.Size(64, 24);
-            this.B_settings.TabIndex = 1;
-            this.B_settings.Text = "settings";
             this.B_settings.UseVisualStyleBackColor = true;
+            this.B_settings.Click += new System.EventHandler(this.B_settings_Click);
             // 
             // progressBar1
             // 
-            this.progressBar1.Location = new System.Drawing.Point(31, 39);
+            resources.ApplyResources(this.progressBar1, "progressBar1");
             this.progressBar1.Name = "progressBar1";
-            this.progressBar1.Size = new System.Drawing.Size(196, 11);
-            this.progressBar1.TabIndex = 2;
             // 
             // l_progress
             // 
-            this.l_progress.AutoSize = true;
-            this.l_progress.Location = new System.Drawing.Point(97, 62);
+            resources.ApplyResources(this.l_progress, "l_progress");
             this.l_progress.Name = "l_progress";
-            this.l_progress.Size = new System.Drawing.Size(0, 15);
-            this.l_progress.TabIndex = 3;
             // 
             // notifyIcon1
             // 
-            this.notifyIcon1.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIcon1.Icon")));
-            this.notifyIcon1.Text = "地球背景";
+            resources.ApplyResources(this.notifyIcon1, "notifyIcon1");
             this.notifyIcon1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.notifyIcon1_MouseClick);
             // 
             // MainForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            resources.ApplyResources(this, "$this");
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(254, 136);
             this.Controls.Add(this.l_progress);
             this.Controls.Add(this.progressBar1);
             this.Controls.Add(this.B_settings);
             this.Controls.Add(this.B_stop);
             this.Controls.Add(this.B_start);
             this.Controls.Add(this.l_status);
+            this.MaximizeBox = false;
             this.Name = "MainForm";
-            this.Text = "EarthBackgroud";
             this.Deactivate += new System.EventHandler(this.MainForm_Deactivate);
             this.ResumeLayout(false);
             this.PerformLayout();

@@ -57,6 +57,158 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <assembly alias="System.Private.CoreLib" name="System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e" />
+  <data name="l_status.AutoSize" type="System.Boolean, System.Private.CoreLib">
+    <value>True</value>
+  </data>
+  <assembly alias="System.Drawing.Primitives" name="System.Drawing.Primitives, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="l_status.Location" type="System.Drawing.Point, System.Drawing.Primitives">
+    <value>104, 21</value>
+  </data>
+  <data name="l_status.Size" type="System.Drawing.Size, System.Drawing.Primitives">
+    <value>68, 15</value>
+  </data>
+  <data name="l_status.TabIndex" type="System.Int32, System.Private.CoreLib">
+    <value>0</value>
+  </data>
+  <data name="l_status.Text" xml:space="preserve">
+    <value>wait for run</value>
+  </data>
+  <data name="&gt;&gt;l_status.Name" xml:space="preserve">
+    <value>l_status</value>
+  </data>
+  <data name="&gt;&gt;l_status.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;l_status.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;l_status.ZOrder" xml:space="preserve">
+    <value>5</value>
+  </data>
+  <data name="B_start.Location" type="System.Drawing.Point, System.Drawing.Primitives">
+    <value>31, 94</value>
+  </data>
+  <data name="B_start.Size" type="System.Drawing.Size, System.Drawing.Primitives">
+    <value>60, 24</value>
+  </data>
+  <data name="B_start.TabIndex" type="System.Int32, System.Private.CoreLib">
+    <value>1</value>
+  </data>
+  <data name="B_start.Text" xml:space="preserve">
+    <value>start</value>
+  </data>
+  <data name="&gt;&gt;B_start.Name" xml:space="preserve">
+    <value>B_start</value>
+  </data>
+  <data name="&gt;&gt;B_start.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;B_start.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;B_start.ZOrder" xml:space="preserve">
+    <value>4</value>
+  </data>
+  <data name="B_stop.Enabled" type="System.Boolean, System.Private.CoreLib">
+    <value>False</value>
+  </data>
+  <data name="B_stop.Location" type="System.Drawing.Point, System.Drawing.Primitives">
+    <value>97, 94</value>
+  </data>
+  <data name="B_stop.Size" type="System.Drawing.Size, System.Drawing.Primitives">
+    <value>60, 24</value>
+  </data>
+  <data name="B_stop.TabIndex" type="System.Int32, System.Private.CoreLib">
+    <value>1</value>
+  </data>
+  <data name="B_stop.Text" xml:space="preserve">
+    <value>stop</value>
+  </data>
+  <data name="&gt;&gt;B_stop.Name" xml:space="preserve">
+    <value>B_stop</value>
+  </data>
+  <data name="&gt;&gt;B_stop.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;B_stop.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;B_stop.ZOrder" xml:space="preserve">
+    <value>3</value>
+  </data>
+  <data name="B_settings.Location" type="System.Drawing.Point, System.Drawing.Primitives">
+    <value>163, 94</value>
+  </data>
+  <data name="B_settings.Size" type="System.Drawing.Size, System.Drawing.Primitives">
+    <value>64, 24</value>
+  </data>
+  <data name="B_settings.TabIndex" type="System.Int32, System.Private.CoreLib">
+    <value>1</value>
+  </data>
+  <data name="B_settings.Text" xml:space="preserve">
+    <value>settings</value>
+  </data>
+  <data name="&gt;&gt;B_settings.Name" xml:space="preserve">
+    <value>B_settings</value>
+  </data>
+  <data name="&gt;&gt;B_settings.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;B_settings.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;B_settings.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="progressBar1.Location" type="System.Drawing.Point, System.Drawing.Primitives">
+    <value>31, 39</value>
+  </data>
+  <data name="progressBar1.Size" type="System.Drawing.Size, System.Drawing.Primitives">
+    <value>196, 11</value>
+  </data>
+  <data name="progressBar1.TabIndex" type="System.Int32, System.Private.CoreLib">
+    <value>2</value>
+  </data>
+  <data name="&gt;&gt;progressBar1.Name" xml:space="preserve">
+    <value>progressBar1</value>
+  </data>
+  <data name="&gt;&gt;progressBar1.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ProgressBar, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;progressBar1.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;progressBar1.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="l_progress.AutoSize" type="System.Boolean, System.Private.CoreLib">
+    <value>True</value>
+  </data>
+  <data name="l_progress.Location" type="System.Drawing.Point, System.Drawing.Primitives">
+    <value>112, 58</value>
+  </data>
+  <data name="l_progress.Size" type="System.Drawing.Size, System.Drawing.Primitives">
+    <value>24, 15</value>
+  </data>
+  <data name="l_progress.TabIndex" type="System.Int32, System.Private.CoreLib">
+    <value>3</value>
+  </data>
+  <data name="l_progress.Text" xml:space="preserve">
+    <value>0/0</value>
+  </data>
+  <data name="&gt;&gt;l_progress.Name" xml:space="preserve">
+    <value>l_progress</value>
+  </data>
+  <data name="&gt;&gt;l_progress.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;l_progress.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;l_progress.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
   <assembly alias="System.Drawing.Common" name="System.Drawing.Common, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51" />
   <data name="notifyIcon1.Icon" type="System.Drawing.Icon, System.Drawing.Common" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
@@ -133,5 +285,32 @@
         A/mf+AH5P4AB+D8AAPg/AAfwHgAAAA4AAAAfAAAAPwHAAB+D8ACf7zABn/YYAY/wAAHD+AAD4f+AB+D/
         gAfw/wAP+P+AH/w//D//D/D//4AB///wD/8=
 </value>
+  </data>
+  <data name="notifyIcon1.Text" xml:space="preserve">
+    <value>地球背景</value>
+  </data>
+  <metadata name="$this.Localizable" type="System.Boolean, System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e">
+    <value>True</value>
+  </metadata>
+  <data name="$this.AutoScaleDimensions" type="System.Drawing.SizeF, System.Drawing.Primitives">
+    <value>7, 15</value>
+  </data>
+  <data name="$this.ClientSize" type="System.Drawing.Size, System.Drawing.Primitives">
+    <value>254, 136</value>
+  </data>
+  <data name="$this.Text" xml:space="preserve">
+    <value>EarthBackgroud</value>
+  </data>
+  <data name="&gt;&gt;notifyIcon1.Name" xml:space="preserve">
+    <value>notifyIcon1</value>
+  </data>
+  <data name="&gt;&gt;notifyIcon1.Type" xml:space="preserve">
+    <value>System.Windows.Forms.NotifyIcon, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;$this.Name" xml:space="preserve">
+    <value>MainForm</value>
+  </data>
+  <data name="&gt;&gt;$this.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Form, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
 </root>

@@ -34,12 +34,14 @@ namespace EarthBackground
             _client = factory.CreateClient(ProviderName);
             Downloader = downloaderProvider.GetDownloader();
             path = Path.Combine(_option.SavePath, "wallpaper.bmp");
+            GetImageId();
         }
 
 
         public CaptureOption Option => _option;
 
         public IOssDownloader Downloader { get; set; }
+        private string _imageId;
 
         /// <summary>
         /// 获取图片id
@@ -57,9 +59,35 @@ namespace EarthBackground
             //var reStr = await response.Content.ReadAsStringAsync();
             //var json = JsonSerializer.Deserialize<DateResult>(reStr);
             //return json.date.ToString("yyyy/MM/dd/hhmmss");
-            var t = await _client.GetAsync(_option.ImageIdUrl);
+            var t = await _client.GetAsync(!string.IsNullOrEmpty(_option.ImageIdUrl) ? _option.ImageIdUrl : "json/himawari/full_disk/geocolor/latest_times.json");
             var str = await t.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<LastestTimes>(str).timestamps_int.First().ToString();
+        }
+
+        /// <summary>
+        /// 持久化图片id
+        /// </summary>
+        /// <returns></returns>
+        Task SetImageId()
+        {
+            return File.WriteAllTextAsync("imageId.txt", _imageId);
+        }
+
+        /// <summary>
+        /// 读取图片id
+        /// </summary>
+        /// <returns></returns>
+        string GetImageId()
+        {
+            CheckFile();
+            _imageId = File.ReadLines("imageId.txt").FirstOrDefault();
+            return _imageId;
+        }
+
+        void CheckFile()
+        {
+            if (!File.Exists("imageId.txt"))
+                File.Create("imageId.txt");
         }
 
         /// <summary>
@@ -159,7 +187,7 @@ namespace EarthBackground
         {
             CreateDirectory();
             var imageId = await GetImageIdAsync();
-            if (string.IsNullOrEmpty(imageId) || imageId == _option.LastImageId)
+            if (string.IsNullOrEmpty(imageId) || imageId == _imageId)
             {
                 return path;
             }
@@ -167,8 +195,8 @@ namespace EarthBackground
             
             await SaveImageAsync(imageId);
             var wallpaper = JoinImage();
-            _option.LastImageId = imageId;
-            await _saver.SaveAsync(_option);
+            _imageId = imageId;
+            await SetImageId();
             return wallpaper;
         }
 
@@ -178,8 +206,8 @@ namespace EarthBackground
             {
                 await Downloader.ClearOssAsync();
             }
-            _option.LastImageId = string.Empty;
-            await _saver.SaveAsync(_option);
+            _imageId = string.Empty;
+            await SetImageId();
         }
 
         public void Dispose()

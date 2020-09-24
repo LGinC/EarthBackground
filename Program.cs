@@ -1,5 +1,6 @@
 using System;
 using System.Net.Http;
+using System.Threading;
 using System.Windows.Forms;
 using EarthBackground.Background;
 using EarthBackground.Captors;
@@ -24,6 +25,7 @@ namespace EarthBackground
             Application.SetHighDpiMode(HighDpiMode.SystemAware);
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+            Thread.CurrentThread.CurrentUICulture = new System.Globalization.CultureInfo("zh-CN");
             Application.Run(ConfigureServices().GetRequiredService<MainForm>());
         }
 
@@ -64,6 +66,7 @@ namespace EarthBackground
             });
             //添加主窗体为单例
             services.AddSingleton(typeof(MainForm));
+            services.AddTransient(typeof(SettingForm));
             return services.BuildServiceProvider();
         }
 
@@ -99,7 +102,9 @@ namespace EarthBackground
 
             services.AddHttpClient(NameConsts.DirectDownload, client =>
             {
-                client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36 Edg/85.0.564.51");
+                client.DefaultRequestHeaders
+                .Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36 Edg/85.0.564.51")
+                ;
             })
                 .ConfigurePrimaryHttpMessageHandler(builder => sslHandler).AddPolicyHandler(GetRetryPolicy());
         }

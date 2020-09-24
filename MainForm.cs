@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Drawing;
+using System.Globalization;
+using System.Threading;
 using System.Windows.Forms;
 using EarthBackground.Background;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,7 +16,9 @@ namespace EarthBackground
         private IServiceProvider _provider;
         private IBackgroundSetter _backgroundSetter;
         System.Threading.Timer timer;
+        System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
         private readonly IOptionsSnapshot<CaptureOption> _options;
+        readonly CultureInfo current;
 
         public MainForm(ILogger<MainForm> logger, 
             IServiceProvider provider, 
@@ -26,7 +30,10 @@ namespace EarthBackground
             _backgroundSetter = backgroudSetProvider.GetSetter();
             _options = options;
             InitializeComponent();
+            current = Thread.CurrentThread.CurrentUICulture;
         }
+
+        private string L(string key) => resources.GetString(key, current);
 
         private async void Timer_Tick()
         {
@@ -34,11 +41,10 @@ namespace EarthBackground
             {
                 using ICaptor provider = _provider.GetRequiredService<ICaptor>();
                 Logger.LogInformation("已启动");
-
                 provider.Downloader.SetTotal += t => Invoke(() =>
                 {
                     progressBar1.Maximum = t;
-                    l_status.Text = "running";
+                    l_status.Text = L("running");
                     l_status.ForeColor = Color.Green;
                     l_progress.Text = $"0/{t}";
                 });
@@ -48,7 +54,7 @@ namespace EarthBackground
                     progressBar1.Value = t;
                     if (t == progressBar1.Maximum)
                     {
-                        l_status.Text = "complete";
+                        l_status.Text = L("complete");
                         l_status.ForeColor = Color.Black;
                         l_progress.Text = string.Empty;
                     }
@@ -81,7 +87,7 @@ namespace EarthBackground
                 Logger.LogError(ex.StackTrace);
                 Invoke(() =>
                 {
-                    l_status.Text = "wait for run";
+                    l_status.Text = L("wait for run");
                     l_status.ForeColor = Color.Black;
                     l_progress.Text = string.Empty;
                     notifyIcon1.Visible = true;
@@ -100,14 +106,19 @@ namespace EarthBackground
         private  void B_start_Click(object sender, EventArgs e)
         {
             if (timer == null)
-                timer = new System.Threading.Timer(e => Timer_Tick(), null, 0, 20 * 60000);
+                timer = new System.Threading.Timer(e => Timer_Tick(), null, TimeSpan.Zero, TimeSpan.FromMinutes(_options.Value.Interval));
             else
-                timer.Change(0, 20 * 6000);
+                timer.Change(TimeSpan.Zero, TimeSpan.FromMinutes(_options.Value.Interval));
         }
 
         private void B_stop_Click(object sender, EventArgs e)
         {
-            
+            timer.Dispose();
+            timer = null;
+            progressBar1.Value = 0;
+            l_status.Text = L("wait for run");
+            l_status.ForeColor = Color.Black;
+            l_progress.Text = string.Empty;
         }
 
         private void notifyIcon1_MouseClick(object sender, MouseEventArgs e)
@@ -129,6 +140,14 @@ namespace EarthBackground
             ShowInTaskbar = false;
             Hide();
             notifyIcon1.Visible = true;
+        }
+
+        private void B_settings_Click(object sender, EventArgs e)
+        {
+            Hide();
+            var settingForm = _provider.GetRequiredService<SettingForm>();
+            settingForm.Show();
+            settingForm.FormClosed += (s, e) => Invoke(() => Show());
         }
     }
 }
