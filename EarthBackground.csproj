@@ -5,6 +5,8 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
 	  <LangVersion>8</LangVersion>
+	  <Version>0.1.0</Version>
+	  <Authors>liguo</Authors>
   </PropertyGroup>
 
   <ItemGroup>

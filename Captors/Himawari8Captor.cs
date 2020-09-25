@@ -79,15 +79,8 @@ namespace EarthBackground
         /// <returns></returns>
         string GetImageId()
         {
-            CheckFile();
-            _imageId = File.ReadLines("imageId.txt").FirstOrDefault();
+            _imageId = !File.Exists("imageId.txt") ? null : File.ReadLines("imageId.txt").FirstOrDefault();
             return _imageId;
-        }
-
-        void CheckFile()
-        {
-            if (!File.Exists("imageId.txt"))
-                File.Create("imageId.txt");
         }
 
         /// <summary>
