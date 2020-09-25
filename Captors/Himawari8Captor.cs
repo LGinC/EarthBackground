@@ -204,10 +204,8 @@ namespace EarthBackground
         {
             if (Downloader != null)
             {
-                await Downloader.ClearOssAsync();
+                await Downloader.ClearOssAsync(_client.BaseAddress.AbsoluteUri);
             }
-            _imageId = string.Empty;
-            await SetImageId();
         }
 
         public void Dispose()

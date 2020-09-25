@@ -22,8 +22,9 @@ namespace EarthBackground
         /// <summary>
         /// 清除oss存储
         /// </summary>
+        /// <param name="domain">图片抓取域名</param>
         /// <returns></returns>
-        Task ClearOssAsync();
+        Task ClearOssAsync(string domain);
 
         /// <summary>
         /// 设置下载总数

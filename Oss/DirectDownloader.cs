@@ -74,7 +74,7 @@ namespace EarthBackground.Oss
             stream.CopyTo(fileStream);
         }
 
-        public Task ClearOssAsync() => Task.CompletedTask;
+        public Task ClearOssAsync(string domain) => Task.CompletedTask;
 
         public void Dispose()
         {

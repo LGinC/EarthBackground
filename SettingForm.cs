@@ -113,7 +113,7 @@ namespace EarthBackground
         private async void SettingForm_FormClosed(object sender, FormClosedEventArgs e)
         {
             capture.Captor = (CB_Captor.SelectedItem as NameValue<string>).Value;
-            capture.Interval = Convert.ToInt32(MUD_Interval.Value);
+            capture.Interval = (int)Math.Round(MUD_Interval.Value, 10);
             capture.Resolution = (CB_Resolution.SelectedItem as NameValue<Resolution>).Value;
             capture.SaveWallpaper = CB_SaveWallpaper.Checked;
             capture.SetWallpaper = CB_SetBackGround.Checked;

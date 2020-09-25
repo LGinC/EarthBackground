@@ -11,7 +11,7 @@ namespace EarthBackground.Oss
         public event Action<int> SetTotal;
         public event Action<int> SetCurrentProgress;
 
-        public Task ClearOssAsync()
+        public Task ClearOssAsync(string domain)
         {
             throw new NotImplementedException();
         }

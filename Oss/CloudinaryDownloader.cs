@@ -71,7 +71,7 @@ namespace EarthBackground.Oss
             stream.CopyTo(fileStream);
         }
 
-        public async Task ClearOssAsync()
+        public async Task ClearOssAsync(string domain)
         {
             if (_client.DefaultRequestHeaders.Any(h => h.Key == "Authorization"))
             {
@@ -79,7 +79,7 @@ namespace EarthBackground.Oss
             }
             _client.BaseAddress = null;
             _client.DefaultRequestHeaders.Add("Authorization", $"Basic {Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_option.ApiKey}:{_option.ApiSecret}"))}");
-            var response = await _client.DeleteAsync($"https://api.cloudinary.com/v1_1/{_option.UserName}/resources/image/fetch?prefix=http://himawari8-dl");
+            var response = await _client.DeleteAsync($"https://api.cloudinary.com/v1_1/{_option.UserName}/resources/image/fetch?prefix={domain}");
             if (!response.IsSuccessStatusCode)
             {
                 throw new InvalidOperationException();

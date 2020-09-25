@@ -130,7 +130,17 @@
             // MUD_Zoom
             // 
             resources.ApplyResources(this.MUD_Zoom, "MUD_Zoom");
+            this.MUD_Zoom.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
             this.MUD_Zoom.Name = "MUD_Zoom";
+            this.MUD_Zoom.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
             // 
             // MUD_Interval
             // 
@@ -145,7 +155,17 @@
             0,
             0,
             0});
+            this.MUD_Interval.Minimum = new decimal(new int[] {
+            10,
+            0,
+            0,
+            0});
             this.MUD_Interval.Name = "MUD_Interval";
+            this.MUD_Interval.Value = new decimal(new int[] {
+            10,
+            0,
+            0,
+            0});
             // 
             // CB_Resolution
             // 
