@@ -191,8 +191,6 @@ namespace EarthBackground
             {
                 return path;
             }
-            
-            
             await SaveImageAsync(imageId);
             var wallpaper = JoinImage();
             _imageId = imageId;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Globalization;
+using System.IO;
 using System.Threading;
 using System.Windows.Forms;
 using EarthBackground.Background;
@@ -87,6 +88,16 @@ namespace EarthBackground
                     B_start.Enabled = true;
                     B_stop.Enabled = false;
                 });
+
+                if (_options.Value.SaveWallpaper)
+                {
+                    var info = new FileInfo(image);
+                    if (!Directory.Exists(_options.Value.SavePath))
+                    {
+                        Directory.CreateDirectory(_options.Value.SavePath);
+                    }
+                    File.Copy(image, Path.Combine(_options.Value.SavePath, info.Name));
+                }
             }
             catch (Exception ex)
             {
