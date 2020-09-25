@@ -131,7 +131,7 @@ namespace EarthBackground
 
         private void B_stop_Click(object sender, EventArgs e)
         {
-            _timer.Dispose();
+            _timer?.Dispose();
             _timer = null;
             progressBar1.Value = 0;
             l_status.Text = L("wait for run");

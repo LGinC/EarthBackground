@@ -7,7 +7,9 @@ using EarthBackground.Captors;
 using EarthBackground.Oss;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
+using NLog.Extensions.Logging;
 using Polly;
 using Polly.Extensions.Http;
 
@@ -59,10 +61,14 @@ namespace EarthBackground
 
             services.AddHttpClients(config);
 
-
+            //使用NLog
+            var nlogConfig = new ConfigurationBuilder().AddJsonFile("nlog.json").Build();
+            NLog.LogManager.Configuration = new NLogLoggingConfiguration(nlogConfig.GetSection("NLog"));
             services.AddLogging(builder =>
             {
+                builder.ClearProviders();
                 builder.AddDebug();
+                builder.AddNLog(nlogConfig.GetSection("NLog"));
             });
             //添加主窗体为单例
             services.AddSingleton(typeof(MainForm));

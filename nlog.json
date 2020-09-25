@@ -1,0 +1,18 @@
+﻿{
+    "NLog": {
+        "throwConfigExceptions": true,
+        "targets": {
+            "logfile": {
+                "type": "File",
+                "fileName": "logs/nlog-${shortdate}.log"
+            }
+        },
+        "rules": [
+            {
+                "logger": "*",
+                "minLevel": "Debug",
+                "writeTo": "logfile"
+            }
+        ]
+    }
+}
