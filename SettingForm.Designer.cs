@@ -343,6 +343,8 @@
             // 
             resources.ApplyResources(this, "$this");
             this.Controls.Add(this.splitContainer1);
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
             this.Name = "SettingForm";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.SettingForm_FormClosed);
             this.splitContainer1.Panel1.ResumeLayout(false);

@@ -14,3 +14,14 @@
 ## 更多扩展正在路上
 抓取器 计划增加支持 风云4号
 oss  计划增加支持 阿里云 腾讯云
+
+## 路线路
+![Road map](https://raw.githubusercontent.com/LGinC/EarthBackground/master/Properties/Roadmap.png)
+
+## 使用界面
+
+![main](https://raw.githubusercontent.com/LGinC/EarthBackground/master/Properties/mainForm.png)
+![settings](https://raw.githubusercontent.com/LGinC/EarthBackground/master/Properties/settingForm.png)
+
+### 壁纸样例
+![wallpaper](https://raw.githubusercontent.com/LGinC/EarthBackground/master/Properties/wallpaper.bmp)
