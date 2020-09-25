@@ -136,14 +136,11 @@ namespace EarthBackground
             capture.SaveWallpaper = CB_SaveWallpaper.Checked;
             capture.SetWallpaper = CB_SetBackGround.Checked;
             capture.Zoom = Convert.ToInt32(MUD_Zoom.Value);
-            if (oss.CloudName != (CB_Downloader.SelectedItem as NameValue<string>).Value)
-            {
-                oss.IsEnable = true;
-                oss.CloudName = (CB_Downloader.SelectedItem as NameValue<string>).Value;
-                oss.UserName = string.IsNullOrWhiteSpace(TB_Username.Text) ? oss.UserName : TB_Username.Text;
-                oss.ApiKey = string.IsNullOrWhiteSpace(TB_ApiKey.Text) ? oss.ApiKey : TB_ApiKey.Text;
-                oss.ApiSecret = string.IsNullOrWhiteSpace(TB_ApiSecret.Text) ? oss.ApiSecret : TB_ApiSecret.Text;
-            }
+            oss.IsEnable = true;
+            oss.CloudName = (CB_Downloader.SelectedItem as NameValue<string>).Value;
+            oss.UserName = string.IsNullOrWhiteSpace(TB_Username.Text) ? oss.UserName : TB_Username.Text;
+            oss.ApiKey = string.IsNullOrWhiteSpace(TB_ApiKey.Text) ? oss.ApiKey : TB_ApiKey.Text;
+            oss.ApiSecret = string.IsNullOrWhiteSpace(TB_ApiSecret.Text) ? oss.ApiSecret : TB_ApiSecret.Text;
             await configureSaver.SaveAsync(capture, oss);
         }
     }

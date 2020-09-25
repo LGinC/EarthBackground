@@ -129,7 +129,7 @@ namespace EarthBackground
                 {
                     for (int j = 0; j < size; j++)
                     {
-                        tile[i, j] = Image.FromFile(Path.Combine(_option.SavePath, $"{i}_{j}.png"));
+                        tile[i, j] = Image.FromFile(Path.Combine(_option.SavePath, $"{i:000}_{j:000}.png"));
                         g.DrawImage(tile[i, j], baseRate * j, baseRate * i);
                         tile[i, j].Dispose();
                     }
