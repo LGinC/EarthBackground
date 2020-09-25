@@ -25,7 +25,7 @@ namespace EarthBackground
             Application.SetHighDpiMode(HighDpiMode.SystemAware);
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            //Thread.CurrentThread.CurrentUICulture = new System.Globalization.CultureInfo("zh-CN");
+            Thread.CurrentThread.CurrentUICulture = new System.Globalization.CultureInfo("zh-CN");
             Application.Run(ConfigureServices().GetRequiredService<MainForm>());
         }
 
@@ -96,8 +96,6 @@ namespace EarthBackground
             services.AddHttpClient(NameConsts.Qiqiuyun, client =>
             {
                 client.BaseAddress = new Uri($"https://qiniu.com/{config["OssOptions:UserName"]}");
-                client.DefaultRequestHeaders.Add("Content-Type", "application/json");
-                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Qiniu", "");
             }).ConfigurePrimaryHttpMessageHandler(builder => sslHandler).AddPolicyHandler(GetRetryPolicy());
 
             services.AddHttpClient(NameConsts.DirectDownload, client =>

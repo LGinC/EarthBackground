@@ -72,10 +72,16 @@
             this.CB_SaveWallpaper = new System.Windows.Forms.CheckBox();
             this.CB_SetBackGround = new System.Windows.Forms.CheckBox();
             this.CB_AutoStart = new System.Windows.Forms.CheckBox();
+            this.TB_Zone = new System.Windows.Forms.TextBox();
+            this.TB_Bucket = new System.Windows.Forms.TextBox();
             this.TB_ApiSecret = new System.Windows.Forms.TextBox();
+            this.TB_Domain = new System.Windows.Forms.TextBox();
             this.TB_ApiKey = new System.Windows.Forms.TextBox();
             this.TB_Username = new System.Windows.Forms.TextBox();
+            this.l_zone = new System.Windows.Forms.Label();
+            this.l_bucket = new System.Windows.Forms.Label();
             this.l_apikey = new System.Windows.Forms.Label();
+            this.l_domain = new System.Windows.Forms.Label();
             this.l_apisecret = new System.Windows.Forms.Label();
             this.l_username = new System.Windows.Forms.Label();
             this.l_downloader = new System.Windows.Forms.Label();
@@ -95,6 +101,7 @@
             // splitContainer1
             // 
             resources.ApplyResources(this.splitContainer1, "splitContainer1");
+            this.splitContainer1.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
             this.splitContainer1.Name = "splitContainer1";
             // 
             // splitContainer1.Panel1
@@ -118,10 +125,16 @@
             // 
             // splitContainer1.Panel2
             // 
+            this.splitContainer1.Panel2.Controls.Add(this.TB_Zone);
+            this.splitContainer1.Panel2.Controls.Add(this.TB_Bucket);
             this.splitContainer1.Panel2.Controls.Add(this.TB_ApiSecret);
+            this.splitContainer1.Panel2.Controls.Add(this.TB_Domain);
             this.splitContainer1.Panel2.Controls.Add(this.TB_ApiKey);
             this.splitContainer1.Panel2.Controls.Add(this.TB_Username);
+            this.splitContainer1.Panel2.Controls.Add(this.l_zone);
+            this.splitContainer1.Panel2.Controls.Add(this.l_bucket);
             this.splitContainer1.Panel2.Controls.Add(this.l_apikey);
+            this.splitContainer1.Panel2.Controls.Add(this.l_domain);
             this.splitContainer1.Panel2.Controls.Add(this.l_apisecret);
             this.splitContainer1.Panel2.Controls.Add(this.l_username);
             this.splitContainer1.Panel2.Controls.Add(this.l_downloader);
@@ -251,10 +264,25 @@
             this.CB_AutoStart.Name = "CB_AutoStart";
             this.CB_AutoStart.UseVisualStyleBackColor = true;
             // 
+            // TB_Zone
+            // 
+            resources.ApplyResources(this.TB_Zone, "TB_Zone");
+            this.TB_Zone.Name = "TB_Zone";
+            // 
+            // TB_Bucket
+            // 
+            resources.ApplyResources(this.TB_Bucket, "TB_Bucket");
+            this.TB_Bucket.Name = "TB_Bucket";
+            // 
             // TB_ApiSecret
             // 
             resources.ApplyResources(this.TB_ApiSecret, "TB_ApiSecret");
             this.TB_ApiSecret.Name = "TB_ApiSecret";
+            // 
+            // TB_Domain
+            // 
+            resources.ApplyResources(this.TB_Domain, "TB_Domain");
+            this.TB_Domain.Name = "TB_Domain";
             // 
             // TB_ApiKey
             // 
@@ -266,10 +294,25 @@
             resources.ApplyResources(this.TB_Username, "TB_Username");
             this.TB_Username.Name = "TB_Username";
             // 
+            // l_zone
+            // 
+            resources.ApplyResources(this.l_zone, "l_zone");
+            this.l_zone.Name = "l_zone";
+            // 
+            // l_bucket
+            // 
+            resources.ApplyResources(this.l_bucket, "l_bucket");
+            this.l_bucket.Name = "l_bucket";
+            // 
             // l_apikey
             // 
             resources.ApplyResources(this.l_apikey, "l_apikey");
             this.l_apikey.Name = "l_apikey";
+            // 
+            // l_domain
+            // 
+            resources.ApplyResources(this.l_domain, "l_domain");
+            this.l_domain.Name = "l_domain";
             // 
             // l_apisecret
             // 
@@ -315,5 +358,12 @@
         }
 
         #endregion
+
+        private System.Windows.Forms.TextBox TB_Bucket;
+        private System.Windows.Forms.TextBox TB_Domain;
+        private System.Windows.Forms.Label l_bucket;
+        private System.Windows.Forms.Label l_domain;
+        private System.Windows.Forms.TextBox TB_Zone;
+        private System.Windows.Forms.Label l_zone;
     }
 }

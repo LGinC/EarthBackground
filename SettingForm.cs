@@ -104,10 +104,28 @@ namespace EarthBackground
             {
                 return;
             }
-            bool enable = (CB_Downloader.SelectedItem as NameValue<string>).Value != NameConsts.DirectDownload;
+
+            var enable = (CB_Downloader.SelectedItem as NameValue<string>).Value switch
+            {
+                NameConsts.DirectDownload => false,
+                NameConsts.Cloudinary => true,
+                _ => true,
+            };
+
+            var extensionEnable = (CB_Downloader.SelectedItem as NameValue<string>).Value switch
+            {
+                NameConsts.DirectDownload => false,
+                NameConsts.Cloudinary => false,
+                NameConsts.Qiqiuyun => true,
+                _ => true,
+            };
+
             TB_Username.Enabled = enable;
             TB_ApiKey.Enabled = enable;
             TB_ApiSecret.Enabled = enable;
+            TB_Zone.Enabled = extensionEnable;
+            TB_Domain.Enabled = extensionEnable;
+            TB_Bucket.Enabled = extensionEnable;
         }
 
         private async void SettingForm_FormClosed(object sender, FormClosedEventArgs e)

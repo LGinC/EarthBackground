@@ -486,6 +486,48 @@
   <data name="&gt;&gt;splitContainer1.Panel1.ZOrder" xml:space="preserve">
     <value>0</value>
   </data>
+  <data name="TB_Zone.Location" type="System.Drawing.Point, System.Drawing.Primitives">
+    <value>93, 142</value>
+  </data>
+  <data name="TB_Zone.Size" type="System.Drawing.Size, System.Drawing.Primitives">
+    <value>112, 23</value>
+  </data>
+  <data name="TB_Zone.TabIndex" type="System.Int32, System.Private.CoreLib">
+    <value>12</value>
+  </data>
+  <data name="&gt;&gt;TB_Zone.Name" xml:space="preserve">
+    <value>TB_Zone</value>
+  </data>
+  <data name="&gt;&gt;TB_Zone.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;TB_Zone.Parent" xml:space="preserve">
+    <value>splitContainer1.Panel2</value>
+  </data>
+  <data name="&gt;&gt;TB_Zone.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="TB_Bucket.Location" type="System.Drawing.Point, System.Drawing.Primitives">
+    <value>93, 104</value>
+  </data>
+  <data name="TB_Bucket.Size" type="System.Drawing.Size, System.Drawing.Primitives">
+    <value>112, 23</value>
+  </data>
+  <data name="TB_Bucket.TabIndex" type="System.Int32, System.Private.CoreLib">
+    <value>8</value>
+  </data>
+  <data name="&gt;&gt;TB_Bucket.Name" xml:space="preserve">
+    <value>TB_Bucket</value>
+  </data>
+  <data name="&gt;&gt;TB_Bucket.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;TB_Bucket.Parent" xml:space="preserve">
+    <value>splitContainer1.Panel2</value>
+  </data>
+  <data name="&gt;&gt;TB_Bucket.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
   <data name="TB_ApiSecret.Location" type="System.Drawing.Point, System.Drawing.Primitives">
     <value>277, 66</value>
   </data>
@@ -505,7 +547,28 @@
     <value>splitContainer1.Panel2</value>
   </data>
   <data name="&gt;&gt;TB_ApiSecret.ZOrder" xml:space="preserve">
-    <value>0</value>
+    <value>2</value>
+  </data>
+  <data name="TB_Domain.Location" type="System.Drawing.Point, System.Drawing.Primitives">
+    <value>277, 104</value>
+  </data>
+  <data name="TB_Domain.Size" type="System.Drawing.Size, System.Drawing.Primitives">
+    <value>148, 23</value>
+  </data>
+  <data name="TB_Domain.TabIndex" type="System.Int32, System.Private.CoreLib">
+    <value>11</value>
+  </data>
+  <data name="&gt;&gt;TB_Domain.Name" xml:space="preserve">
+    <value>TB_Domain</value>
+  </data>
+  <data name="&gt;&gt;TB_Domain.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;TB_Domain.Parent" xml:space="preserve">
+    <value>splitContainer1.Panel2</value>
+  </data>
+  <data name="&gt;&gt;TB_Domain.ZOrder" xml:space="preserve">
+    <value>3</value>
   </data>
   <data name="TB_ApiKey.Location" type="System.Drawing.Point, System.Drawing.Primitives">
     <value>277, 27</value>
@@ -526,7 +589,7 @@
     <value>splitContainer1.Panel2</value>
   </data>
   <data name="&gt;&gt;TB_ApiKey.ZOrder" xml:space="preserve">
-    <value>1</value>
+    <value>4</value>
   </data>
   <data name="TB_Username.Location" type="System.Drawing.Point, System.Drawing.Primitives">
     <value>93, 66</value>
@@ -547,13 +610,67 @@
     <value>splitContainer1.Panel2</value>
   </data>
   <data name="&gt;&gt;TB_Username.ZOrder" xml:space="preserve">
-    <value>2</value>
+    <value>5</value>
+  </data>
+  <data name="l_zone.AutoSize" type="System.Boolean, System.Private.CoreLib">
+    <value>True</value>
+  </data>
+  <data name="l_zone.Location" type="System.Drawing.Point, System.Drawing.Primitives">
+    <value>21, 145</value>
+  </data>
+  <data name="l_zone.Size" type="System.Drawing.Size, System.Drawing.Primitives">
+    <value>34, 15</value>
+  </data>
+  <data name="l_zone.TabIndex" type="System.Int32, System.Private.CoreLib">
+    <value>13</value>
+  </data>
+  <data name="l_zone.Text" xml:space="preserve">
+    <value>Zone</value>
+  </data>
+  <data name="&gt;&gt;l_zone.Name" xml:space="preserve">
+    <value>l_zone</value>
+  </data>
+  <data name="&gt;&gt;l_zone.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;l_zone.Parent" xml:space="preserve">
+    <value>splitContainer1.Panel2</value>
+  </data>
+  <data name="&gt;&gt;l_zone.ZOrder" xml:space="preserve">
+    <value>6</value>
+  </data>
+  <data name="l_bucket.AutoSize" type="System.Boolean, System.Private.CoreLib">
+    <value>True</value>
+  </data>
+  <data name="l_bucket.Location" type="System.Drawing.Point, System.Drawing.Primitives">
+    <value>18, 107</value>
+  </data>
+  <data name="l_bucket.Size" type="System.Drawing.Size, System.Drawing.Primitives">
+    <value>43, 15</value>
+  </data>
+  <data name="l_bucket.TabIndex" type="System.Int32, System.Private.CoreLib">
+    <value>10</value>
+  </data>
+  <data name="l_bucket.Text" xml:space="preserve">
+    <value>Bucket</value>
+  </data>
+  <data name="&gt;&gt;l_bucket.Name" xml:space="preserve">
+    <value>l_bucket</value>
+  </data>
+  <data name="&gt;&gt;l_bucket.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;l_bucket.Parent" xml:space="preserve">
+    <value>splitContainer1.Panel2</value>
+  </data>
+  <data name="&gt;&gt;l_bucket.ZOrder" xml:space="preserve">
+    <value>7</value>
   </data>
   <data name="l_apikey.AutoSize" type="System.Boolean, System.Private.CoreLib">
     <value>True</value>
   </data>
   <data name="l_apikey.Location" type="System.Drawing.Point, System.Drawing.Primitives">
-    <value>209, 30</value>
+    <value>214, 30</value>
   </data>
   <data name="l_apikey.Size" type="System.Drawing.Size, System.Drawing.Primitives">
     <value>44, 15</value>
@@ -574,13 +691,40 @@
     <value>splitContainer1.Panel2</value>
   </data>
   <data name="&gt;&gt;l_apikey.ZOrder" xml:space="preserve">
-    <value>3</value>
+    <value>8</value>
+  </data>
+  <data name="l_domain.AutoSize" type="System.Boolean, System.Private.CoreLib">
+    <value>True</value>
+  </data>
+  <data name="l_domain.Location" type="System.Drawing.Point, System.Drawing.Primitives">
+    <value>216, 107</value>
+  </data>
+  <data name="l_domain.Size" type="System.Drawing.Size, System.Drawing.Primitives">
+    <value>49, 15</value>
+  </data>
+  <data name="l_domain.TabIndex" type="System.Int32, System.Private.CoreLib">
+    <value>9</value>
+  </data>
+  <data name="l_domain.Text" xml:space="preserve">
+    <value>Domain</value>
+  </data>
+  <data name="&gt;&gt;l_domain.Name" xml:space="preserve">
+    <value>l_domain</value>
+  </data>
+  <data name="&gt;&gt;l_domain.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;l_domain.Parent" xml:space="preserve">
+    <value>splitContainer1.Panel2</value>
+  </data>
+  <data name="&gt;&gt;l_domain.ZOrder" xml:space="preserve">
+    <value>9</value>
   </data>
   <data name="l_apisecret.AutoSize" type="System.Boolean, System.Private.CoreLib">
     <value>True</value>
   </data>
   <data name="l_apisecret.Location" type="System.Drawing.Point, System.Drawing.Primitives">
-    <value>209, 69</value>
+    <value>214, 69</value>
   </data>
   <data name="l_apisecret.Size" type="System.Drawing.Size, System.Drawing.Primitives">
     <value>57, 15</value>
@@ -601,7 +745,7 @@
     <value>splitContainer1.Panel2</value>
   </data>
   <data name="&gt;&gt;l_apisecret.ZOrder" xml:space="preserve">
-    <value>4</value>
+    <value>10</value>
   </data>
   <data name="l_username.AutoSize" type="System.Boolean, System.Private.CoreLib">
     <value>True</value>
@@ -628,7 +772,7 @@
     <value>splitContainer1.Panel2</value>
   </data>
   <data name="&gt;&gt;l_username.ZOrder" xml:space="preserve">
-    <value>5</value>
+    <value>11</value>
   </data>
   <data name="l_downloader.AutoSize" type="System.Boolean, System.Private.CoreLib">
     <value>True</value>
@@ -655,7 +799,7 @@
     <value>splitContainer1.Panel2</value>
   </data>
   <data name="&gt;&gt;l_downloader.ZOrder" xml:space="preserve">
-    <value>6</value>
+    <value>12</value>
   </data>
   <data name="CB_Downloader.Location" type="System.Drawing.Point, System.Drawing.Primitives">
     <value>93, 27</value>
@@ -676,7 +820,7 @@
     <value>splitContainer1.Panel2</value>
   </data>
   <data name="&gt;&gt;CB_Downloader.ZOrder" xml:space="preserve">
-    <value>7</value>
+    <value>13</value>
   </data>
   <data name="&gt;&gt;splitContainer1.Panel2.Name" xml:space="preserve">
     <value>splitContainer1.Panel2</value>
@@ -691,10 +835,10 @@
     <value>1</value>
   </data>
   <data name="splitContainer1.Size" type="System.Drawing.Size, System.Drawing.Primitives">
-    <value>434, 299</value>
+    <value>434, 385</value>
   </data>
   <data name="splitContainer1.SplitterDistance" type="System.Int32, System.Private.CoreLib">
-    <value>195</value>
+    <value>200</value>
   </data>
   <data name="splitContainer1.TabIndex" type="System.Int32, System.Private.CoreLib">
     <value>0</value>
@@ -718,7 +862,7 @@
     <value>True</value>
   </metadata>
   <data name="$this.ClientSize" type="System.Drawing.Size, System.Drawing.Primitives">
-    <value>434, 299</value>
+    <value>434, 385</value>
   </data>
   <data name="&gt;&gt;SavePathDialog.Name" xml:space="preserve">
     <value>SavePathDialog</value>

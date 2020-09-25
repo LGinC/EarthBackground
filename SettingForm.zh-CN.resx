@@ -147,6 +147,12 @@
   <data name="l_apisecret.Text" xml:space="preserve">
     <value>Api密钥</value>
   </data>
+  <data name="l_bucket.Text" xml:space="preserve">
+    <value>桶/空间</value>
+  </data>
+  <data name="l_domain.Text" xml:space="preserve">
+    <value>域名</value>
+  </data>
   <data name="l_downloader.Text" xml:space="preserve">
     <value>下载器</value>
   </data>
@@ -167,6 +173,9 @@
   </data>
   <data name="l_username.Text" xml:space="preserve">
     <value>用户名</value>
+  </data>
+  <data name="l_zone.Text" xml:space="preserve">
+    <value>区域</value>
   </data>
   <data name="l_zoom.Text" xml:space="preserve">
     <value>缩放</value>

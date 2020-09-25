@@ -107,7 +107,7 @@ namespace EarthBackground
                     string filePath = Path.Combine(_option.SavePath, image);
                     if (!File.Exists(filePath))
                     {
-                        images.Add(($"{_client.BaseAddress.AbsoluteUri}imagery/{imageId[0..8]}/himawari---full_disk/geocolor/{imageId}/{size:00}/{image}", $"{i}_{j}.png"));
+                        images.Add(($"{_client.BaseAddress.AbsoluteUri}imagery/{imageId[0..8]}/himawari---full_disk/geocolor/{imageId}/{size:00}/{image}", image));
                     }
                 }
             }
