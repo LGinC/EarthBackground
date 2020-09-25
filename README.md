@@ -24,4 +24,4 @@ oss  计划增加支持 阿里云 腾讯云
 ![settings](https://raw.githubusercontent.com/LGinC/EarthBackground/master/Properties/settingForm.png)
 
 ### 壁纸样例
-![wallpaper](https://raw.githubusercontent.com/LGinC/EarthBackground/master/Properties/wallpaper.bmp)
+![wallpaper](https://raw.githubusercontent.com/LGinC/EarthBackground/master/Properties/wallpaper.png)
