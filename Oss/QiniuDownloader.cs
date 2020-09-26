@@ -42,7 +42,7 @@ namespace EarthBackground.Oss
             }
 
             client.DefaultRequestHeaders.Host = "rs.qbox.me";
-            if (!client.DefaultRequestHeaders.Any(h => h.Key == "Content-Type" && h.Value.Contains("application/x-www-form-urlencoded")))
+            if (client.DefaultRequestHeaders.Any(h => h.Key == "Content-Type"))
             {
                 client.DefaultRequestHeaders.Remove("Content-Type");
                 client.DefaultRequestHeaders.Add("Content-Type", "application/x-www-form-urlencoded");
@@ -59,7 +59,7 @@ namespace EarthBackground.Oss
             client.DefaultRequestHeaders.Host = "rsf.qbox.me";
             string url = $"/list?bucket={options.Value.Bucket}&prefix=0";
             AddAuthorization(url, null);
-            if (!client.DefaultRequestHeaders.Any(h => h.Key == "Content-Type" && h.Value.Contains("application/x-www-form-urlencoded")))
+            if (client.DefaultRequestHeaders.Any(h => h.Key == "Content-Type"))
             {
                 client.DefaultRequestHeaders.Remove("Content-Type");
                 client.DefaultRequestHeaders.Add("Content-Type", "application/x-www-form-urlencoded");
@@ -97,7 +97,7 @@ namespace EarthBackground.Oss
         private async Task SetFetchUrlAsync(string url)
         {
             client.DefaultRequestHeaders.Host = "uc.qbox.me";
-            if(!client.DefaultRequestHeaders.Any(h => h.Key == "Content-Type" && h.Value.Contains("application/x-www-form-urlencoded")))
+            if(client.DefaultRequestHeaders.Any(h => h.Key == "Content-Type"))
             {
                 client.DefaultRequestHeaders.Remove("Content-Type");
                 client.DefaultRequestHeaders.Add("Content-Type", "application/x-www-form-urlencoded");

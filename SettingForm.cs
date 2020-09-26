@@ -71,6 +71,9 @@ namespace EarthBackground
                 TB_Username.Text = oss.UserName;
                 TB_ApiKey.Text = oss.ApiKey;
                 TB_ApiSecret.Text = oss.ApiSecret;
+                TB_Zone.Text = oss.Zone;
+                TB_Domain.Text = oss.Domain;
+                TB_Bucket.Text = oss.Bucket;
             }
         }
 
@@ -141,6 +144,9 @@ namespace EarthBackground
             oss.UserName = string.IsNullOrWhiteSpace(TB_Username.Text) ? oss.UserName : TB_Username.Text;
             oss.ApiKey = string.IsNullOrWhiteSpace(TB_ApiKey.Text) ? oss.ApiKey : TB_ApiKey.Text;
             oss.ApiSecret = string.IsNullOrWhiteSpace(TB_ApiSecret.Text) ? oss.ApiSecret : TB_ApiSecret.Text;
+            oss.Bucket = string.IsNullOrWhiteSpace(TB_Bucket.Text) ? oss.Bucket : TB_Bucket.Text;
+            oss.Domain = string.IsNullOrWhiteSpace(TB_Domain.Text) ? oss.Domain : TB_Domain.Text;
+            oss.Zone = string.IsNullOrWhiteSpace(TB_Zone.Text) ? oss.Zone : TB_Zone.Text;
             await configureSaver.SaveAsync(capture, oss);
         }
     }
