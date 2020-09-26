@@ -42,16 +42,11 @@ namespace EarthBackground.Oss
             }
 
             client.DefaultRequestHeaders.Host = "rs.qbox.me";
-            if (client.DefaultRequestHeaders.Any(h => h.Key == "Content-Type"))
-            {
-                client.DefaultRequestHeaders.Remove("Content-Type");
-                client.DefaultRequestHeaders.Add("Content-Type", "application/x-www-form-urlencoded");
-            }
 
             string bucket = options.Value.Bucket;
             string body = string.Join('&', keys.Select(k => $"op=/delete/{QiniuBase64.UrlSafeBase64Encode($"{bucket}:{k}")}"));
             AddAuthorization("/batch", Encoding.UTF8.GetBytes(body));
-            return client.PostAsync("/batch", new StringContent(body));
+            return client.PostAsync("/batch", new StringContent(body, Encoding.UTF8, "application/x-www-form-urlencoded"));
         }
 
         private async Task<IEnumerable<string>> GetKeys()
@@ -59,12 +54,6 @@ namespace EarthBackground.Oss
             client.DefaultRequestHeaders.Host = "rsf.qbox.me";
             string url = $"/list?bucket={options.Value.Bucket}&prefix=0";
             AddAuthorization(url, null);
-            if (client.DefaultRequestHeaders.Any(h => h.Key == "Content-Type"))
-            {
-                client.DefaultRequestHeaders.Remove("Content-Type");
-                client.DefaultRequestHeaders.Add("Content-Type", "application/x-www-form-urlencoded");
-            }
-
             var response = await client.GetAsync(url);
             if (response.IsSuccessStatusCode)
             {
@@ -97,12 +86,8 @@ namespace EarthBackground.Oss
         private async Task SetFetchUrlAsync(string url)
         {
             client.DefaultRequestHeaders.Host = "uc.qbox.me";
-            if(client.DefaultRequestHeaders.Any(h => h.Key == "Content-Type"))
-            {
-                client.DefaultRequestHeaders.Remove("Content-Type");
-                client.DefaultRequestHeaders.Add("Content-Type", "application/x-www-form-urlencoded");
-            }
-            await client.PostAsync($"/image/{options.Value.Bucket}/from/{QiniuBase64.UrlSafeBase64Encode(Encoding.UTF8.GetBytes(url))}", new StringContent(string.Empty));
+            var response = await client.PostAsync($"/image/{options.Value.Bucket}/from/{QiniuBase64.UrlSafeBase64Encode(Encoding.UTF8.GetBytes(url))}", new StringContent(string.Empty, Encoding.UTF8, "application/x-www-form-urlencoded"));
+            var s = await response.Content.ReadAsStringAsync();
         }
 
         public async  Task<IEnumerable<(string url, string path)>> DownloadAsync(IEnumerable<(string url, string file)> images, string directory)
