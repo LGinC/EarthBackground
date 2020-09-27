@@ -75,14 +75,17 @@ namespace EarthBackground.Oss
         /// <param name="url">请求目标的URL</param>
         /// <param name="body">请求的主体数据</param>
         /// <returns></returns>
-        public string SignRequest(string url, byte[] body)
+        public string SignRequest(string httpMethod, string url, string contentType = null, byte[] body = null)
         {
             Uri u = new Uri(url);
-            string pathAndQuery = u.PathAndQuery;
-            byte[] pathAndQueryBytes = Encoding.UTF8.GetBytes(pathAndQuery);
-
+            string signingStr = $"{httpMethod} {u.PathAndQuery}\nHost: {u.Host}\n";
+            if (!string.IsNullOrWhiteSpace(contentType))
+            {
+                signingStr = $"{signingStr}Content-Type: {contentType}\n";
+            }
+            byte[] bytes = Encoding.UTF8.GetBytes(signingStr);
             using MemoryStream buffer = new MemoryStream();
-            buffer.Write(pathAndQueryBytes, 0, pathAndQueryBytes.Length);
+            buffer.Write(bytes, 0, bytes.Length);
             buffer.WriteByte((byte)'\n');
             if (body != null && body.Length > 0)
             {
@@ -100,10 +103,10 @@ namespace EarthBackground.Oss
         /// <param name="url">请求目标的URL</param>
         /// <param name="body">请求的主体数据</param>
         /// <returns></returns>
-        public string SignRequest(string url, string body)
+        public string SignRequest(string httpMethod, string url, string contentType = null, string body = null)
         {
-            byte[] data = Encoding.UTF8.GetBytes(body);
-            return SignRequest(url, data);
+            byte[] data = body != null ? Encoding.UTF8.GetBytes(body) : null;
+            return SignRequest(httpMethod, url, contentType, data);
         }
     }
 

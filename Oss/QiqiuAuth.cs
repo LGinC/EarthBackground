@@ -17,19 +17,9 @@
         /// <param name="url">请求的URL</param>
         /// <param name="body">请求的主体内容</param>
         /// <returns>生成的管理凭证</returns>
-        public string CreateManageToken(string url, byte[] body)
+        public string CreateManageToken(string httpMethod, string url, string contentType = null, byte[] body = null)
         {
-            return $"Qiniu {QiniuSignature.SignRequest(url, body)}";
-        }
-
-        /// <summary>
-        /// 生成管理凭证-不包含body
-        /// </summary>
-        /// <param name="url">请求的URL</param>
-        /// <returns>生成的管理凭证</returns>
-        public string CreateManageToken(string url)
-        {
-            return CreateManageToken(url, null);
+            return $"Qiniu {QiniuSignature.SignRequest(httpMethod, url, contentType, body)}";
         }
 
         /// <summary>
@@ -80,22 +70,12 @@
         /// <param name="url">访问的URL</param>
         /// <param name="body">请求的body</param>
         /// <returns>生成的管理凭证</returns>
-        public static string CreateManageToken(Mac mac, string url, byte[] body)
+        public static string CreateManageToken(Mac mac, string httpMethod, string url, string contentType = null, byte[] body = null)
         {
             QiniuSignature sx = new QiniuSignature(mac);
-            return $"Qiniu {sx.SignRequest(url, body)}";
+            return $"Qiniu {sx.SignRequest(httpMethod.ToUpper(), url, contentType, body)}";
         }
 
-        /// <summary>
-        /// 生成管理凭证-不包含body
-        /// </summary>
-        /// <param name="mac">账号(密钥)</param>
-        /// <param name="url">请求的URL</param>
-        /// <returns>生成的管理凭证</returns>
-        public static string CreateManageToken(Mac mac, string url)
-        {
-            return CreateManageToken(mac, url, null);
-        }
 
         /// <summary>
         /// 生成上传凭证

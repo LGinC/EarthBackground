@@ -19,6 +19,7 @@ namespace EarthBackground.Oss
         private readonly IOptionsSnapshot<OssOption> options;
         private readonly HttpClient client;
         private readonly Mac mac;
+        private const string prifix = "eb_";
 
         public QiniuDownloader(IHttpClientFactory httpClientFactory, IOptionsSnapshot<OssOption> options)
         {
@@ -34,7 +35,7 @@ namespace EarthBackground.Oss
             await DeleteAsync(keys);
         }
 
-        private  Task DeleteAsync(IEnumerable<string> keys)
+        private Task DeleteAsync(IEnumerable<string> keys)
         {
             if (keys.IsNullOrEmpty())
             {
@@ -45,7 +46,7 @@ namespace EarthBackground.Oss
 
             string bucket = options.Value.Bucket;
             string body = string.Join('&', keys.Select(k => $"op=/delete/{QiniuBase64.UrlSafeBase64Encode($"{bucket}:{k}")}"));
-            AddAuthorization("/batch", Encoding.UTF8.GetBytes(body));
+            AddAuthorization("DELETE", "/batch", "application/x-www-form-urlencoded", Encoding.UTF8.GetBytes(body));
             return client.PostAsync("/batch", new StringContent(body, Encoding.UTF8, "application/x-www-form-urlencoded"));
         }
 
@@ -73,30 +74,49 @@ namespace EarthBackground.Oss
             client.Dispose();
         }
 
-        public void AddAuthorization(string url, byte[] body)
+        public void AddAuthorization(string httpMethod, string url, string contentType = null, byte[] body = null)
         {
-            if(client.DefaultRequestHeaders.Any(c => c.Key == "Authorization"))
+            if (client.DefaultRequestHeaders.Any(c => c.Key == "Authorization"))
             {
                 client.DefaultRequestHeaders.Remove("Authorization");
             }
 
-            client.DefaultRequestHeaders.Add("Authorization", body.IsNullOrEmpty() ? QiqiuAuth.CreateManageToken(mac, url) :  QiqiuAuth.CreateManageToken(mac, url, body));
+            client.DefaultRequestHeaders.Add("Authorization", QiqiuAuth.CreateManageToken(mac, httpMethod, url, contentType, body));
         }
 
-        private async Task SetFetchUrlAsync(string url)
+        private async Task FetchAsync(IEnumerable<(string url, string path)> urls)
         {
-            client.DefaultRequestHeaders.Host = "uc.qbox.me";
-            var response = await client.PostAsync($"/image/{options.Value.Bucket}/from/{QiniuBase64.UrlSafeBase64Encode(Encoding.UTF8.GetBytes(url))}", new StringContent(string.Empty, Encoding.UTF8, "application/x-www-form-urlencoded"));
-            var s = await response.Content.ReadAsStringAsync();
+            var urlencode = $"http://api-{options.Value.Zone}.qiniu.com/sisyphus/fetch";
+            client.DefaultRequestHeaders.Host = $"api-{options.Value.Zone}.qiniu.com";
+            foreach ((string url, string path) in urls)
+            {
+                var jsonStr = JsonSerializer.Serialize(new
+                {
+                    url,
+                    key = path,
+                    bucket = options.Value.Bucket,
+                    file_type = 1
+                });
+                var data = Encoding.UTF8.GetBytes(jsonStr);
+                AddAuthorization("POST", urlencode, "application/json", data);
+                var response = await client.PostAsync(urlencode, new ByteArrayContent(data));
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new InvalidDataException(await response.Content.ReadAsStringAsync());
+                }
+            }
+           
         }
 
-        public async  Task<IEnumerable<(string url, string path)>> DownloadAsync(IEnumerable<(string url, string file)> images, string directory)
+
+        public async Task<IEnumerable<(string url, string path)>> DownloadAsync(IEnumerable<(string url, string file)> images, string directory)
         {
             if (images.IsNullOrEmpty())
             {
                 return null;
             }
-            await SetFetchUrlAsync(images.First().url.Replace(images.First().file, string.Empty));
+
+            await FetchAsync(images.Select(i => (i.url, $"{prifix}{i.file}")));
 
             SetTotal(images.Count());
             var result = new List<(string, string)> { Capacity = images.Count() };
@@ -125,7 +145,7 @@ namespace EarthBackground.Oss
             return result;
         }
 
-      
+
 
         private async Task DownLoadImageAsync(string url, string path)
         {
