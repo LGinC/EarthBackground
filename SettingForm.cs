@@ -112,6 +112,7 @@ namespace EarthBackground
             {
                 NameConsts.DirectDownload => false,
                 NameConsts.Cloudinary => true,
+                NameConsts.Qiqiuyun => false,
                 _ => true,
             };
 

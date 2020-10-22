@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -13,17 +14,27 @@ namespace EarthBackground.Oss
             this.mac = mac;
         }
 
-        private string EncodedSign(byte[] data)
+        private string encodedSign(byte[] data)
         {
+#if WINDOWS_UWP
+            var hma = MacAlgorithmProvider.OpenAlgorithm(MacAlgorithmNames.HmacSha1);
+            var skBuffer = CryptographicBuffer.ConvertStringToBinary(mac.SecretKey, BinaryStringEncoding.Utf8);
+            var hmacKey = hma.CreateKey(skBuffer);
+            var dataBuffer = CryptographicBuffer.CreateFromByteArray(data);
+            var signBuffer = CryptographicEngine.Sign(hmacKey, dataBuffer);
+            byte[] digest;
+            CryptographicBuffer.CopyToByteArray(signBuffer, out digest);
+#else
             HMACSHA1 hmac = new HMACSHA1(Encoding.UTF8.GetBytes(mac.SecretKey));
             byte[] digest = hmac.ComputeHash(data);
+#endif
             return QiniuBase64.UrlSafeBase64Encode(digest);
         }
 
-        private string EncodedSign(string str)
+        private string encodedSign(string str)
         {
             byte[] data = Encoding.UTF8.GetBytes(str);
-            return EncodedSign(data);
+            return encodedSign(data);
         }
 
         /// <summary>
@@ -33,7 +44,7 @@ namespace EarthBackground.Oss
         /// <returns></returns>
         public string Sign(byte[] data)
         {
-            return string.Format("{0}:{1}", mac.AccessKey, EncodedSign(data));
+            return string.Format("{0}:{1}", mac.AccessKey, encodedSign(data));
         }
 
         /// <summary>
@@ -55,7 +66,7 @@ namespace EarthBackground.Oss
         public string SignWithData(byte[] data)
         {
             string sstr = QiniuBase64.UrlSafeBase64Encode(data);
-            return $"{mac.AccessKey}:{EncodedSign(sstr)}:{sstr}";
+            return string.Format("{0}:{1}:{2}", mac.AccessKey, encodedSign(sstr), sstr);
         }
 
         /// <summary>
@@ -75,26 +86,35 @@ namespace EarthBackground.Oss
         /// <param name="url">请求目标的URL</param>
         /// <param name="body">请求的主体数据</param>
         /// <returns></returns>
-        public string SignRequest(string httpMethod, string url, string contentType = null, byte[] body = null)
+        public string SignRequest(string url, byte[] body)
         {
             Uri u = new Uri(url);
-            string signingStr = $"{httpMethod} {u.PathAndQuery}\nHost: {u.Host}\n";
-            if (!string.IsNullOrWhiteSpace(contentType))
+            string pathAndQuery = u.PathAndQuery;
+            byte[] pathAndQueryBytes = Encoding.UTF8.GetBytes(pathAndQuery);
+
+            using (MemoryStream buffer = new MemoryStream())
             {
-                signingStr = $"{signingStr}Content-Type: {contentType}\n";
+                buffer.Write(pathAndQueryBytes, 0, pathAndQueryBytes.Length);
+                buffer.WriteByte((byte)'\n');
+                if (body != null && body.Length > 0)
+                {
+                    buffer.Write(body, 0, body.Length);
+                }
+#if WINDOWS_UWP
+                var hma = MacAlgorithmProvider.OpenAlgorithm(MacAlgorithmNames.HmacSha1);
+                var skBuffer = CryptographicBuffer.ConvertStringToBinary(mac.SecretKey, BinaryStringEncoding.Utf8);
+                var hmacKey = hma.CreateKey(skBuffer);
+                var dataBuffer = CryptographicBuffer.CreateFromByteArray(buffer.ToArray());
+                var signBuffer = CryptographicEngine.Sign(hmacKey, dataBuffer);
+                byte[] digest;
+                CryptographicBuffer.CopyToByteArray(signBuffer, out digest);
+#else
+                HMACSHA1 hmac = new HMACSHA1(Encoding.UTF8.GetBytes(mac.SecretKey));
+                byte[] digest = hmac.ComputeHash(buffer.ToArray());
+#endif
+                string digestBase64 = QiniuBase64.UrlSafeBase64Encode(digest);
+                return string.Format("{0}:{1}", mac.AccessKey, digestBase64);
             }
-            byte[] bytes = Encoding.UTF8.GetBytes(signingStr);
-            using MemoryStream buffer = new MemoryStream();
-            buffer.Write(bytes, 0, bytes.Length);
-            buffer.WriteByte((byte)'\n');
-            if (body != null && body.Length > 0)
-            {
-                buffer.Write(body, 0, body.Length);
-            }
-            HMACSHA1 hmac = new HMACSHA1(Encoding.UTF8.GetBytes(mac.SecretKey));
-            byte[] digest = hmac.ComputeHash(buffer.ToArray());
-            string digestBase64 = QiniuBase64.UrlSafeBase64Encode(digest);
-            return $"{mac.AccessKey}:{digestBase64}";
         }
 
         /// <summary>
@@ -103,10 +123,10 @@ namespace EarthBackground.Oss
         /// <param name="url">请求目标的URL</param>
         /// <param name="body">请求的主体数据</param>
         /// <returns></returns>
-        public string SignRequest(string httpMethod, string url, string contentType = null, string body = null)
+        public string SignRequest(string url, string body)
         {
-            byte[] data = body != null ? Encoding.UTF8.GetBytes(body) : null;
-            return SignRequest(httpMethod, url, contentType, data);
+            byte[] data = Encoding.UTF8.GetBytes(body);
+            return SignRequest(url, data);
         }
     }
 
@@ -135,6 +155,40 @@ namespace EarthBackground.Oss
         {
             AccessKey = accessKey;
             SecretKey = secretKey;
+        }
+    }
+
+
+    /// <summary>
+    /// 字符串处理工具
+    /// </summary>
+    public class StringHelper
+    {
+        /// <summary>
+        /// URL编码
+        /// </summary>
+        /// <param name="text">源字符串</param>
+        /// <returns>URL编码字符串</returns>
+        public static string UrlEncode(string text)
+        {
+            return Uri.EscapeDataString(text);
+        }
+
+        /// <summary>
+        /// URL键值对编码
+        /// </summary>
+        /// <param name="values">键值对</param>
+        /// <returns>URL编码的键值对数据</returns>
+        public static string UrlFormEncode(Dictionary<string, string> values)
+        {
+            StringBuilder urlValuesBuilder = new StringBuilder();
+
+            foreach (KeyValuePair<string, string> kvp in values)
+            {
+                urlValuesBuilder.AppendFormat("{0}={1}&", Uri.EscapeDataString(kvp.Key), Uri.EscapeDataString(kvp.Value));
+            }
+            string encodedStr = urlValuesBuilder.ToString();
+            return encodedStr.Substring(0, encodedStr.Length - 1);
         }
     }
 }

@@ -2,13 +2,12 @@
 {
     public class QiqiuAuth
     {
-        private QiniuSignature QiniuSignature;
+        private readonly QiniuSignature _signature;
 
         public QiqiuAuth(Mac mac)
         {
-            QiniuSignature = new QiniuSignature(mac);
+            _signature = new QiniuSignature(mac);
         }
-
         /// <summary>
         /// 生成管理凭证
         /// 有关管理凭证请参阅
@@ -17,9 +16,19 @@
         /// <param name="url">请求的URL</param>
         /// <param name="body">请求的主体内容</param>
         /// <returns>生成的管理凭证</returns>
-        public string CreateManageToken(string httpMethod, string url, string contentType = null, byte[] body = null)
+        public string CreateManageToken(string url, byte[] body)
         {
-            return $"Qiniu {QiniuSignature.SignRequest(httpMethod, url, contentType, body)}";
+            return string.Format("QBox {0}", _signature.SignRequest(url, body));
+        }
+
+        /// <summary>
+        /// 生成管理凭证-不包含body
+        /// </summary>
+        /// <param name="url">请求的URL</param>
+        /// <returns>生成的管理凭证</returns>
+        public string CreateManageToken(string url)
+        {
+            return CreateManageToken(url, null);
         }
 
         /// <summary>
@@ -29,7 +38,7 @@
         /// <returns>生成的上传凭证</returns>
         public string CreateUploadToken(string jsonStr)
         {
-            return QiniuSignature.SignWithData(jsonStr);
+            return _signature.SignWithData(jsonStr);
         }
 
         /// <summary>
@@ -39,7 +48,7 @@
         /// <returns></returns>
         public string CreateDownloadToken(string url)
         {
-            return QiniuSignature.Sign(url);
+            return _signature.Sign(url);
         }
 
         /// <summary>
@@ -49,7 +58,7 @@
         /// <returns></returns>
         public string CreateStreamPublishToken(string path)
         {
-            return QiniuSignature.Sign(path);
+            return _signature.Sign(path);
         }
 
         /// <summary>
@@ -57,7 +66,10 @@
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public string CreateStreamManageToken(string data) => $"Qiniu {QiniuSignature.SignWithData(data)}";
+        public string CreateStreamManageToken(string data)
+        {
+            return string.Format("Qiniu {0}", _signature.SignWithData(data));
+        }
 
         #region STATIC
 
@@ -70,12 +82,22 @@
         /// <param name="url">访问的URL</param>
         /// <param name="body">请求的body</param>
         /// <returns>生成的管理凭证</returns>
-        public static string CreateManageToken(Mac mac, string httpMethod, string url, string contentType = null, byte[] body = null)
+        public static string CreateManageToken(Mac mac, string url, byte[] body)
         {
             QiniuSignature sx = new QiniuSignature(mac);
-            return $"Qiniu {sx.SignRequest(httpMethod.ToUpper(), url, contentType, body)}";
+            return string.Format("QBox {0}", sx.SignRequest(url, body));
         }
 
+        /// <summary>
+        /// 生成管理凭证-不包含body
+        /// </summary>
+        /// <param name="mac">账号(密钥)</param>
+        /// <param name="url">请求的URL</param>
+        /// <returns>生成的管理凭证</returns>
+        public static string CreateManageToken(Mac mac, string url)
+        {
+            return CreateManageToken(mac, url, null);
+        }
 
         /// <summary>
         /// 生成上传凭证
@@ -122,7 +144,7 @@
         public static string CreateStreamManageToken(Mac mac, string data)
         {
             QiniuSignature sx = new QiniuSignature(mac);
-            return $"Qiniu {sx.Sign(data)}";
+            return string.Format("Qiniu {0}", sx.Sign(data));
         }
 
         #endregion STATIC
