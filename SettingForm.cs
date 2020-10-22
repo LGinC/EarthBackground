@@ -111,7 +111,12 @@ namespace EarthBackground
             var enable = (CB_Downloader.SelectedItem as NameValue<string>).Value switch
             {
                 NameConsts.DirectDownload => false,
-                NameConsts.Cloudinary => true,
+                _ => true,
+            };
+
+            var userNameEnable = (CB_Downloader.SelectedItem as NameValue<string>).Value switch
+            {
+                NameConsts.DirectDownload => false,
                 NameConsts.Qiqiuyun => false,
                 _ => true,
             };
@@ -120,11 +125,10 @@ namespace EarthBackground
             {
                 NameConsts.DirectDownload => false,
                 NameConsts.Cloudinary => false,
-                NameConsts.Qiqiuyun => true,
                 _ => true,
             };
 
-            TB_Username.Enabled = enable;
+            TB_Username.Enabled = userNameEnable;
             TB_ApiKey.Enabled = enable;
             TB_ApiSecret.Enabled = enable;
             TB_Zone.Enabled = extensionEnable;
