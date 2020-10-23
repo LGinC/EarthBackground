@@ -16,7 +16,7 @@
 oss  计划增加支持 阿里云 腾讯云
 
 
-![配置详解](https://github.com/LGinC/EarthBackground/wiki)
+[配置详解](https://github.com/LGinC/EarthBackground/wiki)
 
 ## 路线路
 ![Road map](https://raw.githubusercontent.com/LGinC/EarthBackground/master/Properties/Roadmap.png)
