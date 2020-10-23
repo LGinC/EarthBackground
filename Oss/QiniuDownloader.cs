@@ -33,10 +33,11 @@ namespace EarthBackground.Oss
         }
 
 
-        public async Task ClearOssAsync(string domain)
+        public  Task ClearOssAsync(string domain)
         {
-            IEnumerable<string> keys = await GetKeys();
-            await BatchDeleteAsync(keys);
+            //IEnumerable<string> keys = await GetKeys();
+            //await BatchDeleteAsync(keys);
+            return Task.CompletedTask;
         }
 
         private async Task BatchDeleteAsync(IEnumerable<string> keys)
