@@ -120,6 +120,9 @@
   <data name="$this.Text" xml:space="preserve">
     <value>设置</value>
   </data>
+  <data name="as0" xml:space="preserve">
+    <value>东南亚</value>
+  </data>
   <data name="B_ChooseSavePath.Text" xml:space="preserve">
     <value>选择保存路径</value>
   </data>
@@ -180,7 +183,19 @@
   <data name="l_zoom.Text" xml:space="preserve">
     <value>缩放</value>
   </data>
+  <data name="na0" xml:space="preserve">
+    <value>北美</value>
+  </data>
   <data name="Qiniuyun" xml:space="preserve">
     <value>七牛云</value>
+  </data>
+  <data name="z0" xml:space="preserve">
+    <value>华东</value>
+  </data>
+  <data name="z1" xml:space="preserve">
+    <value>华北</value>
+  </data>
+  <data name="z2" xml:space="preserve">
+    <value>华南</value>
   </data>
 </root>

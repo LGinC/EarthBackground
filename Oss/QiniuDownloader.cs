@@ -153,10 +153,10 @@ namespace EarthBackground.Oss
 
             //下载完后立即删除oss文件
             //await BatchDeleteAsync(images.Select(i => i.file));
-            foreach (var item in images.Select(i => i.file))
-            {
-                await DeleteAsync($"{prifix}{item}");
-            }
+            //foreach (var item in images.Select(i => i.file))
+            //{
+            //    await DeleteAsync($"{prifix}{item}");
+            //}
             return result;
         }
 

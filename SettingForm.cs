@@ -71,10 +71,33 @@ namespace EarthBackground
                 TB_Username.Text = oss.UserName;
                 TB_ApiKey.Text = oss.ApiKey;
                 TB_ApiSecret.Text = oss.ApiSecret;
-                TB_Zone.Text = oss.Zone;
                 TB_Domain.Text = oss.Domain;
                 TB_Bucket.Text = oss.Bucket;
+
+                var zones = GetZones(oss.CloudName);
+                CB_Zone.Items.Clear();
+                CB_Zone.Items.AddRange(zones);
+                if (!string.IsNullOrWhiteSpace(oss.Zone))
+                {
+                    var zone = zones.FirstOrDefault(z => z.Value == oss.Zone);
+                    if(zone != null)
+                    {
+                        CB_Zone.SelectedItem = zone;
+                    }
+                }
             }
+        }
+
+        private NameValue<string>[] GetZones(string cloudName)
+        {
+            var zones = cloudName switch
+            {
+                NameConsts.Qiqiuyun => new[] { "z0", "z1", "z2", "na0", "as0" },
+                _ => Array.Empty<string>(),
+            };
+
+            return zones.IsNullOrEmpty() ? Array.Empty<NameValue<string>>() :
+                zones.Select(z => new NameValue<string>(L(z), z)).ToArray();
         }
 
         private string L(string key) => resources.GetString(key, current);
@@ -108,32 +131,54 @@ namespace EarthBackground
                 return;
             }
 
-            var enable = (CB_Downloader.SelectedItem as NameValue<string>).Value switch
+            string cloud = (CB_Downloader.SelectedItem as NameValue<string>).Value;
+            switch (cloud)
             {
-                NameConsts.DirectDownload => false,
-                _ => true,
-            };
+                case NameConsts.DirectDownload:
+                    DirectDownloadSetting();
+                    break;
+                case NameConsts.Cloudinary:
+                    CloudinarySetting();
+                    break;
+                case NameConsts.Qiqiuyun:
+                    QiniuSetting(cloud);
+                    break;
+                default:
+                    break;
+            }
+        }
 
-            var userNameEnable = (CB_Downloader.SelectedItem as NameValue<string>).Value switch
-            {
-                NameConsts.DirectDownload => false,
-                NameConsts.Qiqiuyun => false,
-                _ => true,
-            };
+        private void QiniuSetting(string cloud)
+        {
+            TB_Username.Enabled = false;
+            TB_ApiKey.Enabled = true;
+            TB_ApiSecret.Enabled = true;
+            CB_Zone.Enabled = true;
+            TB_Domain.Enabled = true;
+            TB_Bucket.Enabled = true;
 
-            var extensionEnable = (CB_Downloader.SelectedItem as NameValue<string>).Value switch
-            {
-                NameConsts.DirectDownload => false,
-                NameConsts.Cloudinary => false,
-                _ => true,
-            };
+            CB_Zone.Items.Clear();
+            CB_Zone.Items.AddRange(GetZones(cloud));
+        }
 
-            TB_Username.Enabled = userNameEnable;
-            TB_ApiKey.Enabled = enable;
-            TB_ApiSecret.Enabled = enable;
-            TB_Zone.Enabled = extensionEnable;
-            TB_Domain.Enabled = extensionEnable;
-            TB_Bucket.Enabled = extensionEnable;
+        private void CloudinarySetting()
+        {
+            TB_Username.Enabled = true;
+            TB_ApiKey.Enabled = true;
+            TB_ApiSecret.Enabled = true;
+            CB_Zone.Enabled = false;
+            TB_Domain.Enabled = false;
+            TB_Bucket.Enabled = false;
+        }
+
+        private void DirectDownloadSetting()
+        {
+            TB_Username.Enabled = false;
+            TB_ApiKey.Enabled = false;
+            TB_ApiSecret.Enabled = false;
+            CB_Zone.Enabled = false;
+            TB_Domain.Enabled = false;
+            TB_Bucket.Enabled = false;
         }
 
         private async void SettingForm_FormClosed(object sender, FormClosedEventArgs e)
@@ -150,8 +195,10 @@ namespace EarthBackground
             oss.ApiKey = string.IsNullOrWhiteSpace(TB_ApiKey.Text) ? oss.ApiKey : TB_ApiKey.Text;
             oss.ApiSecret = string.IsNullOrWhiteSpace(TB_ApiSecret.Text) ? oss.ApiSecret : TB_ApiSecret.Text;
             oss.Bucket = string.IsNullOrWhiteSpace(TB_Bucket.Text) ? oss.Bucket : TB_Bucket.Text;
-            oss.Domain = string.IsNullOrWhiteSpace(TB_Domain.Text) ? oss.Domain : TB_Domain.Text;
-            oss.Zone = string.IsNullOrWhiteSpace(TB_Zone.Text) ? oss.Zone : TB_Zone.Text;
+            oss.Domain = string.IsNullOrWhiteSpace(TB_Domain.Text) ? oss.Domain :
+                (!TB_Domain.Text.Contains("http://") && !TB_Domain.Text.Contains("https://")) ? $"http://{TB_Domain.Text}" : TB_Domain.Text;
+            var selectZone = (CB_Zone.SelectedItem as NameValue<string>)?.Value;
+            oss.Zone = string.IsNullOrWhiteSpace(selectZone) ? oss.Zone : selectZone;
             await configureSaver.SaveAsync(capture, oss);
         }
     }

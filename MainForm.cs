@@ -78,7 +78,6 @@ namespace EarthBackground
                     await provider.ResetAsync();
                 }
                 Logger.LogInformation($"壁纸已保存:{image}");
-                Logger.LogInformation($"保存壁纸: {_options.Value.SetWallpaper}");
                 if (_options.Value.SetWallpaper)
                 {
                     await _backgroundSetter.SetBackgroudAsync(image);

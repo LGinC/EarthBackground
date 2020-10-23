@@ -486,25 +486,25 @@
   <data name="&gt;&gt;splitContainer1.Panel1.ZOrder" xml:space="preserve">
     <value>0</value>
   </data>
-  <data name="TB_Zone.Location" type="System.Drawing.Point, System.Drawing.Primitives">
+  <data name="CB_Zone.Location" type="System.Drawing.Point, System.Drawing.Primitives">
     <value>93, 142</value>
   </data>
-  <data name="TB_Zone.Size" type="System.Drawing.Size, System.Drawing.Primitives">
+  <data name="CB_Zone.Size" type="System.Drawing.Size, System.Drawing.Primitives">
     <value>112, 23</value>
   </data>
-  <data name="TB_Zone.TabIndex" type="System.Int32, System.Private.CoreLib">
-    <value>12</value>
+  <data name="CB_Zone.TabIndex" type="System.Int32, System.Private.CoreLib">
+    <value>14</value>
   </data>
-  <data name="&gt;&gt;TB_Zone.Name" xml:space="preserve">
-    <value>TB_Zone</value>
+  <data name="&gt;&gt;CB_Zone.Name" xml:space="preserve">
+    <value>CB_Zone</value>
   </data>
-  <data name="&gt;&gt;TB_Zone.Type" xml:space="preserve">
-    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="&gt;&gt;CB_Zone.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;TB_Zone.Parent" xml:space="preserve">
+  <data name="&gt;&gt;CB_Zone.Parent" xml:space="preserve">
     <value>splitContainer1.Panel2</value>
   </data>
-  <data name="&gt;&gt;TB_Zone.ZOrder" xml:space="preserve">
+  <data name="&gt;&gt;CB_Zone.ZOrder" xml:space="preserve">
     <value>0</value>
   </data>
   <data name="TB_Bucket.Location" type="System.Drawing.Point, System.Drawing.Primitives">

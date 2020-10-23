@@ -72,7 +72,7 @@
             this.CB_SaveWallpaper = new System.Windows.Forms.CheckBox();
             this.CB_SetBackGround = new System.Windows.Forms.CheckBox();
             this.CB_AutoStart = new System.Windows.Forms.CheckBox();
-            this.TB_Zone = new System.Windows.Forms.TextBox();
+            this.CB_Zone = new System.Windows.Forms.ComboBox();
             this.TB_Bucket = new System.Windows.Forms.TextBox();
             this.TB_ApiSecret = new System.Windows.Forms.TextBox();
             this.TB_Domain = new System.Windows.Forms.TextBox();
@@ -125,7 +125,7 @@
             // 
             // splitContainer1.Panel2
             // 
-            this.splitContainer1.Panel2.Controls.Add(this.TB_Zone);
+            this.splitContainer1.Panel2.Controls.Add(this.CB_Zone);
             this.splitContainer1.Panel2.Controls.Add(this.TB_Bucket);
             this.splitContainer1.Panel2.Controls.Add(this.TB_ApiSecret);
             this.splitContainer1.Panel2.Controls.Add(this.TB_Domain);
@@ -264,10 +264,13 @@
             this.CB_AutoStart.Name = "CB_AutoStart";
             this.CB_AutoStart.UseVisualStyleBackColor = true;
             // 
-            // TB_Zone
+            // CB_Zone
             // 
-            resources.ApplyResources(this.TB_Zone, "TB_Zone");
-            this.TB_Zone.Name = "TB_Zone";
+            this.CB_Zone.DisplayMember = "Name";
+            this.CB_Zone.FormattingEnabled = true;
+            resources.ApplyResources(this.CB_Zone, "CB_Zone");
+            this.CB_Zone.Name = "CB_Zone";
+            this.CB_Zone.ValueMember = "Value";
             // 
             // TB_Bucket
             // 
@@ -365,7 +368,7 @@
         private System.Windows.Forms.TextBox TB_Domain;
         private System.Windows.Forms.Label l_bucket;
         private System.Windows.Forms.Label l_domain;
-        private System.Windows.Forms.TextBox TB_Zone;
         private System.Windows.Forms.Label l_zone;
+        private System.Windows.Forms.ComboBox CB_Zone;
     }
 }

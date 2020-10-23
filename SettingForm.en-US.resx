@@ -120,6 +120,9 @@
   <data name="$this.Text" xml:space="preserve">
     <value>Settings</value>
   </data>
+  <data name="as0" xml:space="preserve">
+    <value>SouthEastAsia</value>
+  </data>
   <data name="Cloudinary" xml:space="preserve">
     <value>Cloudinary</value>
   </data>
@@ -129,7 +132,19 @@
   <data name="Himawari8" xml:space="preserve">
     <value>Himawari8</value>
   </data>
+  <data name="na0" xml:space="preserve">
+    <value>NorthAmerica</value>
+  </data>
   <data name="Qiniuyun" xml:space="preserve">
     <value>Qiniuyun</value>
+  </data>
+  <data name="z0" xml:space="preserve">
+    <value>EastChina</value>
+  </data>
+  <data name="z1" xml:space="preserve">
+    <value>NorthChina</value>
+  </data>
+  <data name="z2" xml:space="preserve">
+    <value>SouthChina</value>
   </data>
 </root>
