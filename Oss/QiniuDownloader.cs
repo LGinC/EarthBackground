@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 
@@ -21,14 +19,13 @@ namespace EarthBackground.Oss
         private readonly IOptionsSnapshot<OssOption> options;
         private readonly HttpClient client;
         private readonly QiqiuAuth auth;
-        private readonly Mac mac;
-        private const string prifix = "eb_";
+        private const string Prefix = "eb_";
 
         public QiniuDownloader(IHttpClientFactory httpClientFactory, IOptionsSnapshot<OssOption> options)
         {
             client = httpClientFactory.CreateClient(ProviderName);
             this.options = options;
-            mac = new Mac(options.Value.ApiKey, options.Value.ApiSecret);
+            var mac = new Mac(options.Value.ApiKey, options.Value.ApiSecret);
             auth = new QiqiuAuth(mac);
         }
 
@@ -42,48 +39,32 @@ namespace EarthBackground.Oss
 
         private async Task BatchDeleteAsync(IEnumerable<string> keys)
         {
-            if (keys.IsNullOrEmpty())
+            var keyArray = keys as string[] ?? keys.ToArray();
+            if (keyArray.IsNullOrEmpty())
             {
                 // Task.CompletedTask;
                 return;
             }
 
 
-            string bucket = options.Value.Bucket;
-            var ops = keys.Select(k => $"/delete/{QiniuBase64.UrlSafeBase64Encode($"{bucket}:{k}")}");
-            string opsStr = string.Join('&', ops.Select(k => $"op={k}"));
-            string url = $"https://rs.qiniu.com/batch";
+            var bucket = options.Value.Bucket;
+            var ops = keyArray.Select(k => $"/delete/{QiniuBase64.UrlSafeBase64Encode($"{bucket}:{k}")}");
+            // ReSharper disable once PossibleMultipleEnumeration
+            var opsStr = string.Join('&', ops.Select(k => $"op={k}"));
+            var url = $"https://rs.qiniu.com/batch";
             var data = Encoding.UTF8.GetBytes(opsStr);
             AddAuthorization(url, data);
+            // ReSharper disable once PossibleMultipleEnumeration
             var content = new FormUrlEncodedContent(ops.Select(k => new KeyValuePair<string, string>("op", k)));
-            var response = await client.PostAsync(url, new FormUrlEncodedContent(new [] { new KeyValuePair<string,string>("", opsStr) }));
+            var response = await client.PostAsync(url, content);
             Trace.WriteLine(await response.Content.ReadAsStringAsync());
         }
 
         private  Task DeleteAsync(string key)
         {
-            string url = $"https://rs-{options.Value.Zone}.qiniu.com/delete/{QiniuBase64.UrlSafeBase64Encode($"{options.Value.Bucket}:{key}")}";
+            var url = $"https://rs.qbox.me/delete/{QiniuBase64.UrlSafeBase64Encode($"{options.Value.Bucket}:{key}")}";
             AddAuthorization(url);
             return client.PostAsync(url, new ByteArrayContent(Array.Empty<byte>()));
-        }
-
-        private async Task<IEnumerable<string>> GetKeys()
-        {
-            client.DefaultRequestHeaders.Host = "rsf.qbox.me";
-            string url = $"/list?bucket={options.Value.Bucket}&prefix=0";
-            AddAuthorization(url, null);
-            var response = await client.GetAsync(url);
-            if (response.IsSuccessStatusCode)
-            {
-                var str = await response.Content.ReadAsStringAsync();
-                if (string.IsNullOrWhiteSpace(str))
-                {
-                    return null;
-                }
-                var result = JsonSerializer.Deserialize<QiniuFileResult>(str);
-                return result.items?.Select(i => i.key);
-            }
-            return null;
         }
 
         public void Dispose()
@@ -106,10 +87,9 @@ namespace EarthBackground.Oss
         private async Task FetchAsync(IEnumerable<(string url, string path)> urls)
         {
             var baseurl = $"https://iovip-{options.Value.Zone}.qbox.me/";
-            foreach ((string url, string path) in urls)
+            foreach (var (url, path) in urls)
             {
                 var urlBase64 = $"{baseurl}fetch/{QiniuBase64.UrlSafeBase64Encode(url)}/to/{QiniuBase64.UrlSafeBase64Encode(options.Value.Bucket, path)}";
-                var data = Encoding.UTF8.GetBytes(urlBase64);
                 AddAuthorization(urlBase64);
                 var response = await client.PostAsync(urlBase64, new ByteArrayContent(Array.Empty<byte>()));
                 if (!response.IsSuccessStatusCode)
@@ -123,41 +103,42 @@ namespace EarthBackground.Oss
 
         public async Task<IEnumerable<(string url, string path)>> DownloadAsync(IEnumerable<(string url, string file)> images, string directory)
         {
-            if (images.IsNullOrEmpty())
+            var imageTuples = images as (string url, string file)[] ?? images.ToArray();
+            if (imageTuples.IsNullOrEmpty())
             {
                 return null;
             }
 
-            await FetchAsync(images.Select(i => (i.url, $"{prifix}{i.file}")));
+            await FetchAsync(imageTuples.Select(b => (b.url, $"{Prefix}{b.file}")));
 
-            SetTotal(images.Count());
-            var result = new List<(string, string)> { Capacity = images.Count() };
+            SetTotal?.Invoke(imageTuples.Count());
+            var result = new List<(string, string)> { Capacity = imageTuples.Count() };
             if (!Directory.Exists(directory))
             {
                 Directory.CreateDirectory(directory);
             }
             var files = Directory.GetFiles(directory);
-            int i = 0;
-            foreach (var (url, file) in images)
+            var i = 0;
+            foreach (var (url, file) in imageTuples)
             {
-                string path = Path.Combine(directory, file);
+                var path = Path.Combine(directory, file);
                 if (files.Contains(path))
                 {
-                    SetCurrentProgress(++i);
+                    SetCurrentProgress?.Invoke(++i);
                     continue;
                 }
 
-                await DownLoadImageAsync($"{options.Value.Domain}/{prifix}{file}", path);
+                await DownLoadImageAsync($"{options.Value.Domain}/{Prefix}{file}", path);
                 result.Add((url, path));
-                SetCurrentProgress(++i);
+                SetCurrentProgress?.Invoke(++i);
             }
 
             //下载完后立即删除oss文件
             //await BatchDeleteAsync(images.Select(i => i.file));
-            //foreach (var item in images.Select(i => i.file))
-            //{
-            //    await DeleteAsync($"{prifix}{item}");
-            //}
+            foreach (var item in imageTuples.Select(f => f.file))
+            {
+                await DeleteAsync($"{Prefix}{item}");
+            }
             return result;
         }
 
@@ -172,14 +153,14 @@ namespace EarthBackground.Oss
                 throw new InvalidOperationException(message);
             }
 
-            using var stream = await response.Content.ReadAsStreamAsync();
+            await using var stream = await response.Content.ReadAsStreamAsync();
             if (File.Exists(path))
             {
                 File.Delete(path);
             }
 
-            using var fileStream = new FileStream(path, FileMode.CreateNew);
-            stream.CopyTo(fileStream);
+            await using var fileStream = new FileStream(path, FileMode.CreateNew);
+            await stream.CopyToAsync(fileStream);
         }
     }
 }
