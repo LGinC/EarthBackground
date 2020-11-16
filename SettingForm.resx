@@ -57,11 +57,11 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
   <data name="splitContainer1.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
     <value>Fill</value>
   </data>
-  <assembly alias="System.Drawing.Primitives" name="System.Drawing.Primitives, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <assembly alias="System.Drawing.Primitives" name="System.Drawing.Primitives, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
   <data name="splitContainer1.Location" type="System.Drawing.Point, System.Drawing.Primitives">
     <value>0, 0</value>
   </data>
@@ -69,12 +69,12 @@
     <value>Horizontal</value>
   </data>
   <data name="MUD_Zoom.Location" type="System.Drawing.Point, System.Drawing.Primitives">
-    <value>314, 93</value>
+    <value>414, 85</value>
   </data>
   <data name="MUD_Zoom.Size" type="System.Drawing.Size, System.Drawing.Primitives">
-    <value>44, 23</value>
+    <value>52, 31</value>
   </data>
-  <assembly alias="System.Private.CoreLib" name="System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e" />
+  <assembly alias="System.Private.CoreLib" name="System.Private.CoreLib, Version=5.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e" />
   <data name="MUD_Zoom.TabIndex" type="System.Int32, System.Private.CoreLib">
     <value>11</value>
   </data>
@@ -82,7 +82,7 @@
     <value>MUD_Zoom</value>
   </data>
   <data name="&gt;&gt;MUD_Zoom.Type" xml:space="preserve">
-    <value>System.Windows.Forms.NumericUpDown, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Windows.Forms.NumericUpDown, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;MUD_Zoom.Parent" xml:space="preserve">
     <value>splitContainer1.Panel1</value>
@@ -91,10 +91,10 @@
     <value>0</value>
   </data>
   <data name="MUD_Interval.Location" type="System.Drawing.Point, System.Drawing.Primitives">
-    <value>314, 64</value>
+    <value>414, 56</value>
   </data>
   <data name="MUD_Interval.Size" type="System.Drawing.Size, System.Drawing.Primitives">
-    <value>44, 23</value>
+    <value>52, 31</value>
   </data>
   <data name="MUD_Interval.TabIndex" type="System.Int32, System.Private.CoreLib">
     <value>10</value>
@@ -103,7 +103,7 @@
     <value>MUD_Interval</value>
   </data>
   <data name="&gt;&gt;MUD_Interval.Type" xml:space="preserve">
-    <value>System.Windows.Forms.NumericUpDown, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Windows.Forms.NumericUpDown, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;MUD_Interval.Parent" xml:space="preserve">
     <value>splitContainer1.Panel1</value>
@@ -112,10 +112,10 @@
     <value>1</value>
   </data>
   <data name="CB_Resolution.Location" type="System.Drawing.Point, System.Drawing.Primitives">
-    <value>314, 22</value>
+    <value>413, 14</value>
   </data>
   <data name="CB_Resolution.Size" type="System.Drawing.Size, System.Drawing.Primitives">
-    <value>83, 23</value>
+    <value>138, 33</value>
   </data>
   <data name="CB_Resolution.TabIndex" type="System.Int32, System.Private.CoreLib">
     <value>5</value>
@@ -124,7 +124,7 @@
     <value>CB_Resolution</value>
   </data>
   <data name="&gt;&gt;CB_Resolution.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;CB_Resolution.Parent" xml:space="preserve">
     <value>splitContainer1.Panel1</value>
@@ -136,7 +136,7 @@
     <value>61, 160</value>
   </data>
   <data name="B_ChooseSavePath.Size" type="System.Drawing.Size, System.Drawing.Primitives">
-    <value>115, 26</value>
+    <value>93, 37</value>
   </data>
   <data name="B_ChooseSavePath.TabIndex" type="System.Int32, System.Private.CoreLib">
     <value>4</value>
@@ -148,7 +148,7 @@
     <value>B_ChooseSavePath</value>
   </data>
   <data name="&gt;&gt;B_ChooseSavePath.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;B_ChooseSavePath.Parent" xml:space="preserve">
     <value>splitContainer1.Panel1</value>
@@ -160,10 +160,10 @@
     <value>True</value>
   </data>
   <data name="L_SavePath.Location" type="System.Drawing.Point, System.Drawing.Primitives">
-    <value>76, 129</value>
+    <value>108, 129</value>
   </data>
   <data name="L_SavePath.Size" type="System.Drawing.Size, System.Drawing.Primitives">
-    <value>17, 15</value>
+    <value>26, 25</value>
   </data>
   <data name="L_SavePath.TabIndex" type="System.Int32, System.Private.CoreLib">
     <value>9</value>
@@ -175,7 +175,7 @@
     <value>L_SavePath</value>
   </data>
   <data name="&gt;&gt;L_SavePath.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;L_SavePath.Parent" xml:space="preserve">
     <value>splitContainer1.Panel1</value>
@@ -187,10 +187,10 @@
     <value>True</value>
   </data>
   <data name="l_zoom.Location" type="System.Drawing.Point, System.Drawing.Primitives">
-    <value>262, 95</value>
+    <value>335, 87</value>
   </data>
   <data name="l_zoom.Size" type="System.Drawing.Size, System.Drawing.Primitives">
-    <value>37, 15</value>
+    <value>58, 25</value>
   </data>
   <data name="l_zoom.TabIndex" type="System.Int32, System.Private.CoreLib">
     <value>13</value>
@@ -202,7 +202,7 @@
     <value>l_zoom</value>
   </data>
   <data name="&gt;&gt;l_zoom.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;l_zoom.Parent" xml:space="preserve">
     <value>splitContainer1.Panel1</value>
@@ -214,10 +214,10 @@
     <value>True</value>
   </data>
   <data name="l_percent.Location" type="System.Drawing.Point, System.Drawing.Primitives">
-    <value>359, 95</value>
+    <value>459, 87</value>
   </data>
   <data name="l_percent.Size" type="System.Drawing.Size, System.Drawing.Primitives">
-    <value>17, 15</value>
+    <value>27, 25</value>
   </data>
   <data name="l_percent.TabIndex" type="System.Int32, System.Private.CoreLib">
     <value>15</value>
@@ -229,7 +229,7 @@
     <value>l_percent</value>
   </data>
   <data name="&gt;&gt;l_percent.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;l_percent.Parent" xml:space="preserve">
     <value>splitContainer1.Panel1</value>
@@ -241,10 +241,10 @@
     <value>True</value>
   </data>
   <data name="l_min.Location" type="System.Drawing.Point, System.Drawing.Primitives">
-    <value>359, 66</value>
+    <value>459, 58</value>
   </data>
   <data name="l_min.Size" type="System.Drawing.Size, System.Drawing.Primitives">
-    <value>28, 15</value>
+    <value>42, 25</value>
   </data>
   <data name="l_min.TabIndex" type="System.Int32, System.Private.CoreLib">
     <value>14</value>
@@ -256,7 +256,7 @@
     <value>l_min</value>
   </data>
   <data name="&gt;&gt;l_min.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;l_min.Parent" xml:space="preserve">
     <value>splitContainer1.Panel1</value>
@@ -268,10 +268,10 @@
     <value>True</value>
   </data>
   <data name="l_interval.Location" type="System.Drawing.Point, System.Drawing.Primitives">
-    <value>262, 66</value>
+    <value>335, 58</value>
   </data>
   <data name="l_interval.Size" type="System.Drawing.Size, System.Drawing.Primitives">
-    <value>46, 15</value>
+    <value>69, 25</value>
   </data>
   <data name="l_interval.TabIndex" type="System.Int32, System.Private.CoreLib">
     <value>12</value>
@@ -283,7 +283,7 @@
     <value>l_interval</value>
   </data>
   <data name="&gt;&gt;l_interval.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;l_interval.Parent" xml:space="preserve">
     <value>splitContainer1.Panel1</value>
@@ -298,7 +298,7 @@
     <value>12, 129</value>
   </data>
   <data name="l_path.Size" type="System.Drawing.Size, System.Drawing.Primitives">
-    <value>58, 15</value>
+    <value>87, 25</value>
   </data>
   <data name="l_path.TabIndex" type="System.Int32, System.Private.CoreLib">
     <value>8</value>
@@ -310,7 +310,7 @@
     <value>l_path</value>
   </data>
   <data name="&gt;&gt;l_path.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;l_path.Parent" xml:space="preserve">
     <value>splitContainer1.Panel1</value>
@@ -322,10 +322,10 @@
     <value>True</value>
   </data>
   <data name="l_resolution.Location" type="System.Drawing.Point, System.Drawing.Primitives">
-    <value>248, 25</value>
+    <value>321, 17</value>
   </data>
   <data name="l_resolution.Size" type="System.Drawing.Size, System.Drawing.Primitives">
-    <value>60, 15</value>
+    <value>91, 25</value>
   </data>
   <data name="l_resolution.TabIndex" type="System.Int32, System.Private.CoreLib">
     <value>7</value>
@@ -337,7 +337,7 @@
     <value>l_resolution</value>
   </data>
   <data name="&gt;&gt;l_resolution.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;l_resolution.Parent" xml:space="preserve">
     <value>splitContainer1.Panel1</value>
@@ -352,7 +352,7 @@
     <value>17, 25</value>
   </data>
   <data name="l_sitellite.Size" type="System.Drawing.Size, System.Drawing.Primitives">
-    <value>44, 15</value>
+    <value>66, 25</value>
   </data>
   <data name="l_sitellite.TabIndex" type="System.Int32, System.Private.CoreLib">
     <value>2</value>
@@ -364,7 +364,7 @@
     <value>l_sitellite</value>
   </data>
   <data name="&gt;&gt;l_sitellite.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;l_sitellite.Parent" xml:space="preserve">
     <value>splitContainer1.Panel1</value>
@@ -373,10 +373,10 @@
     <value>11</value>
   </data>
   <data name="CB_Captor.Location" type="System.Drawing.Point, System.Drawing.Primitives">
-    <value>61, 22</value>
+    <value>85, 18</value>
   </data>
   <data name="CB_Captor.Size" type="System.Drawing.Size, System.Drawing.Primitives">
-    <value>92, 23</value>
+    <value>138, 33</value>
   </data>
   <data name="CB_Captor.TabIndex" type="System.Int32, System.Private.CoreLib">
     <value>1</value>
@@ -385,7 +385,7 @@
     <value>CB_Captor</value>
   </data>
   <data name="&gt;&gt;CB_Captor.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;CB_Captor.Parent" xml:space="preserve">
     <value>splitContainer1.Panel1</value>
@@ -400,7 +400,7 @@
     <value>17, 89</value>
   </data>
   <data name="CB_SaveWallpaper.Size" type="System.Drawing.Size, System.Drawing.Primitives">
-    <value>103, 19</value>
+    <value>154, 29</value>
   </data>
   <data name="CB_SaveWallpaper.TabIndex" type="System.Int32, System.Private.CoreLib">
     <value>6</value>
@@ -412,7 +412,7 @@
     <value>CB_SaveWallpaper</value>
   </data>
   <data name="&gt;&gt;CB_SaveWallpaper.Type" xml:space="preserve">
-    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;CB_SaveWallpaper.Parent" xml:space="preserve">
     <value>splitContainer1.Panel1</value>
@@ -424,10 +424,10 @@
     <value>True</value>
   </data>
   <data name="CB_SetBackGround.Location" type="System.Drawing.Point, System.Drawing.Primitives">
-    <value>99, 64</value>
+    <value>135, 66</value>
   </data>
   <data name="CB_SetBackGround.Size" type="System.Drawing.Size, System.Drawing.Primitives">
-    <value>106, 19</value>
+    <value>158, 29</value>
   </data>
   <data name="CB_SetBackGround.TabIndex" type="System.Int32, System.Private.CoreLib">
     <value>3</value>
@@ -439,7 +439,7 @@
     <value>CB_SetBackGround</value>
   </data>
   <data name="&gt;&gt;CB_SetBackGround.Type" xml:space="preserve">
-    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;CB_SetBackGround.Parent" xml:space="preserve">
     <value>splitContainer1.Panel1</value>
@@ -454,7 +454,7 @@
     <value>17, 64</value>
   </data>
   <data name="CB_AutoStart.Size" type="System.Drawing.Size, System.Drawing.Primitives">
-    <value>76, 19</value>
+    <value>113, 29</value>
   </data>
   <data name="CB_AutoStart.TabIndex" type="System.Int32, System.Private.CoreLib">
     <value>0</value>
@@ -466,7 +466,7 @@
     <value>CB_AutoStart</value>
   </data>
   <data name="&gt;&gt;CB_AutoStart.Type" xml:space="preserve">
-    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;CB_AutoStart.Parent" xml:space="preserve">
     <value>splitContainer1.Panel1</value>
@@ -478,7 +478,7 @@
     <value>splitContainer1.Panel1</value>
   </data>
   <data name="&gt;&gt;splitContainer1.Panel1.Type" xml:space="preserve">
-    <value>System.Windows.Forms.SplitterPanel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Windows.Forms.SplitterPanel, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;splitContainer1.Panel1.Parent" xml:space="preserve">
     <value>splitContainer1</value>
@@ -487,10 +487,10 @@
     <value>0</value>
   </data>
   <data name="CB_Zone.Location" type="System.Drawing.Point, System.Drawing.Primitives">
-    <value>93, 142</value>
+    <value>125, 142</value>
   </data>
   <data name="CB_Zone.Size" type="System.Drawing.Size, System.Drawing.Primitives">
-    <value>112, 23</value>
+    <value>138, 33</value>
   </data>
   <data name="CB_Zone.TabIndex" type="System.Int32, System.Private.CoreLib">
     <value>14</value>
@@ -499,7 +499,7 @@
     <value>CB_Zone</value>
   </data>
   <data name="&gt;&gt;CB_Zone.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;CB_Zone.Parent" xml:space="preserve">
     <value>splitContainer1.Panel2</value>
@@ -508,10 +508,10 @@
     <value>0</value>
   </data>
   <data name="TB_Bucket.Location" type="System.Drawing.Point, System.Drawing.Primitives">
-    <value>93, 104</value>
+    <value>125, 104</value>
   </data>
   <data name="TB_Bucket.Size" type="System.Drawing.Size, System.Drawing.Primitives">
-    <value>112, 23</value>
+    <value>138, 31</value>
   </data>
   <data name="TB_Bucket.TabIndex" type="System.Int32, System.Private.CoreLib">
     <value>8</value>
@@ -520,7 +520,7 @@
     <value>TB_Bucket</value>
   </data>
   <data name="&gt;&gt;TB_Bucket.Type" xml:space="preserve">
-    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;TB_Bucket.Parent" xml:space="preserve">
     <value>splitContainer1.Panel2</value>
@@ -529,10 +529,10 @@
     <value>1</value>
   </data>
   <data name="TB_ApiSecret.Location" type="System.Drawing.Point, System.Drawing.Primitives">
-    <value>277, 66</value>
+    <value>365, 66</value>
   </data>
   <data name="TB_ApiSecret.Size" type="System.Drawing.Size, System.Drawing.Primitives">
-    <value>148, 23</value>
+    <value>148, 31</value>
   </data>
   <data name="TB_ApiSecret.TabIndex" type="System.Int32, System.Private.CoreLib">
     <value>4</value>
@@ -541,7 +541,7 @@
     <value>TB_ApiSecret</value>
   </data>
   <data name="&gt;&gt;TB_ApiSecret.Type" xml:space="preserve">
-    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;TB_ApiSecret.Parent" xml:space="preserve">
     <value>splitContainer1.Panel2</value>
@@ -550,10 +550,10 @@
     <value>2</value>
   </data>
   <data name="TB_Domain.Location" type="System.Drawing.Point, System.Drawing.Primitives">
-    <value>277, 104</value>
+    <value>365, 104</value>
   </data>
   <data name="TB_Domain.Size" type="System.Drawing.Size, System.Drawing.Primitives">
-    <value>148, 23</value>
+    <value>148, 31</value>
   </data>
   <data name="TB_Domain.TabIndex" type="System.Int32, System.Private.CoreLib">
     <value>11</value>
@@ -562,7 +562,7 @@
     <value>TB_Domain</value>
   </data>
   <data name="&gt;&gt;TB_Domain.Type" xml:space="preserve">
-    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;TB_Domain.Parent" xml:space="preserve">
     <value>splitContainer1.Panel2</value>
@@ -571,10 +571,10 @@
     <value>3</value>
   </data>
   <data name="TB_ApiKey.Location" type="System.Drawing.Point, System.Drawing.Primitives">
-    <value>277, 27</value>
+    <value>365, 27</value>
   </data>
   <data name="TB_ApiKey.Size" type="System.Drawing.Size, System.Drawing.Primitives">
-    <value>148, 23</value>
+    <value>148, 31</value>
   </data>
   <data name="TB_ApiKey.TabIndex" type="System.Int32, System.Private.CoreLib">
     <value>3</value>
@@ -583,7 +583,7 @@
     <value>TB_ApiKey</value>
   </data>
   <data name="&gt;&gt;TB_ApiKey.Type" xml:space="preserve">
-    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;TB_ApiKey.Parent" xml:space="preserve">
     <value>splitContainer1.Panel2</value>
@@ -592,10 +592,10 @@
     <value>4</value>
   </data>
   <data name="TB_Username.Location" type="System.Drawing.Point, System.Drawing.Primitives">
-    <value>93, 66</value>
+    <value>125, 66</value>
   </data>
   <data name="TB_Username.Size" type="System.Drawing.Size, System.Drawing.Primitives">
-    <value>112, 23</value>
+    <value>138, 31</value>
   </data>
   <data name="TB_Username.TabIndex" type="System.Int32, System.Private.CoreLib">
     <value>2</value>
@@ -604,7 +604,7 @@
     <value>TB_Username</value>
   </data>
   <data name="&gt;&gt;TB_Username.Type" xml:space="preserve">
-    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;TB_Username.Parent" xml:space="preserve">
     <value>splitContainer1.Panel2</value>
@@ -619,7 +619,7 @@
     <value>21, 145</value>
   </data>
   <data name="l_zone.Size" type="System.Drawing.Size, System.Drawing.Primitives">
-    <value>34, 15</value>
+    <value>52, 25</value>
   </data>
   <data name="l_zone.TabIndex" type="System.Int32, System.Private.CoreLib">
     <value>13</value>
@@ -631,7 +631,7 @@
     <value>l_zone</value>
   </data>
   <data name="&gt;&gt;l_zone.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;l_zone.Parent" xml:space="preserve">
     <value>splitContainer1.Panel2</value>
@@ -646,7 +646,7 @@
     <value>18, 107</value>
   </data>
   <data name="l_bucket.Size" type="System.Drawing.Size, System.Drawing.Primitives">
-    <value>43, 15</value>
+    <value>64, 25</value>
   </data>
   <data name="l_bucket.TabIndex" type="System.Int32, System.Private.CoreLib">
     <value>10</value>
@@ -658,7 +658,7 @@
     <value>l_bucket</value>
   </data>
   <data name="&gt;&gt;l_bucket.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;l_bucket.Parent" xml:space="preserve">
     <value>splitContainer1.Panel2</value>
@@ -670,10 +670,10 @@
     <value>True</value>
   </data>
   <data name="l_apikey.Location" type="System.Drawing.Point, System.Drawing.Primitives">
-    <value>214, 30</value>
+    <value>276, 30</value>
   </data>
   <data name="l_apikey.Size" type="System.Drawing.Size, System.Drawing.Primitives">
-    <value>44, 15</value>
+    <value>67, 25</value>
   </data>
   <data name="l_apikey.TabIndex" type="System.Int32, System.Private.CoreLib">
     <value>6</value>
@@ -685,7 +685,7 @@
     <value>l_apikey</value>
   </data>
   <data name="&gt;&gt;l_apikey.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;l_apikey.Parent" xml:space="preserve">
     <value>splitContainer1.Panel2</value>
@@ -697,10 +697,10 @@
     <value>True</value>
   </data>
   <data name="l_domain.Location" type="System.Drawing.Point, System.Drawing.Primitives">
-    <value>216, 107</value>
+    <value>278, 107</value>
   </data>
   <data name="l_domain.Size" type="System.Drawing.Size, System.Drawing.Primitives">
-    <value>49, 15</value>
+    <value>75, 25</value>
   </data>
   <data name="l_domain.TabIndex" type="System.Int32, System.Private.CoreLib">
     <value>9</value>
@@ -712,7 +712,7 @@
     <value>l_domain</value>
   </data>
   <data name="&gt;&gt;l_domain.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;l_domain.Parent" xml:space="preserve">
     <value>splitContainer1.Panel2</value>
@@ -724,10 +724,10 @@
     <value>True</value>
   </data>
   <data name="l_apisecret.Location" type="System.Drawing.Point, System.Drawing.Primitives">
-    <value>214, 69</value>
+    <value>276, 69</value>
   </data>
   <data name="l_apisecret.Size" type="System.Drawing.Size, System.Drawing.Primitives">
-    <value>57, 15</value>
+    <value>87, 25</value>
   </data>
   <data name="l_apisecret.TabIndex" type="System.Int32, System.Private.CoreLib">
     <value>7</value>
@@ -739,7 +739,7 @@
     <value>l_apisecret</value>
   </data>
   <data name="&gt;&gt;l_apisecret.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;l_apisecret.Parent" xml:space="preserve">
     <value>splitContainer1.Panel2</value>
@@ -754,7 +754,7 @@
     <value>17, 69</value>
   </data>
   <data name="l_username.Size" type="System.Drawing.Size, System.Drawing.Primitives">
-    <value>62, 15</value>
+    <value>94, 25</value>
   </data>
   <data name="l_username.TabIndex" type="System.Int32, System.Private.CoreLib">
     <value>5</value>
@@ -766,7 +766,7 @@
     <value>l_username</value>
   </data>
   <data name="&gt;&gt;l_username.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;l_username.Parent" xml:space="preserve">
     <value>splitContainer1.Panel2</value>
@@ -781,7 +781,7 @@
     <value>17, 30</value>
   </data>
   <data name="l_downloader.Size" type="System.Drawing.Size, System.Drawing.Primitives">
-    <value>70, 15</value>
+    <value>107, 25</value>
   </data>
   <data name="l_downloader.TabIndex" type="System.Int32, System.Private.CoreLib">
     <value>1</value>
@@ -793,7 +793,7 @@
     <value>l_downloader</value>
   </data>
   <data name="&gt;&gt;l_downloader.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;l_downloader.Parent" xml:space="preserve">
     <value>splitContainer1.Panel2</value>
@@ -802,10 +802,10 @@
     <value>12</value>
   </data>
   <data name="CB_Downloader.Location" type="System.Drawing.Point, System.Drawing.Primitives">
-    <value>93, 27</value>
+    <value>125, 27</value>
   </data>
   <data name="CB_Downloader.Size" type="System.Drawing.Size, System.Drawing.Primitives">
-    <value>112, 23</value>
+    <value>138, 33</value>
   </data>
   <data name="CB_Downloader.TabIndex" type="System.Int32, System.Private.CoreLib">
     <value>0</value>
@@ -814,7 +814,7 @@
     <value>CB_Downloader</value>
   </data>
   <data name="&gt;&gt;CB_Downloader.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;CB_Downloader.Parent" xml:space="preserve">
     <value>splitContainer1.Panel2</value>
@@ -826,7 +826,7 @@
     <value>splitContainer1.Panel2</value>
   </data>
   <data name="&gt;&gt;splitContainer1.Panel2.Type" xml:space="preserve">
-    <value>System.Windows.Forms.SplitterPanel, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Windows.Forms.SplitterPanel, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;splitContainer1.Panel2.Parent" xml:space="preserve">
     <value>splitContainer1</value>
@@ -835,7 +835,7 @@
     <value>1</value>
   </data>
   <data name="splitContainer1.Size" type="System.Drawing.Size, System.Drawing.Primitives">
-    <value>434, 385</value>
+    <value>561, 414</value>
   </data>
   <data name="splitContainer1.SplitterDistance" type="System.Int32, System.Private.CoreLib">
     <value>200</value>
@@ -850,7 +850,7 @@
     <value>splitContainer1</value>
   </data>
   <data name="&gt;&gt;splitContainer1.Type" xml:space="preserve">
-    <value>System.Windows.Forms.SplitContainer, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Windows.Forms.SplitContainer, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;splitContainer1.Parent" xml:space="preserve">
     <value>$this</value>
@@ -858,22 +858,22 @@
   <data name="&gt;&gt;splitContainer1.ZOrder" xml:space="preserve">
     <value>0</value>
   </data>
-  <metadata name="$this.Localizable" type="System.Boolean, System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e">
+  <metadata name="$this.Localizable" type="System.Boolean, System.Private.CoreLib, Version=5.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e">
     <value>True</value>
   </metadata>
   <data name="$this.ClientSize" type="System.Drawing.Size, System.Drawing.Primitives">
-    <value>434, 385</value>
+    <value>561, 414</value>
   </data>
   <data name="&gt;&gt;SavePathDialog.Name" xml:space="preserve">
     <value>SavePathDialog</value>
   </data>
   <data name="&gt;&gt;SavePathDialog.Type" xml:space="preserve">
-    <value>System.Windows.Forms.FolderBrowserDialog, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Windows.Forms.FolderBrowserDialog, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;$this.Name" xml:space="preserve">
     <value>SettingForm</value>
   </data>
   <data name="&gt;&gt;$this.Type" xml:space="preserve">
-    <value>System.Windows.Forms.Form, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Windows.Forms.Form, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
 </root>
