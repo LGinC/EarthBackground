@@ -5,6 +5,6 @@ namespace EarthBackground.Background
     public interface IBackgroundSetter
     {
         string Platform { get; }
-        Task SetBackgroudAsync(string filePath);
+        Task SetBackgroundAsync(string filePath);
     }
 }

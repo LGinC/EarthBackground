@@ -33,11 +33,11 @@ namespace EarthBackground
 
         static IServiceProvider ConfigureServices()
         {
-            //Ìí¼ÓÅäÖÃ¶ÁÈ¡
+            //æ·»åŠ é…ç½®è¯»å–
             var config = new ConfigurationBuilder().AddJsonFile(ConfigFile, optional: true, reloadOnChange: true)
                 .Build();
 
-            //Ìí¼ÓDI
+            //æ·»åŠ DI
             var services = new ServiceCollection();
             services.AddOptions();
             services.AddSingleton(config);
@@ -45,23 +45,23 @@ namespace EarthBackground
             services.Configure<OssOption>(config.GetSection("OssOptions"));
             services.AddTransient<IConfigureSaver, ConfigureSaver>();
 
-            //×¢Èë×¥È¡Æ÷
+            //æ³¨å…¥æŠ“å–å™¨
             services.AddTransient<ICaptorProvider, CaptorProvider>();
             services.AddTransient<ICaptor, Himawari8Captor>();
 
-            //×¢Èëoss
+            //æ³¨å…¥oss
             services.AddTransient<IOssProvider, OssProvider>();
             services.AddTransient<IOssDownloader, DirectDownloader>();
             services.AddTransient<IOssDownloader, CloudinaryDownloader>();
             services.AddTransient<IOssDownloader, QiniuDownloader>();
 
-            //×¢Èë±ÚÖ½ÉèÖÃÆ÷
+            //æ³¨å…¥å£çº¸è®¾ç½®å™¨
             services.AddTransient<IBackgroudSetProvider, BackgroudSetProvider>();
             services.AddTransient<IBackgroundSetter, WindowsBackgroudSetter>();
 
             services.AddHttpClients(config);
 
-            //Ê¹ÓÃNLog
+            //ä½¿ç”¨NLog
             var nlogConfig = new ConfigurationBuilder().AddJsonFile("nlog.json").Build();
             NLog.LogManager.Configuration = new NLogLoggingConfiguration(nlogConfig.GetSection("NLog"));
             services.AddLogging(builder =>
@@ -70,21 +70,21 @@ namespace EarthBackground
                 builder.AddDebug();
                 builder.AddNLog(nlogConfig.GetSection("NLog"));
             });
-            //Ìí¼ÓÖ÷´°ÌåÎªµ¥Àı
+            //æ·»åŠ ä¸»çª—ä½“ä¸ºå•ä¾‹
             services.AddSingleton(typeof(MainForm));
             services.AddTransient(typeof(SettingForm));
             return services.BuildServiceProvider();
         }
 
         /// <summary>
-        /// 3´ÎÖØÊÔ²ßÂÔ
+        /// 3æ¬¡é‡è¯•ç­–ç•¥
         /// </summary>
         /// <returns></returns>
         private static Polly.Retry.AsyncRetryPolicy<HttpResponseMessage> GetRetryPolicy() => HttpPolicyExtensions.HandleTransientHttpError().RetryAsync(5);
 
         static void AddHttpClients(this ServiceCollection services, IConfiguration config)
         {
-            //Ìø¹ısslÑéÖ¤
+            //è·³è¿‡ssléªŒè¯
             var sslHandler = new HttpClientHandler { ServerCertificateCustomValidationCallback = (m, c, a3, a4) => true };
 
             services.AddHttpClient(NameConsts.Himawari8, client =>

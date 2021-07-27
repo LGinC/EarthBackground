@@ -34,6 +34,6 @@ namespace EarthBackground
         /// <summary>
         /// 设置当前下载进度
         /// </summary>
-        event Action<int> SetCurrentProgress;
+        event Action SetCurrentProgress;
     }
 }

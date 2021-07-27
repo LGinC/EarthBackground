@@ -10,16 +10,15 @@ using System.Threading.Tasks;
 using EarthBackground.Oss;
 using Microsoft.Extensions.Options;
 
-namespace EarthBackground
+namespace EarthBackground.Captors
 {
     public class Himawari8Captor : ICaptor
     {
-        const int baseRate = 688;
+        const int BaseRate = 688;
         //const string jsonUrl = "https://himawari8-dl.nict.go.jp/himawari8/img/FULL_24h/latest.json";
         public string ProviderName => NameConsts.Himawari8;
         
         private readonly CaptureOption _option;
-        private readonly IConfigureSaver _saver;
 
         private readonly string path;
 
@@ -27,18 +26,15 @@ namespace EarthBackground
 
 
 
-        public Himawari8Captor(IOptionsSnapshot<CaptureOption> options, IHttpClientFactory factory, IConfigureSaver saver, IOssProvider downloaderProvider)
+        public Himawari8Captor(IOptionsSnapshot<CaptureOption> options, IHttpClientFactory factory, IOssProvider downloaderProvider)
         {
             _option = options.Value;
-            _saver = saver;
             _client = factory.CreateClient(ProviderName);
             Downloader = downloaderProvider.GetDownloader();
             path = Path.Combine(_option.SavePath, "wallpaper.bmp");
             GetImageId();
         }
 
-
-        public CaptureOption Option => _option;
 
         public IOssDownloader Downloader { get; set; }
         private string _imageId;
@@ -121,17 +117,17 @@ namespace EarthBackground
         private string JoinImage()
         {
             var size = 1 << (int)_option.Resolution;
-            using Bitmap bitmap = new Bitmap(baseRate * size, baseRate * size);
-            Image[,] tile = new Image[size, size];
+            using Bitmap bitmap = new Bitmap(BaseRate * size, BaseRate * size);
+            Image[,] images = new Image[size, size];
             using (Graphics g = Graphics.FromImage(bitmap))
             {
                 for (int i = 0; i < size; i++)
                 {
                     for (int j = 0; j < size; j++)
                     {
-                        tile[i, j] = Image.FromFile(Path.Combine(_option.SavePath, $"{i:000}_{j:000}.png"));
-                        g.DrawImage(tile[i, j], baseRate * j, baseRate * i);
-                        tile[i, j].Dispose();
+                        images[i, j] = Image.FromFile(Path.Combine(_option.SavePath, $"{i:000}_{j:000}.png"));
+                        g.DrawImage(images[i, j], BaseRate * j, BaseRate * i);
+                        images[i, j].Dispose();
                     }
                 }
                 g.Save();
@@ -150,13 +146,13 @@ namespace EarthBackground
             }
             else
             {
-                int new_size = (int)(bitmap.Height * _option.Zoom * 1.0 / 100);
-                using Bitmap zoom_bitmap = new Bitmap(new_size, new_size);
-                using Graphics g_2 = Graphics.FromImage(zoom_bitmap);
-                g_2.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                g_2.DrawImage(bitmap, 0, 0, new_size, new_size);
-                g_2.Save();
-                zoom_bitmap.Save(path, System.Drawing.Imaging.ImageFormat.Bmp);
+                int newSize = (int)(bitmap.Height * _option.Zoom * 1.0 / 100);
+                using Bitmap zoomBitmap = new Bitmap(newSize, newSize);
+                using Graphics g2 = Graphics.FromImage(zoomBitmap);
+                g2.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                g2.DrawImage(bitmap, 0, 0, newSize, newSize);
+                g2.Save();
+                zoomBitmap.Save(path, System.Drawing.Imaging.ImageFormat.Bmp);
             }
 
             //删除小文件

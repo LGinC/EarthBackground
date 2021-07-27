@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using EarthBackground.Background;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,26 +14,30 @@ namespace EarthBackground
 {
     public partial class MainForm : Form
     {
-        private ILogger Logger;
-        private IServiceProvider _provider;
-        private IBackgroundSetter _backgroundSetter;
+        private readonly ILogger Logger;
+        private readonly IServiceProvider _provider;
+        private readonly IBackgroundSetter _backgroundSetter;
         System.Threading.Timer _timer;
-        System.ComponentModel.ComponentResourceManager _resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
+        readonly System.ComponentModel.ComponentResourceManager _resources = new(typeof(MainForm));
         private readonly IOptionsSnapshot<CaptureOption> _options;
         readonly CultureInfo _current;
-        private int _ossFetchCount = 0;
+        private readonly TaskScheduler _scheduler;
+        private int _ossFetchCount;
+
+        private readonly object lockObject = new object();
 
         public MainForm(ILogger<MainForm> logger, 
             IServiceProvider provider, 
-            IBackgroudSetProvider backgroudSetProvider,
+            IBackgroudSetProvider backgroundSetProvider,
             IOptionsSnapshot<CaptureOption> options)
         {
             Logger = logger;
             _provider = provider;
-            _backgroundSetter = backgroudSetProvider.GetSetter();
+            _backgroundSetter = backgroundSetProvider.GetSetter();
             _options = options;
             InitializeComponent();
             _current = Thread.CurrentThread.CurrentUICulture;
+            _scheduler = TaskScheduler.FromCurrentSynchronizationContext();
         }
 
         private string L(string key) => _resources.GetString(key, _current);
@@ -43,33 +48,35 @@ namespace EarthBackground
             {
                 using ICaptor provider = _provider.GetRequiredService<ICaptor>();
                 Logger.LogInformation("已启动");
-                provider.Downloader.SetTotal += t => Invoke(() =>
+                provider.Downloader.SetTotal += t => Task.Factory.StartNew(()=>
                 {
                     progressBar1.Maximum = t;
                     l_status.Text = L("running");
                     l_status.ForeColor = Color.Green;
                     l_progress.Text = $"0/{t}";
-                });
+                }, CancellationToken.None, TaskCreationOptions.RunContinuationsAsynchronously, _scheduler);
 
-                provider.Downloader.SetCurrentProgress += t => Invoke(() => 
+                provider.Downloader.SetCurrentProgress += () => Task.Factory.StartNew(()=>
                 {
-                    progressBar1.Value = t;
-                    if (t == progressBar1.Maximum)
+                    lock (lockObject)
+                    {
+                        progressBar1.Value++;
+                    }
+                    if (progressBar1.Value == progressBar1.Maximum)
                     {
                         l_status.Text = L("complete");
                         l_status.ForeColor = Color.Black;
                         l_progress.Text = string.Empty;
                     }
                     else
-                      l_progress.Text = $"{t}/{l_progress.Text.Split("/")[1]}";
-                });
+                      l_progress.Text = $"{progressBar1.Value}/{l_progress.Text.Split("/")[1]}";
+                }, CancellationToken.None, TaskCreationOptions.RunContinuationsAsynchronously, _scheduler);
 
-
-                Invoke(() =>
+                await Task.Factory.StartNew(() =>
                 {
                     B_start.Enabled = false;
                     B_stop.Enabled = true;
-                });
+                }, CancellationToken.None, TaskCreationOptions.AttachedToParent, _scheduler);
                 var image = await provider.GetImagePath();
                 _ossFetchCount++;
                 if(_ossFetchCount > 3)
@@ -80,29 +87,36 @@ namespace EarthBackground
                 Logger.LogInformation($"壁纸已保存:{image}");
                 if (_options.Value.SetWallpaper)
                 {
-                    await _backgroundSetter.SetBackgroudAsync(image);
+                    await _backgroundSetter.SetBackgroundAsync(image);
                 }
-                Invoke(() =>
+                await Task.Factory.StartNew(() =>
                 {
                     B_start.Enabled = true;
                     B_stop.Enabled = false;
-                });
+                }, CancellationToken.None, TaskCreationOptions.AttachedToParent, _scheduler);
 
-                if (_options.Value.SaveWallpaper)
+                if (!_options.Value.SaveWallpaper) return;
+                
+                var info = new FileInfo(image);
+                if (!Directory.Exists(_options.Value.SavePath))
                 {
-                    var info = new FileInfo(image);
-                    if (!Directory.Exists(_options.Value.SavePath))
-                    {
-                        Directory.CreateDirectory(_options.Value.SavePath);
-                    }
-                    File.Copy(image, Path.Combine(_options.Value.SavePath, info.Name));
+                    Directory.CreateDirectory(_options.Value.SavePath);
                 }
+
+                string wallpaper = Path.Combine(_options.Value.SavePath, info.Name);
+                if (wallpaper == image) return;
+                if (File.Exists(wallpaper))
+                {
+                    File.Delete(wallpaper);
+                }
+                File.Copy(image, wallpaper);
             }
             catch (Exception ex)
             {
                 Logger.LogError(ex.Message);
                 Logger.LogError(ex.StackTrace);
-                Invoke(() =>
+                await Task.Factory.StartNew(
+                () =>
                 {
                     l_status.Text = L("wait for run");
                     l_status.ForeColor = Color.Black;
@@ -111,19 +125,14 @@ namespace EarthBackground
                     notifyIcon1.ShowBalloonTip(3000, "图片下载失败", ex.Message, ToolTipIcon.Warning);
                     B_start.Enabled = true;
                     B_stop.Enabled = false;
-                });
+                }, CancellationToken.None, TaskCreationOptions.None, _scheduler);
             }
-        }
-
-        private void Invoke(Action action)
-        {
-            BeginInvoke(action);
         }
 
         private  void B_start_Click(object sender, EventArgs e)
         {
             if (_timer == null)
-                _timer = new System.Threading.Timer(e => Timer_Tick(), null, TimeSpan.Zero, TimeSpan.FromMinutes(_options.Value.Interval));
+                _timer = new System.Threading.Timer(_ => Timer_Tick(), null, TimeSpan.Zero, TimeSpan.FromMinutes(_options.Value.Interval));
             else
                 _timer.Change(TimeSpan.Zero, TimeSpan.FromMinutes(_options.Value.Interval));
         }
@@ -164,7 +173,7 @@ namespace EarthBackground
             Hide();
             var settingForm = _provider.GetRequiredService<SettingForm>();
             settingForm.Show();
-            settingForm.FormClosed += (s, e) => Invoke(() => Show());
+            settingForm.FormClosed += (_, _) => Show();
         }
     }
 }

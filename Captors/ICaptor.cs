@@ -8,10 +8,6 @@ namespace EarthBackground
     public interface ICaptor : IDisposable
     {
         IOssDownloader Downloader { get; set; }
-
-
-        
-
         /// <summary>
         /// 提供器名称
         /// </summary>

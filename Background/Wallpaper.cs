@@ -8,10 +8,11 @@ namespace EarthBackground.Background
         public const int SPIF_UPDATEINIFILE = 0x01;
         public const int SPIF_SENDWININICHANGE = 0x02;
         private static int SPI_SETDESKWALLPAPER = 20;
+        
 
         public static void Set(string filePath)
         {
-            SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, filePath, 1); //filename为图片地址，最后一个参数需要为1   0的话在重启后就变回原来的了
+            SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, filePath, SPIF_UPDATEINIFILE); //filename为图片地址，最后一个参数需要为1   0的话在重启后就变回原来的了
         }
 
 
@@ -31,7 +32,7 @@ namespace EarthBackground.Background
         /// <param name="lpvParam">图片的路径</param>
         /// <param name="fuWinIni">设置系统参数时是否应更新用户设置参数</param>
         /// <returns></returns>
-        [DllImport("user32.dll", EntryPoint = "SystemParametersInfo")]
+        [DllImport("user32.dll", EntryPoint = "SystemParametersInfo", CharSet = CharSet.Unicode)]
         private static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);
 
     }

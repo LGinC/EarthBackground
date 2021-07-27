@@ -15,7 +15,7 @@ namespace EarthBackground.Oss
         public string ProviderName => NameConsts.Qiqiuyun;
 
         public event Action<int> SetTotal;
-        public event Action<int> SetCurrentProgress;
+        public event Action SetCurrentProgress;
         private readonly IOptionsSnapshot<OssOption> options;
         private readonly HttpClient client;
         private readonly QiqiuAuth auth;
@@ -110,35 +110,32 @@ namespace EarthBackground.Oss
             }
 
             await FetchAsync(imageTuples.Select(b => (b.url, $"{Prefix}{b.file}")));
-
-            SetTotal?.Invoke(imageTuples.Count());
+            SetTotal?.Invoke(imageTuples.Length);
             var result = new List<(string, string)> { Capacity = imageTuples.Count() };
             if (!Directory.Exists(directory))
             {
                 Directory.CreateDirectory(directory);
             }
             var files = Directory.GetFiles(directory);
-            var i = 0;
+            List<Task> tasks = new(imageTuples.Length);
             foreach (var (url, file) in imageTuples)
             {
                 var path = Path.Combine(directory, file);
                 if (files.Contains(path))
                 {
-                    SetCurrentProgress?.Invoke(++i);
+                    SetCurrentProgress?.Invoke();
                     continue;
                 }
-
-                await DownLoadImageAsync($"{options.Value.Domain}/{Prefix}{file}", path);
+                tasks.Add(DownLoadImageAsync($"{options.Value.Domain}/{Prefix}{file}", path));
                 result.Add((url, path));
-                SetCurrentProgress?.Invoke(++i);
             }
 
+            await Task.WhenAll(tasks);
+            tasks.Clear();
             //下载完后立即删除oss文件
             //await BatchDeleteAsync(images.Select(i => i.file));
-            foreach (var item in imageTuples.Select(f => f.file))
-            {
-                await DeleteAsync($"{Prefix}{item}");
-            }
+            tasks.AddRange(imageTuples.Select(f => f.file).Select(item => DeleteAsync($"{Prefix}{item}")));
+            await Task.WhenAll(tasks);
             return result;
         }
 
@@ -146,14 +143,7 @@ namespace EarthBackground.Oss
 
         private async Task DownLoadImageAsync(string url, string path)
         {
-            var response = await client.GetAsync(url);
-            if (!response.IsSuccessStatusCode)
-            {
-                var message = $"{response.StatusCode}:图片下载失败 {url}\n{await response.Content.ReadAsStringAsync()}";
-                throw new InvalidOperationException(message);
-            }
-
-            await using var stream = await response.Content.ReadAsStreamAsync();
+            await using var stream = await client.GetStreamAsync(url);
             if (File.Exists(path))
             {
                 File.Delete(path);
@@ -161,6 +151,7 @@ namespace EarthBackground.Oss
 
             await using var fileStream = new FileStream(path, FileMode.CreateNew);
             await stream.CopyToAsync(fileStream);
+            SetCurrentProgress?.Invoke();
         }
     }
 }

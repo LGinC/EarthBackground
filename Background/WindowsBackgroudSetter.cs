@@ -11,7 +11,7 @@ namespace EarthBackground.Background
     {
         public string Platform => nameof(OSPlatform.Windows);
 
-        public Task SetBackgroudAsync(string filePath)
+        public Task SetBackgroundAsync(string filePath)
         {
             var fileInfo = new FileInfo(filePath);
             //设置windows壁纸文件格式必须为bmp

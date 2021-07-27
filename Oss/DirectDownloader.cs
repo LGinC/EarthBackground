@@ -16,7 +16,7 @@ namespace EarthBackground.Oss
         private readonly HttpClient _client;
 
         public event Action<int> SetTotal;
-        public event Action<int> SetCurrentProgress;
+        public event Action SetCurrentProgress;
 
         public DirectDownloader(IHttpClientFactory httpClientFactory)
         {
@@ -25,53 +25,49 @@ namespace EarthBackground.Oss
 
         public async Task<IEnumerable<(string url, string path)>> DownloadAsync(IEnumerable<(string url, string file)> images, string directory)
         {
-            if (images.IsNullOrEmpty())
+            var valueTuples = images as (string url, string file)[] ?? images.ToArray();
+            if (valueTuples.IsNullOrEmpty())
             {
                 return new (string, string)[0];
             }
 
-            SetTotal(images.Count());
-            var result = new List<(string, string)> { Capacity = images.Count() };
+            SetTotal?.Invoke(valueTuples.Length);
+            var result = new List<(string, string)> { Capacity = valueTuples.Length };
             if (!Directory.Exists(directory))
             {
                 Directory.CreateDirectory(directory);
             }
             var files = Directory.GetFiles(directory);
-            int i = 0;
-            foreach (var (url, file) in images)
+            List<Task> tasks = new(valueTuples.Length);
+            foreach (var (url, file) in valueTuples)
             {
                 string path = Path.Combine(directory, file);
                 if (files.Contains(path))
                 {
-                    SetCurrentProgress(++i);
+                    SetCurrentProgress?.Invoke();
                     continue;
                 }
 
-                await DownLoadImageAsync(url, path);
+                tasks.Add(DownLoadImageAsync(url, path));
                 result.Add((url, path));
-                SetCurrentProgress(++i);
             }
 
+            await Task.WhenAll(tasks);
+            // SetCurrentProgress?.Invoke(result.Count);
             return result;
         }
 
-        private async Task DownLoadImageAsync(string url, string path)
+        private async Task DownLoadImageAsync(string url,string path)
         {
-            var response = await _client.GetAsync(url);
-            if (!response.IsSuccessStatusCode)
-            {
-                var message = $"{response.StatusCode}:图片下载失败 {url}\n{await response.Content.ReadAsStringAsync()}";
-                throw new InvalidOperationException(message);
-            }
-
-            using var stream = await response.Content.ReadAsStreamAsync();
+            await using var stream = await  _client.GetStreamAsync(url);
             if (File.Exists(path))
             {
                 File.Delete(path);
             }
 
-            using var fileStream = new FileStream(path, FileMode.CreateNew);
-            stream.CopyTo(fileStream);
+            await using var fileStream = new FileStream(path, FileMode.CreateNew);
+            await stream.CopyToAsync(fileStream);
+            SetCurrentProgress?.Invoke();
         }
 
         public Task ClearOssAsync(string domain) => Task.CompletedTask;

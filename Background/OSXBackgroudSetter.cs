@@ -8,7 +8,7 @@ namespace EarthBackground.Background
     {
         public string Platform => nameof(OSPlatform.OSX);
 
-        public Task SetBackgroudAsync(string filePath)
+        public Task SetBackgroundAsync(string filePath)
         {
             throw new PlatformNotSupportedException($"{Platform} not support");
         }

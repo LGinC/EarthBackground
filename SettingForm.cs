@@ -15,7 +15,7 @@ namespace EarthBackground
         private readonly CaptureOption capture;
         private readonly OssOption oss;
         private readonly IConfigureSaver configureSaver;
-        System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SettingForm));
+        System.ComponentModel.ComponentResourceManager resources = new(typeof(SettingForm));
         readonly CultureInfo current;
         public SettingForm(
             IServiceProvider serviceProvider,
@@ -131,7 +131,7 @@ namespace EarthBackground
                 return;
             }
 
-            string cloud = (CB_Downloader.SelectedItem as NameValue<string>).Value;
+            string cloud = (CB_Downloader.SelectedItem as NameValue<string>)?.Value;
             switch (cloud)
             {
                 case NameConsts.DirectDownload:
@@ -142,8 +142,6 @@ namespace EarthBackground
                     break;
                 case NameConsts.Qiqiuyun:
                     QiniuSetting(cloud);
-                    break;
-                default:
                     break;
             }
         }
@@ -183,14 +181,14 @@ namespace EarthBackground
 
         private async void SettingForm_FormClosed(object sender, FormClosedEventArgs e)
         {
-            capture.Captor = (CB_Captor.SelectedItem as NameValue<string>).Value;
+            capture.Captor = (CB_Captor.SelectedItem as NameValue<string>)?.Value;
             capture.Interval = (int)Math.Round(MUD_Interval.Value, 10);
-            capture.Resolution = (CB_Resolution.SelectedItem as NameValue<Resolution>).Value;
+            capture.Resolution = ((NameValue<Resolution>) CB_Resolution.SelectedItem).Value;
             capture.SaveWallpaper = CB_SaveWallpaper.Checked;
             capture.SetWallpaper = CB_SetBackGround.Checked;
             capture.Zoom = Convert.ToInt32(MUD_Zoom.Value);
             oss.IsEnable = true;
-            oss.CloudName = (CB_Downloader.SelectedItem as NameValue<string>).Value;
+            oss.CloudName = (CB_Downloader.SelectedItem as NameValue<string>)?.Value;
             oss.UserName = string.IsNullOrWhiteSpace(TB_Username.Text) ? oss.UserName : TB_Username.Text;
             oss.ApiKey = string.IsNullOrWhiteSpace(TB_ApiKey.Text) ? oss.ApiKey : TB_ApiKey.Text;
             oss.ApiSecret = string.IsNullOrWhiteSpace(TB_ApiSecret.Text) ? oss.ApiSecret : TB_ApiSecret.Text;
