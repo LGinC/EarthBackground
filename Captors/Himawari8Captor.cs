@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -12,32 +12,14 @@ using Microsoft.Extensions.Options;
 
 namespace EarthBackground.Captors
 {
-    public class Himawari8Captor : ICaptor
+    public class Himawari8Captor : BaseCaptor
     {
-        const int BaseRate = 688;
         //const string jsonUrl = "https://himawari8-dl.nict.go.jp/himawari8/img/FULL_24h/latest.json";
-        public string ProviderName => NameConsts.Himawari8;
-        
-        private readonly CaptureOption _option;
-
-        private readonly string path;
-
-        private readonly HttpClient _client;
-
-
-
-        public Himawari8Captor(IOptionsSnapshot<CaptureOption> options, IHttpClientFactory factory, IOssProvider downloaderProvider)
+        public override string ProviderName => NameConsts.Himawari8;
+        public Himawari8Captor(IOptionsSnapshot<CaptureOption> options, IHttpClientFactory factory, IOssProvider downloaderProvider) : base(options, factory, downloaderProvider)
         {
-            _option = options.Value;
-            _client = factory.CreateClient(ProviderName);
-            Downloader = downloaderProvider.GetDownloader();
-            path = Path.Combine(_option.SavePath, "wallpaper.bmp");
-            GetImageId();
         }
-
-
-        public IOssDownloader Downloader { get; set; }
-        private string _imageId;
+        
 
         /// <summary>
         /// 获取图片id
@@ -45,7 +27,7 @@ namespace EarthBackground.Captors
         /// <returns></returns>
         private async Task<string> GetImageIdAsync()
         {
-            //var response = await _client.GetAsync(_option.ImageIdUrl);
+            //var response = await Client.GetAsync(Options.ImageIdUrl);
             //if (!response.IsSuccessStatusCode)
             //{
             //    throw new InvalidOperationException($"{response.StatusCode.ToString()}:{response.Content}");
@@ -55,28 +37,8 @@ namespace EarthBackground.Captors
             //var reStr = await response.Content.ReadAsStringAsync();
             //var json = JsonSerializer.Deserialize<DateResult>(reStr);
             //return json.date.ToString("yyyy/MM/dd/hhmmss");
-            var t = await _client.GetAsync(!string.IsNullOrEmpty(_option.ImageIdUrl) ? _option.ImageIdUrl : "json/himawari/full_disk/geocolor/latest_times.json");
-            var str = await t.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<LastestTimes>(str).timestamps_int.First().ToString();
-        }
-
-        /// <summary>
-        /// 持久化图片id
-        /// </summary>
-        /// <returns></returns>
-        Task SetImageId()
-        {
-            return File.WriteAllTextAsync("imageId.txt", _imageId);
-        }
-
-        /// <summary>
-        /// 读取图片id
-        /// </summary>
-        /// <returns></returns>
-        string GetImageId()
-        {
-            _imageId = !File.Exists("imageId.txt") ? null : File.ReadLines("imageId.txt").FirstOrDefault();
-            return _imageId;
+            
+            return (await Client.GetFromJsonAsync<LastestTimes>(!string.IsNullOrEmpty(Options.ImageIdUrl) ? Options.ImageIdUrl : "json/himawari/full_disk/geocolor/latest_times.json"))?.timestamps_int.First().ToString();
         }
 
         /// <summary>
@@ -85,7 +47,7 @@ namespace EarthBackground.Captors
         /// <returns></returns>
         private async Task SaveImageAsync(string imageId)
         {
-            var size = (int)_option.Resolution;
+            var size = (int)Options.Resolution;
             int total = 1 << size;
             List<(string, string)> images = new List<(string, string)>();
             for (int i = 0; i < total; i++)
@@ -93,10 +55,10 @@ namespace EarthBackground.Captors
                 for (int j = 0; j < total; j++)
                 {
                     string image = $"{i:000}_{j:000}.png";
-                    string filePath = Path.Combine(_option.SavePath, image);
+                    string filePath = Path.Combine(Options.SavePath, image);
                     if (!File.Exists(filePath))
                     {
-                        images.Add(($"{_client.BaseAddress.AbsoluteUri}imagery/{imageId[0..8]}/himawari---full_disk/geocolor/{imageId}/{size:00}/{image}", image));
+                        images.Add(($"{Client.BaseAddress.AbsoluteUri}imagery/{imageId[..8]}/himawari---full_disk/geocolor/{imageId}/{size:00}/{image}", image));
                     }
                 }
             }
@@ -106,99 +68,23 @@ namespace EarthBackground.Captors
                 return;
             }
 
-            var result = await Downloader.DownloadAsync(images, _option.SavePath);
+            await Downloader.DownloadAsync(images, Options.SavePath);
         }
-
-
-        /// <summary>
-        /// 拼接图片
-        /// </summary>
-        /// <returns></returns>
-        private string JoinImage()
-        {
-            var size = 1 << (int)_option.Resolution;
-            using Bitmap bitmap = new Bitmap(BaseRate * size, BaseRate * size);
-            Image[,] images = new Image[size, size];
-            using (Graphics g = Graphics.FromImage(bitmap))
-            {
-                for (int i = 0; i < size; i++)
-                {
-                    for (int j = 0; j < size; j++)
-                    {
-                        images[i, j] = Image.FromFile(Path.Combine(_option.SavePath, $"{i:000}_{j:000}.png"));
-                        g.DrawImage(images[i, j], BaseRate * j, BaseRate * i);
-                        images[i, j].Dispose();
-                    }
-                }
-                g.Save();
-            }
-
-
-
-            if (File.Exists(path))
-            {
-                File.Delete(path);
-            }
-
-            if (_option.Zoom == 100)
-            {
-                bitmap.Save(path, System.Drawing.Imaging.ImageFormat.Bmp);
-            }
-            else
-            {
-                int newSize = (int)(bitmap.Height * _option.Zoom * 1.0 / 100);
-                using Bitmap zoomBitmap = new Bitmap(newSize, newSize);
-                using Graphics g2 = Graphics.FromImage(zoomBitmap);
-                g2.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                g2.DrawImage(bitmap, 0, 0, newSize, newSize);
-                g2.Save();
-                zoomBitmap.Save(path, System.Drawing.Imaging.ImageFormat.Bmp);
-            }
-
-            //删除小文件
-            foreach (var f in Directory.GetFiles(_option.SavePath).Where(f => f.Contains("_")))
-            {
-                File.Delete(f);
-            }
-
-            return path;
-        }
-
-        private void CreateDirectory()
-        {
-            if (!Directory.Exists(_option.SavePath))
-            {
-                Directory.CreateDirectory(_option.SavePath);
-            }
-        }
-
-        public async Task<string> GetImagePath()
+        
+        
+        public override async Task<string> GetImagePath()
         {
             CreateDirectory();
             var imageId = await GetImageIdAsync();
-            if (string.IsNullOrEmpty(imageId) || imageId == _imageId)
+            if (string.IsNullOrEmpty(imageId) || imageId == CurrentImageId)
             {
-                return path;
+                return ImagePath;
             }
+            CurrentImageId = imageId;
             await SaveImageAsync(imageId);
             var wallpaper = JoinImage();
-            _imageId = imageId;
             await SetImageId();
             return wallpaper;
-        }
-
-        public async Task ResetAsync()
-        {
-            if (Downloader != null)
-            {
-                await Downloader.ClearOssAsync(_client.BaseAddress.AbsoluteUri);
-            }
-        }
-
-        public void Dispose()
-        {
-            _client.Dispose();
-            Downloader.Dispose();
         }
     }
 

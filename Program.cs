@@ -48,6 +48,7 @@ namespace EarthBackground
             //注入抓取器
             services.AddTransient<ICaptorProvider, CaptorProvider>();
             services.AddTransient<ICaptor, Himawari8Captor>();
+            services.AddTransient<ICaptor, FY4Captor>();
 
             //注入oss
             services.AddTransient<IOssProvider, OssProvider>();

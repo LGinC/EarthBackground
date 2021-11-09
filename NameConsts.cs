@@ -15,5 +15,10 @@
         /// 向日葵8号
         /// </summary>
         public const string Himawari8 = "Himawari8";
+
+        /// <summary>
+        /// 风云4A
+        /// </summary>
+        public const string FY4 = "FY4A";
     }
 }

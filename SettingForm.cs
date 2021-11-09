@@ -30,7 +30,7 @@ namespace EarthBackground
             oss = ossOption.Value;
             var captors = serviceProvider.GetServices<ICaptor>().Select(s => new NameValue<string>(L(s.ProviderName), s.ProviderName)).ToArray();
             CB_Captor.Items.AddRange(captors);
-            if (captureOption.Value.Captor.IsNullOrEmpty())
+            if (!captureOption.Value.Captor.IsNullOrEmpty())
             {
                 CB_Captor.SelectedItem = captors.First(c=> c.Value == capture.Captor);
             }

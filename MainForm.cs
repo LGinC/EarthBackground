@@ -23,6 +23,7 @@ namespace EarthBackground
         readonly CultureInfo _current;
         private readonly TaskScheduler _scheduler;
         private int _ossFetchCount;
+        private int total;
 
         private readonly object lockObject = new object();
 
@@ -50,10 +51,11 @@ namespace EarthBackground
                 Logger.LogInformation("已启动");
                 provider.Downloader.SetTotal += t => Task.Factory.StartNew(()=>
                 {
+                    total = t;
                     progressBar1.Maximum = t;
                     l_status.Text = L("running");
                     l_status.ForeColor = Color.Green;
-                    l_progress.Text = $"0/{t}";
+                    l_progress.Text = $@"0/{t}";
                 }, CancellationToken.None, TaskCreationOptions.RunContinuationsAsynchronously, _scheduler);
 
                 provider.Downloader.SetCurrentProgress += () => Task.Factory.StartNew(()=>
@@ -67,9 +69,10 @@ namespace EarthBackground
                         l_status.Text = L("complete");
                         l_status.ForeColor = Color.Black;
                         l_progress.Text = string.Empty;
+                        progressBar1.Value = 0;
                     }
                     else
-                      l_progress.Text = $"{progressBar1.Value}/{l_progress.Text.Split("/")[1]}";
+                      l_progress.Text = $@"{progressBar1.Value}/{total}";
                 }, CancellationToken.None, TaskCreationOptions.RunContinuationsAsynchronously, _scheduler);
 
                 await Task.Factory.StartNew(() =>
@@ -94,7 +97,7 @@ namespace EarthBackground
                     B_start.Enabled = true;
                     B_stop.Enabled = false;
                 }, CancellationToken.None, TaskCreationOptions.AttachedToParent, _scheduler);
-
+                
                 if (!_options.Value.SaveWallpaper) return;
                 
                 var info = new FileInfo(image);
@@ -145,6 +148,8 @@ namespace EarthBackground
             l_status.Text = L("wait for run");
             l_status.ForeColor = Color.Black;
             l_progress.Text = string.Empty;
+            B_start.Enabled = true;
+            B_stop.Enabled = false;
         }
 
         private void notifyIcon1_MouseClick(object sender, MouseEventArgs e)

@@ -30,7 +30,8 @@ namespace EarthBackground.Oss
             {
                 return new (string, string)[0];
             }
-
+            List<int> a = new List<int>();
+a.Sort();
             SetTotal?.Invoke(valueTuples.Length);
             var result = new List<(string, string)> { Capacity = valueTuples.Length };
             if (!Directory.Exists(directory))

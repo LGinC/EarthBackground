@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using Microsoft.Win32;
 
 namespace EarthBackground.Background
 {
@@ -12,6 +13,13 @@ namespace EarthBackground.Background
 
         public static void Set(string filePath)
         {
+            RegistryKey key = Registry.CurrentUser.OpenSubKey(@"Control Panel\Desktop", true);
+            if (key != null)
+            {
+                key.SetValue(@"WallpaperStyle", 0.ToString()); // 0＝居中  1＝平铺  2＝拉伸
+                key.SetValue(@"TileWallpaper", 0.ToString());
+            }
+
             SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, filePath, SPIF_UPDATEINIFILE); //filename为图片地址，最后一个参数需要为1   0的话在重启后就变回原来的了
         }
 
