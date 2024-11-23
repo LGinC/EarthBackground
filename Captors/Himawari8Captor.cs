@@ -49,7 +49,7 @@ namespace EarthBackground.Captors
         {
             var size = (int)Options.Resolution;
             int total = 1 << size;
-            List<(string, string)> images = new List<(string, string)>();
+            List<(string, string)> images = new();
             for (int i = 0; i < total; i++)
             {
                 for (int j = 0; j < total; j++)

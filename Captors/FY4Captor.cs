@@ -37,7 +37,8 @@ namespace EarthBackground.Captors
                 {"queryProduct", "NatureColor"}
             });
             var re = await Client.PostAsync("/swapQuery/public/DataQuery/playList", content);
-            return (await re.Content.ReadFromJsonAsync<string[]>())?.First();
+            var s = await re.Content.ReadAsStringAsync();
+            return (await re.Content.ReadFromJsonAsync<string[]>())?.FirstOrDefault();
         }
         public override async Task<string> GetImagePath()
         {

@@ -47,14 +47,14 @@ namespace EarthBackground
 
             //注入抓取器
             services.AddTransient<ICaptorProvider, CaptorProvider>();
-            services.AddTransient<ICaptor, Himawari8Captor>();
-            services.AddTransient<ICaptor, FY4Captor>();
+            services.AddKeyedTransient<ICaptor, Himawari8Captor>(NameConsts.Himawari8);
+            services.AddKeyedTransient<ICaptor, FY4Captor>(NameConsts.FY4);
 
             //注入oss
             services.AddTransient<IOssProvider, OssProvider>();
-            services.AddTransient<IOssDownloader, DirectDownloader>();
-            services.AddTransient<IOssDownloader, CloudinaryDownloader>();
-            services.AddTransient<IOssDownloader, QiniuDownloader>();
+            services.AddKeyedTransient<IOssDownloader, DirectDownloader>(NameConsts.DirectDownload);
+            services.AddKeyedTransient<IOssDownloader, CloudinaryDownloader>(NameConsts.Cloudinary);
+            services.AddKeyedTransient<IOssDownloader, QiniuDownloader>(NameConsts.Qiqiuyun);
 
             //注入壁纸设置器
             services.AddTransient<IBackgroudSetProvider, BackgroudSetProvider>();

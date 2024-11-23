@@ -1,6 +1,6 @@
 ﻿namespace EarthBackground
 {
-    public static class NameConsts
+    public class NameConsts
     {
         public const string DirectDownload = "DirectDownload";
 
@@ -20,5 +20,15 @@
         /// 风云4A
         /// </summary>
         public const string FY4 = "FY4A";
+
+        /// <summary>
+        /// 抓取器名称列表
+        /// </summary>
+        public readonly static string[] CaptorNames = [Himawari8, FY4];
+
+        /// <summary>
+        /// 下载器名称列表
+        /// </summary>
+        public readonly static string[] DownloaderNames = [DirectDownload, Qiqiuyun, Cloudinary];
     }
 }

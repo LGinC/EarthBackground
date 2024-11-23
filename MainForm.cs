@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using EarthBackground.Background;
+using EarthBackground.Oss;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -25,7 +26,7 @@ namespace EarthBackground
         private int _ossFetchCount;
         private int total;
 
-        private readonly object lockObject = new object();
+        private readonly Lock lockObject = new ();
 
         public MainForm(ILogger<MainForm> logger, 
             IServiceProvider provider, 
@@ -47,7 +48,7 @@ namespace EarthBackground
         {
             try
             {
-                using ICaptor provider = _provider.GetRequiredService<ICaptor>();
+                using ICaptor provider = _provider.GetRequiredKeyedService<ICaptor>(_options.Value.Captor);
                 Logger.LogInformation("已启动");
                 provider.Downloader.SetTotal += t => Task.Factory.StartNew(()=>
                 {

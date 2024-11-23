@@ -28,7 +28,7 @@ namespace EarthBackground
             configureSaver = saver;
             capture = captureOption.Value;
             oss = ossOption.Value;
-            var captors = serviceProvider.GetServices<ICaptor>().Select(s => new NameValue<string>(L(s.ProviderName), s.ProviderName)).ToArray();
+            var captors = NameConsts.CaptorNames.Select(s => new NameValue<string>(L(s), s)).ToArray();
             CB_Captor.Items.AddRange(captors);
             if (!captureOption.Value.Captor.IsNullOrEmpty())
             {
@@ -49,7 +49,7 @@ namespace EarthBackground
             MUD_Interval.Value = capture.Interval;
             B_ChooseSavePath.Enabled = capture.SaveWallpaper;
 
-            var downloaders = serviceProvider.GetServices<IOssDownloader>().Select(s => new NameValue<string>(L(s.ProviderName), s.ProviderName)).ToArray();
+            var downloaders = NameConsts.DownloaderNames.Select(s => new NameValue<string>(L(s), s)).ToArray();
             CB_Downloader.Items.AddRange(downloaders);
             if (!oss.CloudName.IsNullOrEmpty() && oss.IsEnable)
             {
