@@ -301,14 +301,14 @@ namespace EarthBackground
 
         private async void SettingForm_FormClosed(object sender, FormClosedEventArgs e)
         {
-            _capture.Captor = (CB_Captor.SelectedItem as NameValue<string>)?.Value;
+            _capture.Captor = (CB_Captor.SelectedItem as NameValue<string>)!.Value;
             _capture.Interval = (int)Math.Round(MUD_Interval.Value, 10);
-            _capture.Resolution = ((NameValue<Resolution>) CB_Resolution.SelectedItem).Value;
+            _capture.Resolution = (CB_Resolution.SelectedItem as NameValue<Resolution>)!.Value;
             _capture.SaveWallpaper = CB_SaveWallpaper.Checked;
             _capture.SetWallpaper = CB_SetBackGround.Checked;
             _capture.Zoom = Convert.ToInt32(MUD_Zoom.Value);
             _oss.IsEnable = true;
-            _oss.CloudName = (CB_Downloader.SelectedItem as NameValue<string>)?.Value;
+            _oss.CloudName = (CB_Downloader.SelectedItem as NameValue<string>)!.Value;
             _oss.UserName = string.IsNullOrWhiteSpace(TB_Username.Text) ? _oss.UserName : TB_Username.Text;
             _oss.ApiKey = string.IsNullOrWhiteSpace(TB_ApiKey.Text) ? _oss.ApiKey : TB_ApiKey.Text;
             _oss.ApiSecret = string.IsNullOrWhiteSpace(TB_ApiSecret.Text) ? _oss.ApiSecret : TB_ApiSecret.Text;
@@ -322,16 +322,10 @@ namespace EarthBackground
         }
     }
 
-    public class NameValue<T>
+    public class NameValue<T>(string name, T value)
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = name;
 
-        public T Value { get; set; }
-
-        public NameValue(string name, T value)
-        {
-            Name = name;
-            Value = value;
-        }
+        public T Value { get; set; } = value;
     }
 }
