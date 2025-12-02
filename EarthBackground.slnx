@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="EarthBackground.Tests/EarthBackground.Tests.csproj" />
+  <Project Path="src/EarthBackground.csproj" />
+</Solution>

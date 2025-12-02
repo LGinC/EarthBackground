@@ -1,0 +1,166 @@
+using System;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+
+namespace EarthBackground.Background
+{
+    public class WallpaperService(
+        IServiceProvider serviceProvider,
+        ILogger<WallpaperService> logger,
+        IOptionsMonitor<CaptureOption> options,
+        IBackgroudSetProvider backgroundSetProvider)
+        : BackgroundService
+    {
+        private int _ossFetchCount;
+
+        public event Action<string>? StatusChanged;
+        public event Action<int, int>? ProgressChanged;
+        public event Action<string>? ImageSaved;
+        public event Action<Exception>? ErrorOccurred;
+
+        public bool IsRunning { get; private set; }
+
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            // Default to running if configured, or wait for manual start?
+            // Original app started on button click.
+            // We will wait for Start command.
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                if (IsRunning)
+                {
+                    try
+                    {
+                        await RunCycleAsync(stoppingToken);
+                        
+                        // Wait for interval
+                        int intervalMinutes = options.CurrentValue.Interval;
+                        if (intervalMinutes < 1) intervalMinutes = 10;
+                        await Task.Delay(TimeSpan.FromMinutes(intervalMinutes), stoppingToken);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, "Error in WallpaperService cycle");
+                        ErrorOccurred?.Invoke(ex);
+                        // Wait a bit before retrying on error to avoid tight loop
+                        await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
+                    }
+                }
+                else
+                {
+                    await Task.Delay(1000, stoppingToken);
+                }
+            }
+        }
+
+        public void Start()
+        {
+            IsRunning = true;
+            StatusChanged?.Invoke("Running");
+        }
+
+        public void Stop()
+        {
+            IsRunning = false;
+            StatusChanged?.Invoke("Stopped");
+        }
+
+        private async Task RunCycleAsync(CancellationToken token)
+        {
+            StatusChanged?.Invoke("Initializing...");
+            
+            // Create a scope for the strategy execution
+            using var scope = serviceProvider.CreateScope();
+            var captorKey = options.CurrentValue.Captor;
+            
+            // Strategy: Select the appropriate Captor
+            var captor = scope.ServiceProvider.GetRequiredKeyedService<ICaptor>(captorKey);
+            var setter = backgroundSetProvider.GetSetter();
+
+            logger.LogInformation($"Starting capture with {captorKey}");
+            StatusChanged?.Invoke("Downloading...");
+
+            // Hook up progress
+            captor.Downloader.SetTotal += (total) =>
+            {
+                ProgressChanged?.Invoke(0, total);
+            };
+            captor.Downloader.SetCurrentProgress += () =>
+            {
+                // Note: This might need more context to know current value, 
+                // but original interface just had void event. 
+                // We might need to assume increment or change interface later.
+                // For now, let's just invoke with dummy or fix interface.
+                // Actually, let's just trigger a progress update and let UI handle increment if needed,
+                // or better, we should track it here.
+            };
+
+            // Since the original interface is a bit limited (void SetCurrentProgress), 
+            // we will wrap the progress handling if possible or just rely on the fact 
+            // that we can't easily get the exact count without changing the interface.
+            // BUT, looking at MainForm, it incremented a local bar.
+            // Let's try to track it locally here.
+            var currentProgress = 0;
+            var totalProgress = 0;
+            captor.Downloader.SetTotal += (t) => { totalProgress = t; currentProgress = 0; ProgressChanged?.Invoke(currentProgress, totalProgress); };
+            captor.Downloader.SetCurrentProgress += () => { currentProgress++; ProgressChanged?.Invoke(currentProgress, totalProgress); };
+
+            var imagePath = await captor.GetImagePath(token);
+            
+            _ossFetchCount++;
+            if (_ossFetchCount > 3)
+            {
+                _ossFetchCount = 0;
+                await captor.ResetAsync(token);
+            }
+
+            logger.LogInformation("Wallpaper saved: {ImagePath}", imagePath);
+            ImageSaved?.Invoke(imagePath);
+
+            if (options.CurrentValue.SetWallpaper)
+            {
+                StatusChanged?.Invoke("Setting Wallpaper...");
+                await setter.SetBackgroundAsync(imagePath, token);
+            }
+
+            if (options.CurrentValue.SaveWallpaper)
+            {
+                SaveWallpaperLocal(imagePath);
+            }
+
+            StatusChanged?.Invoke("Complete");
+            ProgressChanged?.Invoke(totalProgress, totalProgress); // Ensure full
+        }
+
+        private void SaveWallpaperLocal(string imagePath)
+        {
+            try
+            {
+                var info = new FileInfo(imagePath);
+                var savePath = options.CurrentValue.SavePath;
+                if (!Directory.Exists(savePath))
+                {
+                    Directory.CreateDirectory(savePath);
+                }
+
+                var dest = Path.Combine(savePath, info.Name);
+                if (dest == imagePath) return;
+                if (File.Exists(dest)) File.Delete(dest);
+                File.Copy(imagePath, dest);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to save wallpaper locally");
+            }
+        }
+    }
+}
