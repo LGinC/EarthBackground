@@ -45,7 +45,7 @@ namespace EarthBackground.Captors
         /// 持久化当前图片id
         /// </summary>
         /// <returns></returns>
-        protected Task SetImageId(CancellationToken token = default) => File.WriteAllTextAsync("NameConsts.ImageIdPath", CurrentImageId, token);
+        protected Task SetImageId(CancellationToken token = default) => File.WriteAllTextAsync(NameConsts.ImageIdPath, CurrentImageId, token);
 
         public BaseCaptor(IOptionsSnapshot<CaptureOption> options,IHttpClientFactory factory, IOssProvider downloaderProvider)
         {
@@ -53,7 +53,7 @@ namespace EarthBackground.Captors
             Options = options.Value;
             ImagePath = Path.Combine(Options.SavePath, "wallpaper.bmp");
             Downloader = downloaderProvider.GetDownloader();
-            CurrentImageId = !File.Exists("NameConsts.ImageIdPath") ? string.Empty : File.ReadLines("NameConsts.ImageIdPath").FirstOrDefault() ?? string.Empty;
+            CurrentImageId = !File.Exists(NameConsts.ImageIdPath) ? string.Empty : File.ReadLines(NameConsts.ImageIdPath).FirstOrDefault() ?? string.Empty;
         }
         
         /// <summary>

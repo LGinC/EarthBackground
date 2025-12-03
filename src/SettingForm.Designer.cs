@@ -54,311 +54,356 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SettingForm));
-            this.SavePathDialog = new System.Windows.Forms.FolderBrowserDialog();
-            this.splitContainer1 = new System.Windows.Forms.SplitContainer();
-            this.MUD_Zoom = new System.Windows.Forms.NumericUpDown();
-            this.MUD_Interval = new System.Windows.Forms.NumericUpDown();
-            this.CB_Resolution = new System.Windows.Forms.ComboBox();
-            this.B_ChooseSavePath = new System.Windows.Forms.Button();
-            this.L_SavePath = new System.Windows.Forms.Label();
-            this.l_zoom = new System.Windows.Forms.Label();
-            this.l_percent = new System.Windows.Forms.Label();
-            this.l_min = new System.Windows.Forms.Label();
-            this.l_interval = new System.Windows.Forms.Label();
-            this.l_path = new System.Windows.Forms.Label();
-            this.l_resolution = new System.Windows.Forms.Label();
-            this.l_sitellite = new System.Windows.Forms.Label();
-            this.CB_Captor = new System.Windows.Forms.ComboBox();
-            this.CB_SaveWallpaper = new System.Windows.Forms.CheckBox();
-            this.CB_SetBackGround = new System.Windows.Forms.CheckBox();
-            this.CB_AutoStart = new System.Windows.Forms.CheckBox();
-            this.CB_Zone = new System.Windows.Forms.ComboBox();
-            this.TB_Bucket = new System.Windows.Forms.TextBox();
-            this.TB_ApiSecret = new System.Windows.Forms.TextBox();
-            this.TB_Domain = new System.Windows.Forms.TextBox();
-            this.TB_ApiKey = new System.Windows.Forms.TextBox();
-            this.TB_Username = new System.Windows.Forms.TextBox();
-            this.l_zone = new System.Windows.Forms.Label();
-            this.l_bucket = new System.Windows.Forms.Label();
-            this.l_apikey = new System.Windows.Forms.Label();
-            this.l_domain = new System.Windows.Forms.Label();
-            this.l_apisecret = new System.Windows.Forms.Label();
-            this.l_username = new System.Windows.Forms.Label();
-            this.l_downloader = new System.Windows.Forms.Label();
-            this.CB_Downloader = new System.Windows.Forms.ComboBox();
-            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
-            this.splitContainer1.Panel1.SuspendLayout();
-            this.splitContainer1.Panel2.SuspendLayout();
-            this.splitContainer1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.MUD_Zoom)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.MUD_Interval)).BeginInit();
-            this.SuspendLayout();
+            tlpCapture = new System.Windows.Forms.TableLayoutPanel();
+            CB_AutoStart = new System.Windows.Forms.CheckBox();
+            CB_SetBackGround = new System.Windows.Forms.CheckBox();
+            CB_SaveWallpaper = new System.Windows.Forms.CheckBox();
+            l_sitellite = new System.Windows.Forms.Label();
+            CB_Captor = new System.Windows.Forms.ComboBox();
+            l_resolution = new System.Windows.Forms.Label();
+            CB_Resolution = new System.Windows.Forms.ComboBox();
+            l_interval = new System.Windows.Forms.Label();
+            flpInterval = new System.Windows.Forms.FlowLayoutPanel();
+            l_zoom = new System.Windows.Forms.Label();
+            tlpDownload = new System.Windows.Forms.TableLayoutPanel();
+            l_downloader = new System.Windows.Forms.Label();
+            CB_Downloader = new System.Windows.Forms.ComboBox();
+            l_username = new System.Windows.Forms.Label();
+            TB_Username = new System.Windows.Forms.TextBox();
+            l_apikey = new System.Windows.Forms.Label();
+            TB_ApiKey = new System.Windows.Forms.TextBox();
+            l_apisecret = new System.Windows.Forms.Label();
+            TB_ApiSecret = new System.Windows.Forms.TextBox();
+            l_domain = new System.Windows.Forms.Label();
+            TB_Domain = new System.Windows.Forms.TextBox();
+            l_bucket = new System.Windows.Forms.Label();
+            TB_Bucket = new System.Windows.Forms.TextBox();
+            l_zone = new System.Windows.Forms.Label();
+            CB_Zone = new System.Windows.Forms.ComboBox();
+            flpZoom = new System.Windows.Forms.FlowLayoutPanel();
+            SavePathDialog = new System.Windows.Forms.FolderBrowserDialog();
+            splitContainer1 = new System.Windows.Forms.SplitContainer();
+            B_ChooseSavePath = new System.Windows.Forms.Button();
+            l_path = new System.Windows.Forms.Label();
+            L_SavePath = new System.Windows.Forms.Label();
+            MUD_Interval = new System.Windows.Forms.NumericUpDown();
+            MUD_Zoom = new System.Windows.Forms.NumericUpDown();
+            l_min = new System.Windows.Forms.Label();
+            l_percent = new System.Windows.Forms.Label();
+            tlpCapture.SuspendLayout();
+            tlpDownload.SuspendLayout();
+            flpInterval.SuspendLayout();
+            flpZoom.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             // 
-            // SavePathDialog
             // 
-            this.SavePathDialog.RootFolder = System.Environment.SpecialFolder.History;
+            // tlpCapture
             // 
-            // splitContainer1
-            // 
-            resources.ApplyResources(this.splitContainer1, "splitContainer1");
-            this.splitContainer1.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
-            this.splitContainer1.Name = "splitContainer1";
-            // 
-            // splitContainer1.Panel1
-            // 
-            this.splitContainer1.Panel1.Controls.Add(this.MUD_Zoom);
-            this.splitContainer1.Panel1.Controls.Add(this.MUD_Interval);
-            this.splitContainer1.Panel1.Controls.Add(this.CB_Resolution);
-            this.splitContainer1.Panel1.Controls.Add(this.B_ChooseSavePath);
-            this.splitContainer1.Panel1.Controls.Add(this.L_SavePath);
-            this.splitContainer1.Panel1.Controls.Add(this.l_zoom);
-            this.splitContainer1.Panel1.Controls.Add(this.l_percent);
-            this.splitContainer1.Panel1.Controls.Add(this.l_min);
-            this.splitContainer1.Panel1.Controls.Add(this.l_interval);
-            this.splitContainer1.Panel1.Controls.Add(this.l_path);
-            this.splitContainer1.Panel1.Controls.Add(this.l_resolution);
-            this.splitContainer1.Panel1.Controls.Add(this.l_sitellite);
-            this.splitContainer1.Panel1.Controls.Add(this.CB_Captor);
-            this.splitContainer1.Panel1.Controls.Add(this.CB_SaveWallpaper);
-            this.splitContainer1.Panel1.Controls.Add(this.CB_SetBackGround);
-            this.splitContainer1.Panel1.Controls.Add(this.CB_AutoStart);
-            // 
-            // splitContainer1.Panel2
-            // 
-            this.splitContainer1.Panel2.Controls.Add(this.CB_Zone);
-            this.splitContainer1.Panel2.Controls.Add(this.TB_Bucket);
-            this.splitContainer1.Panel2.Controls.Add(this.TB_ApiSecret);
-            this.splitContainer1.Panel2.Controls.Add(this.TB_Domain);
-            this.splitContainer1.Panel2.Controls.Add(this.TB_ApiKey);
-            this.splitContainer1.Panel2.Controls.Add(this.TB_Username);
-            this.splitContainer1.Panel2.Controls.Add(this.l_zone);
-            this.splitContainer1.Panel2.Controls.Add(this.l_bucket);
-            this.splitContainer1.Panel2.Controls.Add(this.l_apikey);
-            this.splitContainer1.Panel2.Controls.Add(this.l_domain);
-            this.splitContainer1.Panel2.Controls.Add(this.l_apisecret);
-            this.splitContainer1.Panel2.Controls.Add(this.l_username);
-            this.splitContainer1.Panel2.Controls.Add(this.l_downloader);
-            this.splitContainer1.Panel2.Controls.Add(this.CB_Downloader);
-            // 
-            // MUD_Zoom
-            // 
-            resources.ApplyResources(this.MUD_Zoom, "MUD_Zoom");
-            this.MUD_Zoom.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.MUD_Zoom.Name = "MUD_Zoom";
-            this.MUD_Zoom.Value = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            // 
-            // MUD_Interval
-            // 
-            this.MUD_Interval.Increment = new decimal(new int[] {
-            10,
-            0,
-            0,
-            0});
-            resources.ApplyResources(this.MUD_Interval, "MUD_Interval");
-            this.MUD_Interval.Maximum = new decimal(new int[] {
-            1440,
-            0,
-            0,
-            0});
-            this.MUD_Interval.Minimum = new decimal(new int[] {
-            10,
-            0,
-            0,
-            0});
-            this.MUD_Interval.Name = "MUD_Interval";
-            this.MUD_Interval.Value = new decimal(new int[] {
-            10,
-            0,
-            0,
-            0});
-            // 
-            // CB_Resolution
-            // 
-            this.CB_Resolution.DisplayMember = "Name";
-            this.CB_Resolution.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.CB_Resolution.FormattingEnabled = true;
-            resources.ApplyResources(this.CB_Resolution, "CB_Resolution");
-            this.CB_Resolution.Name = "CB_Resolution";
-            this.CB_Resolution.ValueMember = "Value";
-            // 
-            // B_ChooseSavePath
-            // 
-            resources.ApplyResources(this.B_ChooseSavePath, "B_ChooseSavePath");
-            this.B_ChooseSavePath.Name = "B_ChooseSavePath";
-            this.B_ChooseSavePath.UseVisualStyleBackColor = true;
-            this.B_ChooseSavePath.Click += new System.EventHandler(this.B_ChooseSavePath_Click);
-            // 
-            // L_SavePath
-            // 
-            resources.ApplyResources(this.L_SavePath, "L_SavePath");
-            this.L_SavePath.Name = "L_SavePath";
-            // 
-            // l_zoom
-            // 
-            resources.ApplyResources(this.l_zoom, "l_zoom");
-            this.l_zoom.Name = "l_zoom";
-            // 
-            // l_percent
-            // 
-            resources.ApplyResources(this.l_percent, "l_percent");
-            this.l_percent.Name = "l_percent";
-            // 
-            // l_min
-            // 
-            resources.ApplyResources(this.l_min, "l_min");
-            this.l_min.Name = "l_min";
-            // 
-            // l_interval
-            // 
-            resources.ApplyResources(this.l_interval, "l_interval");
-            this.l_interval.Name = "l_interval";
-            // 
-            // l_path
-            // 
-            resources.ApplyResources(this.l_path, "l_path");
-            this.l_path.Name = "l_path";
-            // 
-            // l_resolution
-            // 
-            resources.ApplyResources(this.l_resolution, "l_resolution");
-            this.l_resolution.Name = "l_resolution";
-            // 
-            // l_sitellite
-            // 
-            resources.ApplyResources(this.l_sitellite, "l_sitellite");
-            this.l_sitellite.Name = "l_sitellite";
-            // 
-            // CB_Captor
-            // 
-            this.CB_Captor.DisplayMember = "Name";
-            this.CB_Captor.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.CB_Captor.FormattingEnabled = true;
-            resources.ApplyResources(this.CB_Captor, "CB_Captor");
-            this.CB_Captor.Name = "CB_Captor";
-            this.CB_Captor.ValueMember = "Value";
-            // 
-            // CB_SaveWallpaper
-            // 
-            resources.ApplyResources(this.CB_SaveWallpaper, "CB_SaveWallpaper");
-            this.CB_SaveWallpaper.Name = "CB_SaveWallpaper";
-            this.CB_SaveWallpaper.UseVisualStyleBackColor = true;
-            this.CB_SaveWallpaper.CheckedChanged += new System.EventHandler(this.CB_SaveWallpaper_CheckedChanged);
-            // 
-            // CB_SetBackGround
-            // 
-            resources.ApplyResources(this.CB_SetBackGround, "CB_SetBackGround");
-            this.CB_SetBackGround.Name = "CB_SetBackGround";
-            this.CB_SetBackGround.UseVisualStyleBackColor = true;
+            resources.ApplyResources(tlpCapture, "tlpCapture");
+            tlpCapture.Dock = System.Windows.Forms.DockStyle.Fill;
+            tlpCapture.ColumnCount = 2;
+            tlpCapture.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 100F));
+            tlpCapture.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            tlpCapture.Controls.Add(CB_AutoStart, 0, 0);
+            tlpCapture.Controls.Add(CB_SetBackGround, 0, 1);
+            tlpCapture.Controls.Add(CB_SaveWallpaper, 0, 2);
+            tlpCapture.Controls.Add(l_sitellite, 0, 3);
+            tlpCapture.Controls.Add(CB_Captor, 1, 3);
+            tlpCapture.Controls.Add(l_resolution, 0, 4);
+            tlpCapture.Controls.Add(CB_Resolution, 1, 4);
+            tlpCapture.Controls.Add(l_interval, 0, 5);
+            tlpCapture.Controls.Add(flpInterval, 1, 5);
+            tlpCapture.Controls.Add(l_zoom, 0, 6);
+            tlpCapture.Controls.Add(flpZoom, 1, 6);
+            tlpCapture.Controls.Add(l_path, 0, 7);
+            tlpCapture.Controls.Add(B_ChooseSavePath, 1, 7);
+            tlpCapture.Controls.Add(L_SavePath, 0, 8);
+            tlpCapture.Name = "tlpCapture";
+            tlpCapture.RowCount = 10;
+            tlpCapture.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
+            tlpCapture.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
+            tlpCapture.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
+            tlpCapture.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
+            tlpCapture.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
+            tlpCapture.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
+            tlpCapture.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
+            tlpCapture.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
+            tlpCapture.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
+            tlpCapture.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            tlpCapture.SetColumnSpan(CB_AutoStart, 2);
+            tlpCapture.SetColumnSpan(CB_SetBackGround, 2);
+            tlpCapture.SetColumnSpan(CB_SaveWallpaper, 2);
+            tlpCapture.SetColumnSpan(L_SavePath, 2);
             // 
             // CB_AutoStart
             // 
-            resources.ApplyResources(this.CB_AutoStart, "CB_AutoStart");
-            this.CB_AutoStart.Name = "CB_AutoStart";
-            this.CB_AutoStart.UseVisualStyleBackColor = true;
+            resources.ApplyResources(CB_AutoStart, "CB_AutoStart");
+            CB_AutoStart.Name = "CB_AutoStart";
+            CB_AutoStart.UseVisualStyleBackColor = true;
             // 
-            // CB_Zone
+            // CB_SetBackGround
             // 
-            this.CB_Zone.DisplayMember = "Name";
-            this.CB_Zone.FormattingEnabled = true;
-            resources.ApplyResources(this.CB_Zone, "CB_Zone");
-            this.CB_Zone.Name = "CB_Zone";
-            this.CB_Zone.ValueMember = "Value";
+            resources.ApplyResources(CB_SetBackGround, "CB_SetBackGround");
+            CB_SetBackGround.Name = "CB_SetBackGround";
+            CB_SetBackGround.UseVisualStyleBackColor = true;
             // 
-            // TB_Bucket
+            // CB_SaveWallpaper
             // 
-            resources.ApplyResources(this.TB_Bucket, "TB_Bucket");
-            this.TB_Bucket.Name = "TB_Bucket";
+            resources.ApplyResources(CB_SaveWallpaper, "CB_SaveWallpaper");
+            CB_SaveWallpaper.Name = "CB_SaveWallpaper";
+            CB_SaveWallpaper.UseVisualStyleBackColor = true;
+            CB_SaveWallpaper.CheckedChanged += CB_SaveWallpaper_CheckedChanged;
             // 
-            // TB_ApiSecret
+            // l_sitellite
             // 
-            resources.ApplyResources(this.TB_ApiSecret, "TB_ApiSecret");
-            this.TB_ApiSecret.Name = "TB_ApiSecret";
+            resources.ApplyResources(l_sitellite, "l_sitellite");
+            l_sitellite.Name = "l_sitellite";
             // 
-            // TB_Domain
+            // CB_Captor
             // 
-            resources.ApplyResources(this.TB_Domain, "TB_Domain");
-            this.TB_Domain.Name = "TB_Domain";
+            CB_Captor.DisplayMember = "Name";
+            CB_Captor.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            CB_Captor.FormattingEnabled = true;
+            resources.ApplyResources(CB_Captor, "CB_Captor");
+            CB_Captor.Name = "CB_Captor";
+            CB_Captor.ValueMember = "Value";
             // 
-            // TB_ApiKey
+            // l_resolution
             // 
-            resources.ApplyResources(this.TB_ApiKey, "TB_ApiKey");
-            this.TB_ApiKey.Name = "TB_ApiKey";
+            resources.ApplyResources(l_resolution, "l_resolution");
+            l_resolution.Name = "l_resolution";
             // 
-            // TB_Username
+            // CB_Resolution
             // 
-            resources.ApplyResources(this.TB_Username, "TB_Username");
-            this.TB_Username.Name = "TB_Username";
+            CB_Resolution.DisplayMember = "Name";
+            CB_Resolution.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            CB_Resolution.FormattingEnabled = true;
+            resources.ApplyResources(CB_Resolution, "CB_Resolution");
+            CB_Resolution.Name = "CB_Resolution";
+            CB_Resolution.ValueMember = "Value";
             // 
-            // l_zone
+            // l_interval
             // 
-            resources.ApplyResources(this.l_zone, "l_zone");
-            this.l_zone.Name = "l_zone";
+            resources.ApplyResources(l_interval, "l_interval");
+            l_interval.Name = "l_interval";
             // 
-            // l_bucket
+            // flpInterval
             // 
-            resources.ApplyResources(this.l_bucket, "l_bucket");
-            this.l_bucket.Name = "l_bucket";
+            resources.ApplyResources(flpInterval, "flpInterval");
+            flpInterval.Name = "flpInterval";
+            flpInterval.AutoSize = true;
+            flpInterval.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            flpInterval.Controls.Add(MUD_Interval);
+            flpInterval.Controls.Add(l_min);
+            flpInterval.Dock = System.Windows.Forms.DockStyle.Fill;
+            flpInterval.Margin = new System.Windows.Forms.Padding(0);
             // 
-            // l_apikey
+            // l_zoom
             // 
-            resources.ApplyResources(this.l_apikey, "l_apikey");
-            this.l_apikey.Name = "l_apikey";
+            resources.ApplyResources(l_zoom, "l_zoom");
+            l_zoom.Name = "l_zoom";
             // 
-            // l_domain
+            // tlpDownload
             // 
-            resources.ApplyResources(this.l_domain, "l_domain");
-            this.l_domain.Name = "l_domain";
-            // 
-            // l_apisecret
-            // 
-            resources.ApplyResources(this.l_apisecret, "l_apisecret");
-            this.l_apisecret.Name = "l_apisecret";
-            // 
-            // l_username
-            // 
-            resources.ApplyResources(this.l_username, "l_username");
-            this.l_username.Name = "l_username";
+            resources.ApplyResources(tlpDownload, "tlpDownload");
+            tlpDownload.Dock = System.Windows.Forms.DockStyle.Fill;
+            tlpDownload.ColumnCount = 2;
+            tlpDownload.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 100F));
+            tlpDownload.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            tlpDownload.Controls.Add(l_downloader, 0, 0);
+            tlpDownload.Controls.Add(CB_Downloader, 1, 0);
+            tlpDownload.Controls.Add(l_username, 0, 1);
+            tlpDownload.Controls.Add(TB_Username, 1, 1);
+            tlpDownload.Controls.Add(l_apikey, 0, 2);
+            tlpDownload.Controls.Add(TB_ApiKey, 1, 2);
+            tlpDownload.Controls.Add(l_apisecret, 0, 3);
+            tlpDownload.Controls.Add(TB_ApiSecret, 1, 3);
+            tlpDownload.Controls.Add(l_domain, 0, 4);
+            tlpDownload.Controls.Add(TB_Domain, 1, 4);
+            tlpDownload.Controls.Add(l_bucket, 0, 5);
+            tlpDownload.Controls.Add(TB_Bucket, 1, 5);
+            tlpDownload.Controls.Add(l_zone, 0, 6);
+            tlpDownload.Controls.Add(CB_Zone, 1, 6);
+            tlpDownload.Name = "tlpDownload";
+            tlpDownload.RowCount = 8;
+            tlpDownload.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
+            tlpDownload.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
+            tlpDownload.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
+            tlpDownload.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
+            tlpDownload.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
+            tlpDownload.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
+            tlpDownload.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
+            tlpDownload.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             // 
             // l_downloader
             // 
-            resources.ApplyResources(this.l_downloader, "l_downloader");
-            this.l_downloader.Name = "l_downloader";
+            resources.ApplyResources(l_downloader, "l_downloader");
+            l_downloader.Name = "l_downloader";
             // 
             // CB_Downloader
             // 
-            this.CB_Downloader.DisplayMember = "Name";
-            this.CB_Downloader.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.CB_Downloader.FormattingEnabled = true;
-            resources.ApplyResources(this.CB_Downloader, "CB_Downloader");
-            this.CB_Downloader.Name = "CB_Downloader";
-            this.CB_Downloader.ValueMember = "Value";
-            this.CB_Downloader.SelectedIndexChanged += new System.EventHandler(this.CB_Downloader_SelectedIndexChanged);
+            CB_Downloader.DisplayMember = "Name";
+            CB_Downloader.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            CB_Downloader.FormattingEnabled = true;
+            resources.ApplyResources(CB_Downloader, "CB_Downloader");
+            CB_Downloader.Name = "CB_Downloader";
+            CB_Downloader.ValueMember = "Value";
+            CB_Downloader.SelectedIndexChanged += CB_Downloader_SelectedIndexChanged;
+            // 
+            // l_username
+            // 
+            resources.ApplyResources(l_username, "l_username");
+            l_username.Name = "l_username";
+            // 
+            // TB_Username
+            // 
+            resources.ApplyResources(TB_Username, "TB_Username");
+            TB_Username.Name = "TB_Username";
+            // 
+            // l_apikey
+            // 
+            resources.ApplyResources(l_apikey, "l_apikey");
+            l_apikey.Name = "l_apikey";
+            // 
+            // TB_ApiKey
+            // 
+            resources.ApplyResources(TB_ApiKey, "TB_ApiKey");
+            TB_ApiKey.Name = "TB_ApiKey";
+            // 
+            // l_apisecret
+            // 
+            resources.ApplyResources(l_apisecret, "l_apisecret");
+            l_apisecret.Name = "l_apisecret";
+            // 
+            // TB_ApiSecret
+            // 
+            resources.ApplyResources(TB_ApiSecret, "TB_ApiSecret");
+            TB_ApiSecret.Name = "TB_ApiSecret";
+            // 
+            // l_domain
+            // 
+            resources.ApplyResources(l_domain, "l_domain");
+            l_domain.Name = "l_domain";
+            // 
+            // TB_Domain
+            // 
+            resources.ApplyResources(TB_Domain, "TB_Domain");
+            TB_Domain.Name = "TB_Domain";
+            // 
+            // l_bucket
+            // 
+            resources.ApplyResources(l_bucket, "l_bucket");
+            l_bucket.Name = "l_bucket";
+            // 
+            // TB_Bucket
+            // 
+            resources.ApplyResources(TB_Bucket, "TB_Bucket");
+            TB_Bucket.Name = "TB_Bucket";
+            // 
+            // l_zone
+            // 
+            resources.ApplyResources(l_zone, "l_zone");
+            l_zone.Name = "l_zone";
+            // 
+            // CB_Zone
+            // 
+            CB_Zone.DisplayMember = "Name";
+            CB_Zone.FormattingEnabled = true;
+            resources.ApplyResources(CB_Zone, "CB_Zone");
+            CB_Zone.Name = "CB_Zone";
+            CB_Zone.ValueMember = "Value";
+            // 
+            // flpZoom
+            // 
+            resources.ApplyResources(flpZoom, "flpZoom");
+            flpZoom.Name = "flpZoom";
+            flpZoom.AutoSize = true;
+            flpZoom.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            flpZoom.Controls.Add(MUD_Zoom);
+            flpZoom.Controls.Add(l_percent);
+            flpZoom.Dock = System.Windows.Forms.DockStyle.Fill;
+            flpZoom.Margin = new System.Windows.Forms.Padding(0);
+            // 
+            // splitContainer1
+            // 
+            resources.ApplyResources(splitContainer1, "splitContainer1");
+            splitContainer1.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
+            splitContainer1.Name = "splitContainer1";
+            // 
+            // splitContainer1.Panel1
+            // 
+            splitContainer1.Panel1.Controls.Add(tlpCapture);
+            // 
+            // splitContainer1.Panel2
+            // 
+            splitContainer1.Panel2.Controls.Add(tlpDownload);
+            // 
+            // B_ChooseSavePath
+            // 
+            resources.ApplyResources(B_ChooseSavePath, "B_ChooseSavePath");
+            B_ChooseSavePath.Name = "B_ChooseSavePath";
+            B_ChooseSavePath.UseVisualStyleBackColor = true;
+            B_ChooseSavePath.Click += B_ChooseSavePath_Click;
+            // 
+            // l_path
+            // 
+            resources.ApplyResources(l_path, "l_path");
+            l_path.Name = "l_path";
+            // 
+            // L_SavePath
+            // 
+            resources.ApplyResources(L_SavePath, "L_SavePath");
+            L_SavePath.Name = "L_SavePath";
+            // 
+            // MUD_Interval
+            // 
+            MUD_Interval.Increment = new decimal(new int[] { 10, 0, 0, 0 });
+            resources.ApplyResources(MUD_Interval, "MUD_Interval");
+            MUD_Interval.Maximum = new decimal(new int[] { 1440, 0, 0, 0 });
+            MUD_Interval.Minimum = new decimal(new int[] { 10, 0, 0, 0 });
+            MUD_Interval.Name = "MUD_Interval";
+            MUD_Interval.Value = new decimal(new int[] { 10, 0, 0, 0 });
+            // 
+            // MUD_Zoom
+            // 
+            resources.ApplyResources(MUD_Zoom, "MUD_Zoom");
+            MUD_Zoom.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
+            MUD_Zoom.Name = "MUD_Zoom";
+            MUD_Zoom.Value = new decimal(new int[] { 1, 0, 0, 0 });
+            // 
+            // l_min
+            // 
+            resources.ApplyResources(l_min, "l_min");
+            l_min.Name = "l_min";
+            // 
+            // l_percent
+            // 
+            resources.ApplyResources(l_percent, "l_percent");
+            l_percent.Name = "l_percent";
             // 
             // SettingForm
             // 
             resources.ApplyResources(this, "$this");
-            this.Controls.Add(this.splitContainer1);
-            this.MaximizeBox = false;
-            this.MinimizeBox = false;
-            this.Name = "SettingForm";
-            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.SettingForm_FormClosed);
-            this.splitContainer1.Panel1.ResumeLayout(false);
-            this.splitContainer1.Panel1.PerformLayout();
-            this.splitContainer1.Panel2.ResumeLayout(false);
-            this.splitContainer1.Panel2.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
-            this.splitContainer1.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.MUD_Zoom)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.MUD_Interval)).EndInit();
-            this.ResumeLayout(false);
+            Controls.Add(splitContainer1);
+            MaximizeBox = false;
+            MinimizeBox = false;
+            Name = "SettingForm";
+            FormClosed += SettingForm_FormClosed;
+            tlpCapture.ResumeLayout(false);
+            tlpCapture.PerformLayout();
+            tlpDownload.ResumeLayout(false);
+            tlpDownload.PerformLayout();
+            flpInterval.ResumeLayout(false);
+            flpInterval.PerformLayout();
+            flpZoom.ResumeLayout(false);
+            flpZoom.PerformLayout();
+            splitContainer1.Panel1.ResumeLayout(false);
+            splitContainer1.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)splitContainer1).EndInit();
+            splitContainer1.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)MUD_Interval).EndInit();
+            ((System.ComponentModel.ISupportInitialize)MUD_Zoom).EndInit();
+            ResumeLayout(false);
 
         }
 
@@ -370,5 +415,9 @@
         private System.Windows.Forms.Label l_domain;
         private System.Windows.Forms.Label l_zone;
         private System.Windows.Forms.ComboBox CB_Zone;
+        private System.Windows.Forms.TableLayoutPanel tlpCapture;
+        private System.Windows.Forms.TableLayoutPanel tlpDownload;
+        private System.Windows.Forms.FlowLayoutPanel flpInterval;
+        private System.Windows.Forms.FlowLayoutPanel flpZoom;
     }
 }

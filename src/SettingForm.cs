@@ -114,18 +114,59 @@ namespace EarthBackground
             // 设置窗体样式
             this.BackColor = Color.FromArgb(248, 249, 250);
             this.Font = new Font("Segoe UI", 9.75F);
-            this.Size = new Size(600, 550);
+            this.Size = new Size(650, 600);
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.StartPosition = FormStartPosition.CenterParent;
             this.Text = "设置";
             
+            // 样式化布局容器
+            StyleTableLayoutPanel(tlpCapture);
+            StyleTableLayoutPanel(tlpDownload);
+
             // 样式化CheckBox控件
             ApplyCheckBoxStyling();
             
             // 样式化ComboBox和TextBox控件
             ApplyControlStyling();
+        }
+
+        private void StyleTableLayoutPanel(TableLayoutPanel tlp)
+        {
+            tlp.Padding = new Padding(20);
+            tlp.BackColor = Color.Transparent;
+            foreach (Control c in tlp.Controls)
+            {
+                if (c is Label label)
+                {
+                    label.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+                    label.TextAlign = ContentAlignment.MiddleLeft;
+                    label.AutoSize = true;
+                    label.Margin = new Padding(0, 8, 0, 8);
+                }
+                else if (c is CheckBox checkBox)
+                {
+                    checkBox.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+                    checkBox.Margin = new Padding(0, 8, 0, 8);
+                }
+                else if (c is FlowLayoutPanel flp)
+                {
+                    flp.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+                    flp.Margin = new Padding(0, 5, 0, 5);
+                    flp.AutoSize = true;
+                    foreach(Control subC in flp.Controls)
+                    {
+                         subC.Margin = new Padding(0, 3, 5, 3);
+                         if(subC is Label l) l.TextAlign = ContentAlignment.MiddleLeft;
+                    }
+                }
+                else
+                {
+                    c.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+                    c.Margin = new Padding(0, 5, 0, 5);
+                }
+            }
         }
 
         /// <summary>
