@@ -56,15 +56,23 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SettingForm));
             tlpCapture = new System.Windows.Forms.TableLayoutPanel();
             CB_AutoStart = new System.Windows.Forms.CheckBox();
-            CB_SetBackGround = new System.Windows.Forms.CheckBox();
-            CB_SaveWallpaper = new System.Windows.Forms.CheckBox();
             l_sitellite = new System.Windows.Forms.Label();
             CB_Captor = new System.Windows.Forms.ComboBox();
             l_resolution = new System.Windows.Forms.Label();
             CB_Resolution = new System.Windows.Forms.ComboBox();
             l_interval = new System.Windows.Forms.Label();
             flpInterval = new System.Windows.Forms.FlowLayoutPanel();
+            MUD_Interval = new System.Windows.Forms.NumericUpDown();
+            l_min = new System.Windows.Forms.Label();
+            CB_SetBackGround = new System.Windows.Forms.CheckBox();
             l_zoom = new System.Windows.Forms.Label();
+            flpZoom = new System.Windows.Forms.FlowLayoutPanel();
+            MUD_Zoom = new System.Windows.Forms.NumericUpDown();
+            l_percent = new System.Windows.Forms.Label();
+            CB_SaveWallpaper = new System.Windows.Forms.CheckBox();
+            l_path = new System.Windows.Forms.Label();
+            B_ChooseSavePath = new System.Windows.Forms.Button();
+            L_SavePath = new System.Windows.Forms.Label();
             tlpDownload = new System.Windows.Forms.TableLayoutPanel();
             l_downloader = new System.Windows.Forms.Label();
             CB_Downloader = new System.Windows.Forms.ComboBox();
@@ -80,79 +88,45 @@
             TB_Bucket = new System.Windows.Forms.TextBox();
             l_zone = new System.Windows.Forms.Label();
             CB_Zone = new System.Windows.Forms.ComboBox();
-            flpZoom = new System.Windows.Forms.FlowLayoutPanel();
             SavePathDialog = new System.Windows.Forms.FolderBrowserDialog();
             splitContainer1 = new System.Windows.Forms.SplitContainer();
-            B_ChooseSavePath = new System.Windows.Forms.Button();
-            l_path = new System.Windows.Forms.Label();
-            L_SavePath = new System.Windows.Forms.Label();
-            MUD_Interval = new System.Windows.Forms.NumericUpDown();
-            MUD_Zoom = new System.Windows.Forms.NumericUpDown();
-            l_min = new System.Windows.Forms.Label();
-            l_percent = new System.Windows.Forms.Label();
             tlpCapture.SuspendLayout();
-            tlpDownload.SuspendLayout();
             flpInterval.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)MUD_Interval).BeginInit();
             flpZoom.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)MUD_Zoom).BeginInit();
+            tlpDownload.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
-            // 
+            splitContainer1.Panel1.SuspendLayout();
+            splitContainer1.Panel2.SuspendLayout();
+            splitContainer1.SuspendLayout();
+            SuspendLayout();
             // 
             // tlpCapture
             // 
             resources.ApplyResources(tlpCapture, "tlpCapture");
-            tlpCapture.Dock = System.Windows.Forms.DockStyle.Fill;
-            tlpCapture.ColumnCount = 2;
-            tlpCapture.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 100F));
-            tlpCapture.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
             tlpCapture.Controls.Add(CB_AutoStart, 0, 0);
-            tlpCapture.Controls.Add(CB_SetBackGround, 0, 1);
-            tlpCapture.Controls.Add(CB_SaveWallpaper, 0, 2);
-            tlpCapture.Controls.Add(l_sitellite, 0, 3);
-            tlpCapture.Controls.Add(CB_Captor, 1, 3);
-            tlpCapture.Controls.Add(l_resolution, 0, 4);
-            tlpCapture.Controls.Add(CB_Resolution, 1, 4);
-            tlpCapture.Controls.Add(l_interval, 0, 5);
-            tlpCapture.Controls.Add(flpInterval, 1, 5);
-            tlpCapture.Controls.Add(l_zoom, 0, 6);
-            tlpCapture.Controls.Add(flpZoom, 1, 6);
-            tlpCapture.Controls.Add(l_path, 0, 7);
-            tlpCapture.Controls.Add(B_ChooseSavePath, 1, 7);
-            tlpCapture.Controls.Add(L_SavePath, 0, 8);
+            tlpCapture.Controls.Add(l_sitellite, 0, 1);
+            tlpCapture.Controls.Add(CB_Captor, 1, 1);
+            tlpCapture.Controls.Add(l_resolution, 0, 2);
+            tlpCapture.Controls.Add(CB_Resolution, 1, 2);
+            tlpCapture.Controls.Add(l_interval, 0, 3);
+            tlpCapture.Controls.Add(flpInterval, 1, 3);
+            tlpCapture.Controls.Add(CB_SetBackGround, 2, 0);
+            tlpCapture.Controls.Add(l_zoom, 2, 1);
+            tlpCapture.Controls.Add(flpZoom, 3, 1);
+            tlpCapture.Controls.Add(CB_SaveWallpaper, 2, 2);
+            tlpCapture.Controls.Add(l_path, 2, 3);
+            tlpCapture.Controls.Add(B_ChooseSavePath, 3, 3);
+            tlpCapture.Controls.Add(L_SavePath, 0, 4);
             tlpCapture.Name = "tlpCapture";
-            tlpCapture.RowCount = 10;
-            tlpCapture.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
-            tlpCapture.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
-            tlpCapture.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
-            tlpCapture.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
-            tlpCapture.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
-            tlpCapture.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
-            tlpCapture.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
-            tlpCapture.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
-            tlpCapture.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
-            tlpCapture.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            tlpCapture.SetColumnSpan(CB_AutoStart, 2);
-            tlpCapture.SetColumnSpan(CB_SetBackGround, 2);
-            tlpCapture.SetColumnSpan(CB_SaveWallpaper, 2);
-            tlpCapture.SetColumnSpan(L_SavePath, 2);
             // 
             // CB_AutoStart
             // 
             resources.ApplyResources(CB_AutoStart, "CB_AutoStart");
+            tlpCapture.SetColumnSpan(CB_AutoStart, 2);
             CB_AutoStart.Name = "CB_AutoStart";
             CB_AutoStart.UseVisualStyleBackColor = true;
-            // 
-            // CB_SetBackGround
-            // 
-            resources.ApplyResources(CB_SetBackGround, "CB_SetBackGround");
-            CB_SetBackGround.Name = "CB_SetBackGround";
-            CB_SetBackGround.UseVisualStyleBackColor = true;
-            // 
-            // CB_SaveWallpaper
-            // 
-            resources.ApplyResources(CB_SaveWallpaper, "CB_SaveWallpaper");
-            CB_SaveWallpaper.Name = "CB_SaveWallpaper";
-            CB_SaveWallpaper.UseVisualStyleBackColor = true;
-            CB_SaveWallpaper.CheckedChanged += CB_SaveWallpaper_CheckedChanged;
             // 
             // l_sitellite
             // 
@@ -190,26 +164,84 @@
             // flpInterval
             // 
             resources.ApplyResources(flpInterval, "flpInterval");
-            flpInterval.Name = "flpInterval";
-            flpInterval.AutoSize = true;
-            flpInterval.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             flpInterval.Controls.Add(MUD_Interval);
             flpInterval.Controls.Add(l_min);
-            flpInterval.Dock = System.Windows.Forms.DockStyle.Fill;
-            flpInterval.Margin = new System.Windows.Forms.Padding(0);
+            flpInterval.Name = "flpInterval";
+            // 
+            // MUD_Interval
+            // 
+            MUD_Interval.Increment = new decimal(new int[] { 10, 0, 0, 0 });
+            resources.ApplyResources(MUD_Interval, "MUD_Interval");
+            MUD_Interval.Maximum = new decimal(new int[] { 1440, 0, 0, 0 });
+            MUD_Interval.Minimum = new decimal(new int[] { 10, 0, 0, 0 });
+            MUD_Interval.Name = "MUD_Interval";
+            MUD_Interval.Value = new decimal(new int[] { 10, 0, 0, 0 });
+            // 
+            // l_min
+            // 
+            resources.ApplyResources(l_min, "l_min");
+            l_min.Name = "l_min";
+            // 
+            // CB_SetBackGround
+            // 
+            resources.ApplyResources(CB_SetBackGround, "CB_SetBackGround");
+            tlpCapture.SetColumnSpan(CB_SetBackGround, 2);
+            CB_SetBackGround.Name = "CB_SetBackGround";
+            CB_SetBackGround.UseVisualStyleBackColor = true;
             // 
             // l_zoom
             // 
             resources.ApplyResources(l_zoom, "l_zoom");
             l_zoom.Name = "l_zoom";
             // 
+            // flpZoom
+            // 
+            resources.ApplyResources(flpZoom, "flpZoom");
+            flpZoom.Controls.Add(MUD_Zoom);
+            flpZoom.Controls.Add(l_percent);
+            flpZoom.Name = "flpZoom";
+            // 
+            // MUD_Zoom
+            // 
+            resources.ApplyResources(MUD_Zoom, "MUD_Zoom");
+            MUD_Zoom.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
+            MUD_Zoom.Name = "MUD_Zoom";
+            MUD_Zoom.Value = new decimal(new int[] { 1, 0, 0, 0 });
+            // 
+            // l_percent
+            // 
+            resources.ApplyResources(l_percent, "l_percent");
+            l_percent.Name = "l_percent";
+            // 
+            // CB_SaveWallpaper
+            // 
+            resources.ApplyResources(CB_SaveWallpaper, "CB_SaveWallpaper");
+            tlpCapture.SetColumnSpan(CB_SaveWallpaper, 2);
+            CB_SaveWallpaper.Name = "CB_SaveWallpaper";
+            CB_SaveWallpaper.UseVisualStyleBackColor = true;
+            CB_SaveWallpaper.CheckedChanged += CB_SaveWallpaper_CheckedChanged;
+            // 
+            // l_path
+            // 
+            resources.ApplyResources(l_path, "l_path");
+            l_path.Name = "l_path";
+            // 
+            // B_ChooseSavePath
+            // 
+            resources.ApplyResources(B_ChooseSavePath, "B_ChooseSavePath");
+            B_ChooseSavePath.Name = "B_ChooseSavePath";
+            B_ChooseSavePath.UseVisualStyleBackColor = true;
+            B_ChooseSavePath.Click += B_ChooseSavePath_Click;
+            // 
+            // L_SavePath
+            // 
+            resources.ApplyResources(L_SavePath, "L_SavePath");
+            tlpCapture.SetColumnSpan(L_SavePath, 4);
+            L_SavePath.Name = "L_SavePath";
+            // 
             // tlpDownload
             // 
             resources.ApplyResources(tlpDownload, "tlpDownload");
-            tlpDownload.Dock = System.Windows.Forms.DockStyle.Fill;
-            tlpDownload.ColumnCount = 2;
-            tlpDownload.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 100F));
-            tlpDownload.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
             tlpDownload.Controls.Add(l_downloader, 0, 0);
             tlpDownload.Controls.Add(CB_Downloader, 1, 0);
             tlpDownload.Controls.Add(l_username, 0, 1);
@@ -225,15 +257,6 @@
             tlpDownload.Controls.Add(l_zone, 0, 6);
             tlpDownload.Controls.Add(CB_Zone, 1, 6);
             tlpDownload.Name = "tlpDownload";
-            tlpDownload.RowCount = 8;
-            tlpDownload.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
-            tlpDownload.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
-            tlpDownload.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
-            tlpDownload.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
-            tlpDownload.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
-            tlpDownload.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
-            tlpDownload.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
-            tlpDownload.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             // 
             // l_downloader
             // 
@@ -313,17 +336,6 @@
             CB_Zone.Name = "CB_Zone";
             CB_Zone.ValueMember = "Value";
             // 
-            // flpZoom
-            // 
-            resources.ApplyResources(flpZoom, "flpZoom");
-            flpZoom.Name = "flpZoom";
-            flpZoom.AutoSize = true;
-            flpZoom.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            flpZoom.Controls.Add(MUD_Zoom);
-            flpZoom.Controls.Add(l_percent);
-            flpZoom.Dock = System.Windows.Forms.DockStyle.Fill;
-            flpZoom.Margin = new System.Windows.Forms.Padding(0);
-            // 
             // splitContainer1
             // 
             resources.ApplyResources(splitContainer1, "splitContainer1");
@@ -338,49 +350,6 @@
             // 
             splitContainer1.Panel2.Controls.Add(tlpDownload);
             // 
-            // B_ChooseSavePath
-            // 
-            resources.ApplyResources(B_ChooseSavePath, "B_ChooseSavePath");
-            B_ChooseSavePath.Name = "B_ChooseSavePath";
-            B_ChooseSavePath.UseVisualStyleBackColor = true;
-            B_ChooseSavePath.Click += B_ChooseSavePath_Click;
-            // 
-            // l_path
-            // 
-            resources.ApplyResources(l_path, "l_path");
-            l_path.Name = "l_path";
-            // 
-            // L_SavePath
-            // 
-            resources.ApplyResources(L_SavePath, "L_SavePath");
-            L_SavePath.Name = "L_SavePath";
-            // 
-            // MUD_Interval
-            // 
-            MUD_Interval.Increment = new decimal(new int[] { 10, 0, 0, 0 });
-            resources.ApplyResources(MUD_Interval, "MUD_Interval");
-            MUD_Interval.Maximum = new decimal(new int[] { 1440, 0, 0, 0 });
-            MUD_Interval.Minimum = new decimal(new int[] { 10, 0, 0, 0 });
-            MUD_Interval.Name = "MUD_Interval";
-            MUD_Interval.Value = new decimal(new int[] { 10, 0, 0, 0 });
-            // 
-            // MUD_Zoom
-            // 
-            resources.ApplyResources(MUD_Zoom, "MUD_Zoom");
-            MUD_Zoom.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
-            MUD_Zoom.Name = "MUD_Zoom";
-            MUD_Zoom.Value = new decimal(new int[] { 1, 0, 0, 0 });
-            // 
-            // l_min
-            // 
-            resources.ApplyResources(l_min, "l_min");
-            l_min.Name = "l_min";
-            // 
-            // l_percent
-            // 
-            resources.ApplyResources(l_percent, "l_percent");
-            l_percent.Name = "l_percent";
-            // 
             // SettingForm
             // 
             resources.ApplyResources(this, "$this");
@@ -391,18 +360,18 @@
             FormClosed += SettingForm_FormClosed;
             tlpCapture.ResumeLayout(false);
             tlpCapture.PerformLayout();
-            tlpDownload.ResumeLayout(false);
-            tlpDownload.PerformLayout();
             flpInterval.ResumeLayout(false);
             flpInterval.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)MUD_Interval).EndInit();
             flpZoom.ResumeLayout(false);
             flpZoom.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)MUD_Zoom).EndInit();
+            tlpDownload.ResumeLayout(false);
+            tlpDownload.PerformLayout();
             splitContainer1.Panel1.ResumeLayout(false);
             splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitContainer1).EndInit();
             splitContainer1.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)MUD_Interval).EndInit();
-            ((System.ComponentModel.ISupportInitialize)MUD_Zoom).EndInit();
             ResumeLayout(false);
 
         }

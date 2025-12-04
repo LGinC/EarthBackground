@@ -113,58 +113,75 @@ namespace EarthBackground
         {
             // 设置窗体样式
             this.BackColor = Color.FromArgb(248, 249, 250);
-            this.Font = new Font("Segoe UI", 9.75F);
-            this.Size = new Size(650, 600);
+            this.Font = new Font("Segoe UI", 9F);
+            this.Size = new Size(800, 600);
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.StartPosition = FormStartPosition.CenterParent;
             this.Text = "设置";
-            
+
+            // 设置 splitContainer1 的方向和分割位置
+            splitContainer1.Orientation = Orientation.Horizontal;
+            splitContainer1.SplitterDistance = 280;
+            splitContainer1.IsSplitterFixed = false;
+            splitContainer1.Dock = DockStyle.Fill;
+
             // 样式化布局容器
             StyleTableLayoutPanel(tlpCapture);
             StyleTableLayoutPanel(tlpDownload);
 
             // 样式化CheckBox控件
             ApplyCheckBoxStyling();
-            
+
             // 样式化ComboBox和TextBox控件
             ApplyControlStyling();
         }
 
         private void StyleTableLayoutPanel(TableLayoutPanel tlp)
         {
-            tlp.Padding = new Padding(20);
+            tlp.Padding = new Padding(15);
             tlp.BackColor = Color.Transparent;
             foreach (Control c in tlp.Controls)
             {
                 if (c is Label label)
                 {
-                    label.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+                    label.Anchor = AnchorStyles.Left;
                     label.TextAlign = ContentAlignment.MiddleLeft;
                     label.AutoSize = true;
-                    label.Margin = new Padding(0, 8, 0, 8);
+                    label.Margin = new Padding(0, 5, 0, 5);
                 }
                 else if (c is CheckBox checkBox)
                 {
-                    checkBox.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-                    checkBox.Margin = new Padding(0, 8, 0, 8);
+                    checkBox.Anchor = AnchorStyles.Left;
+                    checkBox.Margin = new Padding(0, 5, 0, 5);
+                    checkBox.AutoSize = true;
                 }
                 else if (c is FlowLayoutPanel flp)
                 {
                     flp.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-                    flp.Margin = new Padding(0, 5, 0, 5);
+                    flp.Margin = new Padding(0, 3, 0, 3);
                     flp.AutoSize = true;
+                    flp.AutoSizeMode = AutoSizeMode.GrowAndShrink;
                     foreach(Control subC in flp.Controls)
                     {
-                         subC.Margin = new Padding(0, 3, 5, 3);
-                         if(subC is Label l) l.TextAlign = ContentAlignment.MiddleLeft;
+                         subC.Margin = new Padding(0, 0, 5, 0);
+                         if(subC is Label l)
+                         {
+                             l.TextAlign = ContentAlignment.MiddleLeft;
+                             l.AutoSize = true;
+                         }
                     }
+                }
+                else if (c is ComboBox || c is TextBox || c is Button)
+                {
+                    c.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+                    c.Margin = new Padding(0, 3, 0, 3);
                 }
                 else
                 {
                     c.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-                    c.Margin = new Padding(0, 5, 0, 5);
+                    c.Margin = new Padding(0, 3, 0, 3);
                 }
             }
         }
@@ -176,7 +193,7 @@ namespace EarthBackground
         {
             foreach (var checkBox in new[] { CB_AutoStart, CB_SetBackGround, CB_SaveWallpaper })
             {
-                checkBox.Font = new Font("Segoe UI", 9.75F);
+                checkBox.Font = new Font("Segoe UI", 9F);
                 checkBox.ForeColor = Color.FromArgb(52, 73, 94);
                 checkBox.UseVisualStyleBackColor = true;
                 checkBox.FlatStyle = FlatStyle.System;
@@ -191,7 +208,7 @@ namespace EarthBackground
             // ComboBox样式
             foreach (var comboBox in new[] { CB_Captor, CB_Resolution, CB_Downloader, CB_Zone })
             {
-                comboBox.Font = new Font("Segoe UI", 9.75F);
+                comboBox.Font = new Font("Segoe UI", 9F);
                 comboBox.FlatStyle = FlatStyle.Flat;
                 comboBox.BackColor = Color.White;
                 comboBox.ForeColor = Color.FromArgb(52, 73, 94);
@@ -200,7 +217,7 @@ namespace EarthBackground
             // TextBox样式
             foreach (var textBox in new[] { TB_Username, TB_ApiKey, TB_ApiSecret, TB_Domain, TB_Bucket })
             {
-                textBox.Font = new Font("Segoe UI", 9.75F);
+                textBox.Font = new Font("Segoe UI", 9F);
                 textBox.BorderStyle = BorderStyle.FixedSingle;
                 textBox.BackColor = Color.White;
                 textBox.ForeColor = Color.FromArgb(52, 73, 94);
@@ -210,14 +227,14 @@ namespace EarthBackground
             B_ChooseSavePath.FlatStyle = FlatStyle.Flat;
             B_ChooseSavePath.BackColor = Color.FromArgb(52, 152, 219);
             B_ChooseSavePath.ForeColor = Color.White;
-            B_ChooseSavePath.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold);
+            B_ChooseSavePath.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             B_ChooseSavePath.FlatAppearance.BorderSize = 0;
             B_ChooseSavePath.Text = "📁 选择路径";
 
             // NumericUpDown样式
             foreach (var numericUpDown in new[] { MUD_Interval, MUD_Zoom })
             {
-                numericUpDown.Font = new Font("Segoe UI", 9.75F);
+                numericUpDown.Font = new Font("Segoe UI", 9F);
                 numericUpDown.BorderStyle = BorderStyle.FixedSingle;
                 numericUpDown.BackColor = Color.White;
                 numericUpDown.ForeColor = Color.FromArgb(52, 73, 94);
