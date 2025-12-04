@@ -17,6 +17,7 @@ namespace EarthBackground.Background
         : BackgroundService
     {
         private int _ossFetchCount;
+        private CancellationTokenSource? _customCancellationTokenSource;
 
         public event Action<string>? StatusChanged;
         public event Action<int, int>? ProgressChanged;
@@ -64,57 +65,57 @@ namespace EarthBackground.Background
 
         public void Start()
         {
+            _customCancellationTokenSource = new CancellationTokenSource();
             IsRunning = true;
             StatusChanged?.Invoke("Running");
         }
 
         public void Stop()
         {
+            _customCancellationTokenSource?.Cancel();
             IsRunning = false;
             StatusChanged?.Invoke("Stopped");
         }
 
         private async Task RunCycleAsync(CancellationToken token)
         {
+            var combinedToken = _customCancellationTokenSource != null 
+                ? CancellationTokenSource.CreateLinkedTokenSource(token, _customCancellationTokenSource.Token).Token 
+                : token;
+            try
+            {
+                await RunCycleInternalAsync(combinedToken);
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "error in cycle");
+            }
+        }
+
+        private async Task RunCycleInternalAsync(CancellationToken token)
+        {
             StatusChanged?.Invoke("Initializing...");
             
-            // Create a scope for the strategy execution
             using var scope = serviceProvider.CreateScope();
             var captorKey = options.CurrentValue.Captor;
-            
-            // Strategy: Select the appropriate Captor
             var captor = scope.ServiceProvider.GetRequiredKeyedService<ICaptor>(captorKey);
             var setter = backgroundSetProvider.GetSetter();
 
-            logger.LogInformation($"Starting capture with {captorKey}");
+            logger.LogInformation("Starting capture with {captorKey}", captorKey);
             StatusChanged?.Invoke("Downloading...");
 
-            // Hook up progress
-            captor.Downloader.SetTotal += (total) =>
-            {
-                ProgressChanged?.Invoke(0, total);
-            };
-            captor.Downloader.SetCurrentProgress += () =>
-            {
-                // Note: This might need more context to know current value, 
-                // but original interface just had void event. 
-                // We might need to assume increment or change interface later.
-                // For now, let's just invoke with dummy or fix interface.
-                // Actually, let's just trigger a progress update and let UI handle increment if needed,
-                // or better, we should track it here.
-            };
-
-            // Since the original interface is a bit limited (void SetCurrentProgress), 
-            // we will wrap the progress handling if possible or just rely on the fact 
-            // that we can't easily get the exact count without changing the interface.
-            // BUT, looking at MainForm, it incremented a local bar.
-            // Let's try to track it locally here.
             var currentProgress = 0;
             var totalProgress = 0;
-            captor.Downloader.SetTotal += (t) => { totalProgress = t; currentProgress = 0; ProgressChanged?.Invoke(currentProgress, totalProgress); };
-            captor.Downloader.SetCurrentProgress += () => { currentProgress++; ProgressChanged?.Invoke(currentProgress, totalProgress); };
-
-            var imagePath = await captor.GetImagePath(token);
+            
+            Action<int> setTotalHandler = (t) => { totalProgress = t; currentProgress = 0; ProgressChanged?.Invoke(currentProgress, totalProgress); };
+            Action setProgressHandler = () => { currentProgress++; ProgressChanged?.Invoke(currentProgress, totalProgress); };
+            
+            captor.Downloader.SetTotal += setTotalHandler;
+            captor.Downloader.SetCurrentProgress += setProgressHandler;
+            
+            try
+            {
+                var imagePath = await captor.GetImagePath(token);
             
             _ossFetchCount++;
             if (_ossFetchCount > 3)
@@ -137,8 +138,14 @@ namespace EarthBackground.Background
                 SaveWallpaperLocal(imagePath);
             }
 
-            StatusChanged?.Invoke("Complete");
-            ProgressChanged?.Invoke(totalProgress, totalProgress); // Ensure full
+                StatusChanged?.Invoke("Complete");
+                ProgressChanged?.Invoke(totalProgress, totalProgress);
+            }
+            finally
+            {
+                captor.Downloader.SetTotal -= setTotalHandler;
+                captor.Downloader.SetCurrentProgress -= setProgressHandler;
+            }
         }
 
         private void SaveWallpaperLocal(string imagePath)
