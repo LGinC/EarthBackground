@@ -118,24 +118,41 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <assembly alias="mscorlib" name="mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="tlpCapture.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="tlpCapture.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
+    <value>GrowAndShrink</value>
+  </data>
   <data name="tlpCapture.ColumnCount" type="System.Int32, mscorlib">
     <value>4</value>
   </data>
-  <data name="CB_AutoStart.AutoSize" type="System.Boolean, mscorlib">
-    <value>True</value>
+  <data name="CB_AutoStart.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="CB_AutoStart.FlatStyle" type="System.Windows.Forms.FlatStyle, System.Windows.Forms">
+    <value>System</value>
   </data>
   <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="CB_AutoStart.Font" type="System.Drawing.Font, System.Drawing">
+    <value>Segoe UI, 10.5pt</value>
+  </data>
   <data name="CB_AutoStart.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 3</value>
+    <value>43, 46</value>
+  </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="CB_AutoStart.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>8, 16, 8, 16</value>
   </data>
   <data name="CB_AutoStart.Size" type="System.Drawing.Size, System.Drawing">
-    <value>102, 24</value>
+    <value>200, 24</value>
   </data>
   <data name="CB_AutoStart.TabIndex" type="System.Int32, mscorlib">
     <value>0</value>
   </data>
   <data name="CB_AutoStart.Text" xml:space="preserve">
-    <value>AutoStart</value>
+    <value>开机自启</value>
   </data>
   <data name="&gt;&gt;CB_AutoStart.Name" xml:space="preserve">
     <value>CB_AutoStart</value>
@@ -149,20 +166,32 @@
   <data name="&gt;&gt;CB_AutoStart.ZOrder" xml:space="preserve">
     <value>0</value>
   </data>
+  <data name="l_sitellite.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
   <data name="l_sitellite.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
+  <data name="l_sitellite.Font" type="System.Drawing.Font, System.Drawing">
+    <value>Segoe UI Semibold, 10.5pt, style=Bold</value>
+  </data>
   <data name="l_sitellite.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 30</value>
+    <value>43, 103</value>
+  </data>
+  <data name="l_sitellite.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>8, 16, 8, 16</value>
   </data>
   <data name="l_sitellite.Size" type="System.Drawing.Size, System.Drawing">
-    <value>62, 20</value>
+    <value>50, 25</value>
   </data>
   <data name="l_sitellite.TabIndex" type="System.Int32, mscorlib">
-    <value>2</value>
+    <value>1</value>
   </data>
   <data name="l_sitellite.Text" xml:space="preserve">
-    <value>sitellite</value>
+    <value>卫星</value>
+  </data>
+  <data name="l_sitellite.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
+    <value>MiddleLeft</value>
   </data>
   <data name="&gt;&gt;l_sitellite.Name" xml:space="preserve">
     <value>l_sitellite</value>
@@ -176,14 +205,26 @@
   <data name="&gt;&gt;l_sitellite.ZOrder" xml:space="preserve">
     <value>1</value>
   </data>
+  <data name="CB_Captor.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="CB_Captor.FlatStyle" type="System.Windows.Forms.FlatStyle, System.Windows.Forms">
+    <value>Flat</value>
+  </data>
+  <data name="CB_Captor.Font" type="System.Drawing.Font, System.Drawing">
+    <value>Segoe UI, 9pt</value>
+  </data>
   <data name="CB_Captor.Location" type="System.Drawing.Point, System.Drawing">
-    <value>93, 33</value>
+    <value>173, 102</value>
+  </data>
+  <data name="CB_Captor.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>8, 16, 8, 16</value>
   </data>
   <data name="CB_Captor.Size" type="System.Drawing.Size, System.Drawing">
-    <value>138, 28</value>
+    <value>304, 28</value>
   </data>
   <data name="CB_Captor.TabIndex" type="System.Int32, mscorlib">
-    <value>1</value>
+    <value>2</value>
   </data>
   <data name="&gt;&gt;CB_Captor.Name" xml:space="preserve">
     <value>CB_Captor</value>
@@ -197,20 +238,32 @@
   <data name="&gt;&gt;CB_Captor.ZOrder" xml:space="preserve">
     <value>2</value>
   </data>
+  <data name="l_resolution.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
   <data name="l_resolution.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
+  <data name="l_resolution.Font" type="System.Drawing.Font, System.Drawing">
+    <value>Segoe UI Semibold, 10.5pt, style=Bold</value>
+  </data>
   <data name="l_resolution.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 64</value>
+    <value>43, 163</value>
+  </data>
+  <data name="l_resolution.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>8, 16, 8, 16</value>
   </data>
   <data name="l_resolution.Size" type="System.Drawing.Size, System.Drawing">
-    <value>83, 20</value>
+    <value>69, 25</value>
   </data>
   <data name="l_resolution.TabIndex" type="System.Int32, mscorlib">
-    <value>7</value>
+    <value>3</value>
   </data>
   <data name="l_resolution.Text" xml:space="preserve">
-    <value>resolution</value>
+    <value>分辨率</value>
+  </data>
+  <data name="l_resolution.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
+    <value>MiddleLeft</value>
   </data>
   <data name="&gt;&gt;l_resolution.Name" xml:space="preserve">
     <value>l_resolution</value>
@@ -224,14 +277,26 @@
   <data name="&gt;&gt;l_resolution.ZOrder" xml:space="preserve">
     <value>3</value>
   </data>
+  <data name="CB_Resolution.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="CB_Resolution.FlatStyle" type="System.Windows.Forms.FlatStyle, System.Windows.Forms">
+    <value>Flat</value>
+  </data>
+  <data name="CB_Resolution.Font" type="System.Drawing.Font, System.Drawing">
+    <value>Segoe UI, 9pt</value>
+  </data>
   <data name="CB_Resolution.Location" type="System.Drawing.Point, System.Drawing">
-    <value>93, 67</value>
+    <value>173, 162</value>
+  </data>
+  <data name="CB_Resolution.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>8, 16, 8, 16</value>
   </data>
   <data name="CB_Resolution.Size" type="System.Drawing.Size, System.Drawing">
-    <value>138, 28</value>
+    <value>304, 28</value>
   </data>
   <data name="CB_Resolution.TabIndex" type="System.Int32, mscorlib">
-    <value>5</value>
+    <value>4</value>
   </data>
   <data name="&gt;&gt;CB_Resolution.Name" xml:space="preserve">
     <value>CB_Resolution</value>
@@ -245,20 +310,32 @@
   <data name="&gt;&gt;CB_Resolution.ZOrder" xml:space="preserve">
     <value>4</value>
   </data>
+  <data name="l_interval.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
   <data name="l_interval.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
+  <data name="l_interval.Font" type="System.Drawing.Font, System.Drawing">
+    <value>Segoe UI Semibold, 10.5pt, style=Bold</value>
+  </data>
   <data name="l_interval.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 98</value>
+    <value>43, 226</value>
+  </data>
+  <data name="l_interval.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>8, 16, 8, 16</value>
   </data>
   <data name="l_interval.Size" type="System.Drawing.Size, System.Drawing">
-    <value>63, 20</value>
+    <value>50, 25</value>
   </data>
   <data name="l_interval.TabIndex" type="System.Int32, mscorlib">
-    <value>12</value>
+    <value>5</value>
   </data>
   <data name="l_interval.Text" xml:space="preserve">
-    <value>interval</value>
+    <value>间隔</value>
+  </data>
+  <data name="l_interval.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
+    <value>MiddleLeft</value>
   </data>
   <data name="&gt;&gt;l_interval.Name" xml:space="preserve">
     <value>l_interval</value>
@@ -272,21 +349,26 @@
   <data name="&gt;&gt;l_interval.ZOrder" xml:space="preserve">
     <value>5</value>
   </data>
+  <data name="flpInterval.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
   <data name="flpInterval.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
-  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="flpInterval.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
-    <value>GrowAndShrink</value>
+  <data name="MUD_Interval.Font" type="System.Drawing.Font, System.Drawing">
+    <value>Segoe UI, 9pt</value>
   </data>
   <data name="MUD_Interval.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 3</value>
+    <value>0, 4</value>
+  </data>
+  <data name="MUD_Interval.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 4, 12, 4</value>
   </data>
   <data name="MUD_Interval.Size" type="System.Drawing.Size, System.Drawing">
-    <value>52, 27</value>
+    <value>80, 27</value>
   </data>
   <data name="MUD_Interval.TabIndex" type="System.Int32, mscorlib">
-    <value>10</value>
+    <value>0</value>
   </data>
   <data name="&gt;&gt;MUD_Interval.Name" xml:space="preserve">
     <value>MUD_Interval</value>
@@ -300,17 +382,26 @@
   <data name="&gt;&gt;MUD_Interval.ZOrder" xml:space="preserve">
     <value>0</value>
   </data>
+  <data name="l_min.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
   <data name="l_min.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
+  <data name="l_min.Font" type="System.Drawing.Font, System.Drawing">
+    <value>Segoe UI, 10pt</value>
+  </data>
   <data name="l_min.Location" type="System.Drawing.Point, System.Drawing">
-    <value>61, 0</value>
+    <value>92, 6</value>
+  </data>
+  <data name="l_min.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 4, 12, 4</value>
   </data>
   <data name="l_min.Size" type="System.Drawing.Size, System.Drawing">
-    <value>36, 20</value>
+    <value>39, 23</value>
   </data>
   <data name="l_min.TabIndex" type="System.Int32, mscorlib">
-    <value>14</value>
+    <value>1</value>
   </data>
   <data name="l_min.Text" xml:space="preserve">
     <value>min</value>
@@ -327,21 +418,17 @@
   <data name="&gt;&gt;l_min.ZOrder" xml:space="preserve">
     <value>1</value>
   </data>
-  <data name="flpInterval.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
-    <value>Fill</value>
-  </data>
   <data name="flpInterval.Location" type="System.Drawing.Point, System.Drawing">
-    <value>90, 98</value>
+    <value>165, 221</value>
   </data>
-  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
   <data name="flpInterval.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
-    <value>0, 0, 0, 0</value>
+    <value>0, 4, 0, 4</value>
   </data>
   <data name="flpInterval.Size" type="System.Drawing.Size, System.Drawing">
-    <value>190, 43</value>
+    <value>320, 35</value>
   </data>
   <data name="flpInterval.TabIndex" type="System.Int32, mscorlib">
-    <value>13</value>
+    <value>6</value>
   </data>
   <data name="&gt;&gt;flpInterval.Name" xml:space="preserve">
     <value>flpInterval</value>
@@ -355,20 +442,29 @@
   <data name="&gt;&gt;flpInterval.ZOrder" xml:space="preserve">
     <value>6</value>
   </data>
-  <data name="CB_SetBackGround.AutoSize" type="System.Boolean, mscorlib">
-    <value>True</value>
+  <data name="CB_SetBackGround.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="CB_SetBackGround.FlatStyle" type="System.Windows.Forms.FlatStyle, System.Windows.Forms">
+    <value>System</value>
+  </data>
+  <data name="CB_SetBackGround.Font" type="System.Drawing.Font, System.Drawing">
+    <value>Segoe UI, 10.5pt</value>
   </data>
   <data name="CB_SetBackGround.Location" type="System.Drawing.Point, System.Drawing">
-    <value>283, 3</value>
+    <value>493, 46</value>
+  </data>
+  <data name="CB_SetBackGround.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>8, 16, 8, 16</value>
   </data>
   <data name="CB_SetBackGround.Size" type="System.Drawing.Size, System.Drawing">
-    <value>142, 24</value>
+    <value>200, 24</value>
   </data>
   <data name="CB_SetBackGround.TabIndex" type="System.Int32, mscorlib">
-    <value>3</value>
+    <value>7</value>
   </data>
   <data name="CB_SetBackGround.Text" xml:space="preserve">
-    <value>SetBackground</value>
+    <value>设置壁纸</value>
   </data>
   <data name="&gt;&gt;CB_SetBackGround.Name" xml:space="preserve">
     <value>CB_SetBackGround</value>
@@ -382,20 +478,32 @@
   <data name="&gt;&gt;CB_SetBackGround.ZOrder" xml:space="preserve">
     <value>7</value>
   </data>
+  <data name="l_zoom.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
   <data name="l_zoom.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
+  <data name="l_zoom.Font" type="System.Drawing.Font, System.Drawing">
+    <value>Segoe UI Semibold, 10.5pt, style=Bold</value>
+  </data>
   <data name="l_zoom.Location" type="System.Drawing.Point, System.Drawing">
-    <value>283, 30</value>
+    <value>493, 103</value>
+  </data>
+  <data name="l_zoom.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>8, 16, 8, 16</value>
   </data>
   <data name="l_zoom.Size" type="System.Drawing.Size, System.Drawing">
-    <value>50, 20</value>
+    <value>50, 25</value>
   </data>
   <data name="l_zoom.TabIndex" type="System.Int32, mscorlib">
-    <value>13</value>
+    <value>8</value>
   </data>
   <data name="l_zoom.Text" xml:space="preserve">
-    <value>zoom</value>
+    <value>缩放</value>
+  </data>
+  <data name="l_zoom.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
+    <value>MiddleLeft</value>
   </data>
   <data name="&gt;&gt;l_zoom.Name" xml:space="preserve">
     <value>l_zoom</value>
@@ -409,20 +517,26 @@
   <data name="&gt;&gt;l_zoom.ZOrder" xml:space="preserve">
     <value>8</value>
   </data>
+  <data name="flpZoom.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
   <data name="flpZoom.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
-  <data name="flpZoom.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
-    <value>GrowAndShrink</value>
+  <data name="MUD_Zoom.Font" type="System.Drawing.Font, System.Drawing">
+    <value>Segoe UI, 9pt</value>
   </data>
   <data name="MUD_Zoom.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 3</value>
+    <value>0, 4</value>
+  </data>
+  <data name="MUD_Zoom.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 4, 12, 4</value>
   </data>
   <data name="MUD_Zoom.Size" type="System.Drawing.Size, System.Drawing">
-    <value>52, 27</value>
+    <value>80, 27</value>
   </data>
   <data name="MUD_Zoom.TabIndex" type="System.Int32, mscorlib">
-    <value>11</value>
+    <value>0</value>
   </data>
   <data name="&gt;&gt;MUD_Zoom.Name" xml:space="preserve">
     <value>MUD_Zoom</value>
@@ -436,17 +550,26 @@
   <data name="&gt;&gt;MUD_Zoom.ZOrder" xml:space="preserve">
     <value>0</value>
   </data>
+  <data name="l_percent.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
   <data name="l_percent.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
+  <data name="l_percent.Font" type="System.Drawing.Font, System.Drawing">
+    <value>Segoe UI, 10pt</value>
+  </data>
   <data name="l_percent.Location" type="System.Drawing.Point, System.Drawing">
-    <value>61, 0</value>
+    <value>92, 6</value>
+  </data>
+  <data name="l_percent.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 4, 12, 4</value>
   </data>
   <data name="l_percent.Size" type="System.Drawing.Size, System.Drawing">
-    <value>22, 20</value>
+    <value>24, 23</value>
   </data>
   <data name="l_percent.TabIndex" type="System.Int32, mscorlib">
-    <value>15</value>
+    <value>1</value>
   </data>
   <data name="l_percent.Text" xml:space="preserve">
     <value>%</value>
@@ -463,20 +586,17 @@
   <data name="&gt;&gt;l_percent.ZOrder" xml:space="preserve">
     <value>1</value>
   </data>
-  <data name="flpZoom.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
-    <value>Fill</value>
-  </data>
   <data name="flpZoom.Location" type="System.Drawing.Point, System.Drawing">
-    <value>370, 30</value>
+    <value>645, 98</value>
   </data>
   <data name="flpZoom.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
-    <value>0, 0, 0, 0</value>
+    <value>0, 4, 0, 4</value>
   </data>
   <data name="flpZoom.Size" type="System.Drawing.Size, System.Drawing">
-    <value>191, 34</value>
+    <value>320, 35</value>
   </data>
   <data name="flpZoom.TabIndex" type="System.Int32, mscorlib">
-    <value>0</value>
+    <value>9</value>
   </data>
   <data name="&gt;&gt;flpZoom.Name" xml:space="preserve">
     <value>flpZoom</value>
@@ -490,20 +610,29 @@
   <data name="&gt;&gt;flpZoom.ZOrder" xml:space="preserve">
     <value>9</value>
   </data>
-  <data name="CB_SaveWallpaper.AutoSize" type="System.Boolean, mscorlib">
-    <value>True</value>
+  <data name="CB_SaveWallpaper.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="CB_SaveWallpaper.FlatStyle" type="System.Windows.Forms.FlatStyle, System.Windows.Forms">
+    <value>System</value>
+  </data>
+  <data name="CB_SaveWallpaper.Font" type="System.Drawing.Font, System.Drawing">
+    <value>Segoe UI, 10.5pt</value>
   </data>
   <data name="CB_SaveWallpaper.Location" type="System.Drawing.Point, System.Drawing">
-    <value>283, 67</value>
+    <value>493, 164</value>
+  </data>
+  <data name="CB_SaveWallpaper.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>8, 16, 8, 16</value>
   </data>
   <data name="CB_SaveWallpaper.Size" type="System.Drawing.Size, System.Drawing">
-    <value>139, 24</value>
+    <value>200, 24</value>
   </data>
   <data name="CB_SaveWallpaper.TabIndex" type="System.Int32, mscorlib">
-    <value>6</value>
+    <value>10</value>
   </data>
   <data name="CB_SaveWallpaper.Text" xml:space="preserve">
-    <value>SaveWallpaper</value>
+    <value>另存为壁纸</value>
   </data>
   <data name="&gt;&gt;CB_SaveWallpaper.Name" xml:space="preserve">
     <value>CB_SaveWallpaper</value>
@@ -517,20 +646,32 @@
   <data name="&gt;&gt;CB_SaveWallpaper.ZOrder" xml:space="preserve">
     <value>10</value>
   </data>
+  <data name="l_path.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
   <data name="l_path.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
+  <data name="l_path.Font" type="System.Drawing.Font, System.Drawing">
+    <value>Segoe UI Semibold, 10.5pt, style=Bold</value>
+  </data>
   <data name="l_path.Location" type="System.Drawing.Point, System.Drawing">
-    <value>283, 98</value>
+    <value>493, 226</value>
+  </data>
+  <data name="l_path.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>8, 16, 8, 16</value>
   </data>
   <data name="l_path.Size" type="System.Drawing.Size, System.Drawing">
-    <value>79, 20</value>
+    <value>88, 25</value>
   </data>
   <data name="l_path.TabIndex" type="System.Int32, mscorlib">
-    <value>8</value>
+    <value>11</value>
   </data>
   <data name="l_path.Text" xml:space="preserve">
-    <value>SavePath:</value>
+    <value>保存路径</value>
+  </data>
+  <data name="l_path.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
+    <value>MiddleLeft</value>
   </data>
   <data name="&gt;&gt;l_path.Name" xml:space="preserve">
     <value>l_path</value>
@@ -544,17 +685,29 @@
   <data name="&gt;&gt;l_path.ZOrder" xml:space="preserve">
     <value>11</value>
   </data>
+  <data name="B_ChooseSavePath.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="B_ChooseSavePath.FlatStyle" type="System.Windows.Forms.FlatStyle, System.Windows.Forms">
+    <value>Flat</value>
+  </data>
+  <data name="B_ChooseSavePath.Font" type="System.Drawing.Font, System.Drawing">
+    <value>Segoe UI Semibold, 9pt, style=Bold</value>
+  </data>
   <data name="B_ChooseSavePath.Location" type="System.Drawing.Point, System.Drawing">
-    <value>373, 101</value>
+    <value>653, 222</value>
+  </data>
+  <data name="B_ChooseSavePath.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>8, 16, 8, 16</value>
   </data>
   <data name="B_ChooseSavePath.Size" type="System.Drawing.Size, System.Drawing">
-    <value>93, 37</value>
+    <value>304, 33</value>
   </data>
   <data name="B_ChooseSavePath.TabIndex" type="System.Int32, mscorlib">
-    <value>4</value>
+    <value>12</value>
   </data>
   <data name="B_ChooseSavePath.Text" xml:space="preserve">
-    <value>Select Folder</value>
+    <value>📁 选择路径</value>
   </data>
   <data name="&gt;&gt;B_ChooseSavePath.Name" xml:space="preserve">
     <value>B_ChooseSavePath</value>
@@ -568,20 +721,29 @@
   <data name="&gt;&gt;B_ChooseSavePath.ZOrder" xml:space="preserve">
     <value>12</value>
   </data>
+  <data name="L_SavePath.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
   <data name="L_SavePath.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
+  <data name="L_SavePath.Font" type="System.Drawing.Font, System.Drawing">
+    <value>Segoe UI, 10pt</value>
+  </data>
   <data name="L_SavePath.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 141</value>
+    <value>43, 287</value>
+  </data>
+  <data name="L_SavePath.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>8, 16, 8, 16</value>
   </data>
   <data name="L_SavePath.Size" type="System.Drawing.Size, System.Drawing">
-    <value>23, 20</value>
+    <value>914, 23</value>
   </data>
   <data name="L_SavePath.TabIndex" type="System.Int32, mscorlib">
-    <value>9</value>
+    <value>13</value>
   </data>
   <data name="L_SavePath.Text" xml:space="preserve">
-    <value>__</value>
+    <value>C:\Users\...</value>
   </data>
   <data name="&gt;&gt;L_SavePath.Name" xml:space="preserve">
     <value>L_SavePath</value>
@@ -596,16 +758,19 @@
     <value>13</value>
   </data>
   <data name="tlpCapture.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
-    <value>Fill</value>
+    <value>Top</value>
   </data>
   <data name="tlpCapture.Location" type="System.Drawing.Point, System.Drawing">
     <value>0, 0</value>
   </data>
+  <data name="tlpCapture.Padding" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>35, 30, 35, 30</value>
+  </data>
   <data name="tlpCapture.RowCount" type="System.Int32, mscorlib">
-    <value>6</value>
+    <value>5</value>
   </data>
   <data name="tlpCapture.Size" type="System.Drawing.Size, System.Drawing">
-    <value>561, 200</value>
+    <value>1000, 356</value>
   </data>
   <data name="tlpCapture.TabIndex" type="System.Int32, mscorlib">
     <value>0</value>
@@ -623,25 +788,43 @@
     <value>0</value>
   </data>
   <data name="tlpCapture.LayoutSettings" type="System.Windows.Forms.TableLayoutSettings, System.Windows.Forms">
-    <value>&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="CB_AutoStart" Row="0" RowSpan="1" Column="0" ColumnSpan="2" /&gt;&lt;Control Name="l_sitellite" Row="1" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="CB_Captor" Row="1" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="l_resolution" Row="2" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="CB_Resolution" Row="2" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="l_interval" Row="3" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="flpInterval" Row="3" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="CB_SetBackGround" Row="0" RowSpan="1" Column="2" ColumnSpan="2" /&gt;&lt;Control Name="l_zoom" Row="1" RowSpan="1" Column="2" ColumnSpan="1" /&gt;&lt;Control Name="flpZoom" Row="1" RowSpan="1" Column="3" ColumnSpan="1" /&gt;&lt;Control Name="CB_SaveWallpaper" Row="2" RowSpan="1" Column="2" ColumnSpan="2" /&gt;&lt;Control Name="l_path" Row="3" RowSpan="1" Column="2" ColumnSpan="1" /&gt;&lt;Control Name="B_ChooseSavePath" Row="3" RowSpan="1" Column="3" ColumnSpan="1" /&gt;&lt;Control Name="L_SavePath" Row="4" RowSpan="1" Column="0" ColumnSpan="4" /&gt;&lt;/Controls&gt;&lt;Columns Styles="Absolute,90,Percent,50,Absolute,90,Percent,50" /&gt;&lt;Rows Styles="AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,Percent,100" /&gt;&lt;/TableLayoutSettings&gt;</value>
+    <value>&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="CB_AutoStart" Row="0" RowSpan="1" Column="0" ColumnSpan="2" /&gt;&lt;Control Name="l_sitellite" Row="1" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="CB_Captor" Row="1" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="l_resolution" Row="2" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="CB_Resolution" Row="2" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="l_interval" Row="3" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="flpInterval" Row="3" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="CB_SetBackGround" Row="0" RowSpan="1" Column="2" ColumnSpan="2" /&gt;&lt;Control Name="l_zoom" Row="1" RowSpan="1" Column="2" ColumnSpan="1" /&gt;&lt;Control Name="flpZoom" Row="1" RowSpan="1" Column="3" ColumnSpan="1" /&gt;&lt;Control Name="CB_SaveWallpaper" Row="2" RowSpan="1" Column="2" ColumnSpan="2" /&gt;&lt;Control Name="l_path" Row="3" RowSpan="1" Column="2" ColumnSpan="1" /&gt;&lt;Control Name="B_ChooseSavePath" Row="3" RowSpan="1" Column="3" ColumnSpan="1" /&gt;&lt;Control Name="L_SavePath" Row="4" RowSpan="1" Column="0" ColumnSpan="4" /&gt;&lt;/Controls&gt;&lt;Columns Styles="Absolute,130,Percent,50,Absolute,160,Percent,50" /&gt;&lt;Rows Styles="AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0" /&gt;&lt;/TableLayoutSettings&gt;</value>
+  </data>
+  <data name="tlpDownload.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="tlpDownload.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
+    <value>GrowAndShrink</value>
   </data>
   <data name="tlpDownload.ColumnCount" type="System.Int32, mscorlib">
     <value>2</value>
   </data>
+  <data name="l_downloader.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
   <data name="l_downloader.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
+  <data name="l_downloader.Font" type="System.Drawing.Font, System.Drawing">
+    <value>Segoe UI Semibold, 10.5pt, style=Bold</value>
+  </data>
   <data name="l_downloader.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 0</value>
+    <value>43, 47</value>
+  </data>
+  <data name="l_downloader.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>8, 16, 8, 16</value>
   </data>
   <data name="l_downloader.Size" type="System.Drawing.Size, System.Drawing">
-    <value>91, 40</value>
+    <value>50, 25</value>
   </data>
   <data name="l_downloader.TabIndex" type="System.Int32, mscorlib">
-    <value>1</value>
+    <value>0</value>
   </data>
   <data name="l_downloader.Text" xml:space="preserve">
-    <value>downloader</value>
+    <value>图床</value>
+  </data>
+  <data name="l_downloader.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
+    <value>MiddleLeft</value>
   </data>
   <data name="&gt;&gt;l_downloader.Name" xml:space="preserve">
     <value>l_downloader</value>
@@ -655,14 +838,26 @@
   <data name="&gt;&gt;l_downloader.ZOrder" xml:space="preserve">
     <value>0</value>
   </data>
+  <data name="CB_Downloader.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="CB_Downloader.FlatStyle" type="System.Windows.Forms.FlatStyle, System.Windows.Forms">
+    <value>Flat</value>
+  </data>
+  <data name="CB_Downloader.Font" type="System.Drawing.Font, System.Drawing">
+    <value>Segoe UI, 9pt</value>
+  </data>
   <data name="CB_Downloader.Location" type="System.Drawing.Point, System.Drawing">
-    <value>103, 3</value>
+    <value>223, 46</value>
+  </data>
+  <data name="CB_Downloader.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>8, 16, 8, 16</value>
   </data>
   <data name="CB_Downloader.Size" type="System.Drawing.Size, System.Drawing">
-    <value>138, 28</value>
+    <value>734, 28</value>
   </data>
   <data name="CB_Downloader.TabIndex" type="System.Int32, mscorlib">
-    <value>0</value>
+    <value>1</value>
   </data>
   <data name="&gt;&gt;CB_Downloader.Name" xml:space="preserve">
     <value>CB_Downloader</value>
@@ -676,20 +871,32 @@
   <data name="&gt;&gt;CB_Downloader.ZOrder" xml:space="preserve">
     <value>1</value>
   </data>
+  <data name="l_username.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
   <data name="l_username.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
+  <data name="l_username.Font" type="System.Drawing.Font, System.Drawing">
+    <value>Segoe UI Semibold, 10.5pt, style=Bold</value>
+  </data>
   <data name="l_username.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 40</value>
+    <value>43, 107</value>
+  </data>
+  <data name="l_username.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>8, 16, 8, 16</value>
   </data>
   <data name="l_username.Size" type="System.Drawing.Size, System.Drawing">
-    <value>85, 20</value>
+    <value>99, 25</value>
   </data>
   <data name="l_username.TabIndex" type="System.Int32, mscorlib">
-    <value>5</value>
+    <value>2</value>
   </data>
   <data name="l_username.Text" xml:space="preserve">
     <value>UserName</value>
+  </data>
+  <data name="l_username.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
+    <value>MiddleLeft</value>
   </data>
   <data name="&gt;&gt;l_username.Name" xml:space="preserve">
     <value>l_username</value>
@@ -703,14 +910,23 @@
   <data name="&gt;&gt;l_username.ZOrder" xml:space="preserve">
     <value>2</value>
   </data>
+  <data name="TB_Username.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="TB_Username.Font" type="System.Drawing.Font, System.Drawing">
+    <value>Segoe UI, 9pt</value>
+  </data>
   <data name="TB_Username.Location" type="System.Drawing.Point, System.Drawing">
-    <value>103, 43</value>
+    <value>223, 106</value>
+  </data>
+  <data name="TB_Username.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>8, 16, 8, 16</value>
   </data>
   <data name="TB_Username.Size" type="System.Drawing.Size, System.Drawing">
-    <value>138, 27</value>
+    <value>734, 27</value>
   </data>
   <data name="TB_Username.TabIndex" type="System.Int32, mscorlib">
-    <value>2</value>
+    <value>3</value>
   </data>
   <data name="&gt;&gt;TB_Username.Name" xml:space="preserve">
     <value>TB_Username</value>
@@ -724,20 +940,32 @@
   <data name="&gt;&gt;TB_Username.ZOrder" xml:space="preserve">
     <value>3</value>
   </data>
+  <data name="l_apikey.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
   <data name="l_apikey.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
+  <data name="l_apikey.Font" type="System.Drawing.Font, System.Drawing">
+    <value>Segoe UI Semibold, 10.5pt, style=Bold</value>
+  </data>
   <data name="l_apikey.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 73</value>
+    <value>43, 166</value>
+  </data>
+  <data name="l_apikey.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>8, 16, 8, 16</value>
   </data>
   <data name="l_apikey.Size" type="System.Drawing.Size, System.Drawing">
-    <value>61, 20</value>
+    <value>75, 25</value>
   </data>
   <data name="l_apikey.TabIndex" type="System.Int32, mscorlib">
-    <value>6</value>
+    <value>4</value>
   </data>
   <data name="l_apikey.Text" xml:space="preserve">
-    <value>ApiKey</value>
+    <value>API Key</value>
+  </data>
+  <data name="l_apikey.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
+    <value>MiddleLeft</value>
   </data>
   <data name="&gt;&gt;l_apikey.Name" xml:space="preserve">
     <value>l_apikey</value>
@@ -751,14 +979,23 @@
   <data name="&gt;&gt;l_apikey.ZOrder" xml:space="preserve">
     <value>4</value>
   </data>
+  <data name="TB_ApiKey.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="TB_ApiKey.Font" type="System.Drawing.Font, System.Drawing">
+    <value>Segoe UI, 9pt</value>
+  </data>
   <data name="TB_ApiKey.Location" type="System.Drawing.Point, System.Drawing">
-    <value>103, 76</value>
+    <value>223, 165</value>
+  </data>
+  <data name="TB_ApiKey.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>8, 16, 8, 16</value>
   </data>
   <data name="TB_ApiKey.Size" type="System.Drawing.Size, System.Drawing">
-    <value>148, 27</value>
+    <value>734, 27</value>
   </data>
   <data name="TB_ApiKey.TabIndex" type="System.Int32, mscorlib">
-    <value>3</value>
+    <value>5</value>
   </data>
   <data name="&gt;&gt;TB_ApiKey.Name" xml:space="preserve">
     <value>TB_ApiKey</value>
@@ -772,20 +1009,32 @@
   <data name="&gt;&gt;TB_ApiKey.ZOrder" xml:space="preserve">
     <value>5</value>
   </data>
+  <data name="l_apisecret.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
   <data name="l_apisecret.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
+  <data name="l_apisecret.Font" type="System.Drawing.Font, System.Drawing">
+    <value>Segoe UI Semibold, 10.5pt, style=Bold</value>
+  </data>
   <data name="l_apisecret.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 106</value>
+    <value>43, 225</value>
+  </data>
+  <data name="l_apisecret.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>8, 16, 8, 16</value>
   </data>
   <data name="l_apisecret.Size" type="System.Drawing.Size, System.Drawing">
-    <value>81, 20</value>
+    <value>97, 25</value>
   </data>
   <data name="l_apisecret.TabIndex" type="System.Int32, mscorlib">
-    <value>7</value>
+    <value>6</value>
   </data>
   <data name="l_apisecret.Text" xml:space="preserve">
-    <value>ApiSecret</value>
+    <value>API Secret</value>
+  </data>
+  <data name="l_apisecret.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
+    <value>MiddleLeft</value>
   </data>
   <data name="&gt;&gt;l_apisecret.Name" xml:space="preserve">
     <value>l_apisecret</value>
@@ -799,14 +1048,23 @@
   <data name="&gt;&gt;l_apisecret.ZOrder" xml:space="preserve">
     <value>6</value>
   </data>
+  <data name="TB_ApiSecret.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="TB_ApiSecret.Font" type="System.Drawing.Font, System.Drawing">
+    <value>Segoe UI, 9pt</value>
+  </data>
   <data name="TB_ApiSecret.Location" type="System.Drawing.Point, System.Drawing">
-    <value>103, 109</value>
+    <value>223, 224</value>
+  </data>
+  <data name="TB_ApiSecret.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>8, 16, 8, 16</value>
   </data>
   <data name="TB_ApiSecret.Size" type="System.Drawing.Size, System.Drawing">
-    <value>148, 27</value>
+    <value>734, 27</value>
   </data>
   <data name="TB_ApiSecret.TabIndex" type="System.Int32, mscorlib">
-    <value>4</value>
+    <value>7</value>
   </data>
   <data name="&gt;&gt;TB_ApiSecret.Name" xml:space="preserve">
     <value>TB_ApiSecret</value>
@@ -820,20 +1078,32 @@
   <data name="&gt;&gt;TB_ApiSecret.ZOrder" xml:space="preserve">
     <value>7</value>
   </data>
+  <data name="l_domain.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
   <data name="l_domain.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
+  <data name="l_domain.Font" type="System.Drawing.Font, System.Drawing">
+    <value>Segoe UI Semibold, 10.5pt, style=Bold</value>
+  </data>
   <data name="l_domain.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 139</value>
+    <value>43, 284</value>
+  </data>
+  <data name="l_domain.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>8, 16, 8, 16</value>
   </data>
   <data name="l_domain.Size" type="System.Drawing.Size, System.Drawing">
-    <value>65, 20</value>
+    <value>77, 25</value>
   </data>
   <data name="l_domain.TabIndex" type="System.Int32, mscorlib">
-    <value>9</value>
+    <value>8</value>
   </data>
   <data name="l_domain.Text" xml:space="preserve">
     <value>Domain</value>
+  </data>
+  <data name="l_domain.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
+    <value>MiddleLeft</value>
   </data>
   <data name="&gt;&gt;l_domain.Name" xml:space="preserve">
     <value>l_domain</value>
@@ -847,14 +1117,23 @@
   <data name="&gt;&gt;l_domain.ZOrder" xml:space="preserve">
     <value>8</value>
   </data>
+  <data name="TB_Domain.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="TB_Domain.Font" type="System.Drawing.Font, System.Drawing">
+    <value>Segoe UI, 9pt</value>
+  </data>
   <data name="TB_Domain.Location" type="System.Drawing.Point, System.Drawing">
-    <value>103, 142</value>
+    <value>223, 283</value>
+  </data>
+  <data name="TB_Domain.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>8, 16, 8, 16</value>
   </data>
   <data name="TB_Domain.Size" type="System.Drawing.Size, System.Drawing">
-    <value>148, 27</value>
+    <value>734, 27</value>
   </data>
   <data name="TB_Domain.TabIndex" type="System.Int32, mscorlib">
-    <value>11</value>
+    <value>9</value>
   </data>
   <data name="&gt;&gt;TB_Domain.Name" xml:space="preserve">
     <value>TB_Domain</value>
@@ -868,20 +1147,32 @@
   <data name="&gt;&gt;TB_Domain.ZOrder" xml:space="preserve">
     <value>9</value>
   </data>
+  <data name="l_bucket.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
   <data name="l_bucket.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
+  <data name="l_bucket.Font" type="System.Drawing.Font, System.Drawing">
+    <value>Segoe UI Semibold, 10.5pt, style=Bold</value>
+  </data>
   <data name="l_bucket.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 172</value>
+    <value>43, 343</value>
+  </data>
+  <data name="l_bucket.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>8, 16, 8, 16</value>
   </data>
   <data name="l_bucket.Size" type="System.Drawing.Size, System.Drawing">
-    <value>58, 1</value>
+    <value>68, 25</value>
   </data>
   <data name="l_bucket.TabIndex" type="System.Int32, mscorlib">
     <value>10</value>
   </data>
   <data name="l_bucket.Text" xml:space="preserve">
     <value>Bucket</value>
+  </data>
+  <data name="l_bucket.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
+    <value>MiddleLeft</value>
   </data>
   <data name="&gt;&gt;l_bucket.Name" xml:space="preserve">
     <value>l_bucket</value>
@@ -895,14 +1186,23 @@
   <data name="&gt;&gt;l_bucket.ZOrder" xml:space="preserve">
     <value>10</value>
   </data>
+  <data name="TB_Bucket.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="TB_Bucket.Font" type="System.Drawing.Font, System.Drawing">
+    <value>Segoe UI, 9pt</value>
+  </data>
   <data name="TB_Bucket.Location" type="System.Drawing.Point, System.Drawing">
-    <value>103, 175</value>
+    <value>223, 342</value>
+  </data>
+  <data name="TB_Bucket.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>8, 16, 8, 16</value>
   </data>
   <data name="TB_Bucket.Size" type="System.Drawing.Size, System.Drawing">
-    <value>138, 27</value>
+    <value>734, 27</value>
   </data>
   <data name="TB_Bucket.TabIndex" type="System.Int32, mscorlib">
-    <value>8</value>
+    <value>11</value>
   </data>
   <data name="&gt;&gt;TB_Bucket.Name" xml:space="preserve">
     <value>TB_Bucket</value>
@@ -916,20 +1216,32 @@
   <data name="&gt;&gt;TB_Bucket.ZOrder" xml:space="preserve">
     <value>11</value>
   </data>
+  <data name="l_zone.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
   <data name="l_zone.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
+  <data name="l_zone.Font" type="System.Drawing.Font, System.Drawing">
+    <value>Segoe UI Semibold, 10.5pt, style=Bold</value>
+  </data>
   <data name="l_zone.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 170</value>
+    <value>43, 402</value>
+  </data>
+  <data name="l_zone.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>8, 16, 8, 16</value>
   </data>
   <data name="l_zone.Size" type="System.Drawing.Size, System.Drawing">
-    <value>46, 20</value>
+    <value>55, 25</value>
   </data>
   <data name="l_zone.TabIndex" type="System.Int32, mscorlib">
-    <value>13</value>
+    <value>12</value>
   </data>
   <data name="l_zone.Text" xml:space="preserve">
     <value>Zone</value>
+  </data>
+  <data name="l_zone.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
+    <value>MiddleLeft</value>
   </data>
   <data name="&gt;&gt;l_zone.Name" xml:space="preserve">
     <value>l_zone</value>
@@ -943,14 +1255,26 @@
   <data name="&gt;&gt;l_zone.ZOrder" xml:space="preserve">
     <value>12</value>
   </data>
+  <data name="CB_Zone.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="CB_Zone.FlatStyle" type="System.Windows.Forms.FlatStyle, System.Windows.Forms">
+    <value>Flat</value>
+  </data>
+  <data name="CB_Zone.Font" type="System.Drawing.Font, System.Drawing">
+    <value>Segoe UI, 9pt</value>
+  </data>
   <data name="CB_Zone.Location" type="System.Drawing.Point, System.Drawing">
-    <value>103, 173</value>
+    <value>223, 401</value>
+  </data>
+  <data name="CB_Zone.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>8, 16, 8, 16</value>
   </data>
   <data name="CB_Zone.Size" type="System.Drawing.Size, System.Drawing">
-    <value>138, 28</value>
+    <value>734, 28</value>
   </data>
   <data name="CB_Zone.TabIndex" type="System.Int32, mscorlib">
-    <value>14</value>
+    <value>13</value>
   </data>
   <data name="&gt;&gt;CB_Zone.Name" xml:space="preserve">
     <value>CB_Zone</value>
@@ -965,16 +1289,19 @@
     <value>13</value>
   </data>
   <data name="tlpDownload.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
-    <value>Fill</value>
+    <value>Top</value>
   </data>
   <data name="tlpDownload.Location" type="System.Drawing.Point, System.Drawing">
     <value>0, 0</value>
   </data>
+  <data name="tlpDownload.Padding" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>35, 30, 35, 30</value>
+  </data>
   <data name="tlpDownload.RowCount" type="System.Int32, mscorlib">
-    <value>8</value>
+    <value>7</value>
   </data>
   <data name="tlpDownload.Size" type="System.Drawing.Size, System.Drawing">
-    <value>561, 210</value>
+    <value>1000, 475</value>
   </data>
   <data name="tlpDownload.TabIndex" type="System.Int32, mscorlib">
     <value>0</value>
@@ -992,7 +1319,82 @@
     <value>0</value>
   </data>
   <data name="tlpDownload.LayoutSettings" type="System.Windows.Forms.TableLayoutSettings, System.Windows.Forms">
-    <value>&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="l_downloader" Row="0" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="CB_Downloader" Row="0" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="l_username" Row="1" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="TB_Username" Row="1" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="l_apikey" Row="2" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="TB_ApiKey" Row="2" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="l_apisecret" Row="3" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="TB_ApiSecret" Row="3" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="l_domain" Row="4" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="TB_Domain" Row="4" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="l_bucket" Row="5" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="TB_Bucket" Row="5" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="l_zone" Row="6" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="CB_Zone" Row="6" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;/Controls&gt;&lt;Columns Styles="Absolute,100,Percent,100,Absolute,100,Percent,100" /&gt;&lt;Rows Styles="AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,Percent,100,Absolute,20,Absolute,20,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,Percent,100" /&gt;&lt;/TableLayoutSettings&gt;</value>
+    <value>&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="l_downloader" Row="0" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="CB_Downloader" Row="0" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="l_username" Row="1" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="TB_Username" Row="1" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="l_apikey" Row="2" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="TB_ApiKey" Row="2" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="l_apisecret" Row="3" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="TB_ApiSecret" Row="3" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="l_domain" Row="4" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="TB_Domain" Row="4" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="l_bucket" Row="5" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="TB_Bucket" Row="5" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="l_zone" Row="6" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="CB_Zone" Row="6" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;/Controls&gt;&lt;Columns Styles="Absolute,180,Percent,100" /&gt;&lt;Rows Styles="AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0" /&gt;&lt;/TableLayoutSettings&gt;</value>
+  </data>
+  <data name="lblHeaderTitle.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="lblHeaderTitle.Font" type="System.Drawing.Font, System.Drawing">
+    <value>Segoe UI Semibold, 20pt, style=Bold</value>
+  </data>
+  <data name="lblHeaderTitle.Location" type="System.Drawing.Point, System.Drawing">
+    <value>85, 9</value>
+  </data>
+  <data name="lblHeaderTitle.Size" type="System.Drawing.Size, System.Drawing">
+    <value>145, 46</value>
+  </data>
+  <data name="lblHeaderTitle.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="lblHeaderTitle.Text" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="&gt;&gt;lblHeaderTitle.Name" xml:space="preserve">
+    <value>lblHeaderTitle</value>
+  </data>
+  <data name="&gt;&gt;lblHeaderTitle.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;lblHeaderTitle.Parent" xml:space="preserve">
+    <value>pnlHeader</value>
+  </data>
+  <data name="&gt;&gt;lblHeaderTitle.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="pictureBoxSettings.Location" type="System.Drawing.Point, System.Drawing">
+    <value>39, 15</value>
+  </data>
+  <data name="pictureBoxSettings.Size" type="System.Drawing.Size, System.Drawing">
+    <value>40, 40</value>
+  </data>
+  <data name="pictureBoxSettings.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;pictureBoxSettings.Name" xml:space="preserve">
+    <value>pictureBoxSettings</value>
+  </data>
+  <data name="&gt;&gt;pictureBoxSettings.Type" xml:space="preserve">
+    <value>System.Windows.Forms.PictureBox, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;pictureBoxSettings.Parent" xml:space="preserve">
+    <value>pnlHeader</value>
+  </data>
+  <data name="&gt;&gt;pictureBoxSettings.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="pnlHeader.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Top</value>
+  </data>
+  <data name="pnlHeader.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 0</value>
+  </data>
+  <data name="pnlHeader.Size" type="System.Drawing.Size, System.Drawing">
+    <value>1000, 70</value>
+  </data>
+  <data name="pnlHeader.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="&gt;&gt;pnlHeader.Name" xml:space="preserve">
+    <value>pnlHeader</value>
+  </data>
+  <data name="&gt;&gt;pnlHeader.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Panel, System.Windows.Forms, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;pnlHeader.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;pnlHeader.ZOrder" xml:space="preserve">
+    <value>0</value>
   </data>
   <metadata name="SavePathDialog.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>17, 17</value>
@@ -1006,6 +1408,9 @@
   <data name="splitContainer1.Orientation" type="System.Windows.Forms.Orientation, System.Windows.Forms">
     <value>Horizontal</value>
   </data>
+  <data name="splitContainer1.Panel1.AutoScroll" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
   <data name="&gt;&gt;splitContainer1.Panel1.Name" xml:space="preserve">
     <value>splitContainer1.Panel1</value>
   </data>
@@ -1017,6 +1422,9 @@
   </data>
   <data name="&gt;&gt;splitContainer1.Panel1.ZOrder" xml:space="preserve">
     <value>0</value>
+  </data>
+  <data name="splitContainer1.Panel2.AutoScroll" type="System.Boolean, mscorlib">
+    <value>True</value>
   </data>
   <data name="&gt;&gt;splitContainer1.Panel2.Name" xml:space="preserve">
     <value>splitContainer1.Panel2</value>
@@ -1031,16 +1439,16 @@
     <value>1</value>
   </data>
   <data name="splitContainer1.Size" type="System.Drawing.Size, System.Drawing">
-    <value>561, 414</value>
+    <value>1000, 950</value>
   </data>
   <data name="splitContainer1.SplitterDistance" type="System.Int32, mscorlib">
-    <value>200</value>
+    <value>450</value>
+  </data>
+  <data name="splitContainer1.SplitterWidth" type="System.Int32, mscorlib">
+    <value>8</value>
   </data>
   <data name="splitContainer1.TabIndex" type="System.Int32, mscorlib">
-    <value>0</value>
-  </data>
-  <data name="splitContainer1.Text" xml:space="preserve">
-    <value>splitContainer1</value>
+    <value>3</value>
   </data>
   <data name="&gt;&gt;splitContainer1.Name" xml:space="preserve">
     <value>splitContainer1</value>
@@ -1052,13 +1460,25 @@
     <value>$this</value>
   </data>
   <data name="&gt;&gt;splitContainer1.ZOrder" xml:space="preserve">
-    <value>0</value>
+    <value>1</value>
   </data>
   <metadata name="$this.Localizable" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
   <data name="$this.ClientSize" type="System.Drawing.Size, System.Drawing">
-    <value>561, 414</value>
+    <value>1000, 950</value>
+  </data>
+  <data name="$this.Font" type="System.Drawing.Font, System.Drawing">
+    <value>Segoe UI, 9.5pt</value>
+  </data>
+  <data name="$this.MinimumSize" type="System.Drawing.Size, System.Drawing">
+    <value>800, 800</value>
+  </data>
+  <data name="$this.StartPosition" type="System.Windows.Forms.FormStartPosition, System.Windows.Forms">
+    <value>CenterParent</value>
+  </data>
+  <data name="$this.Text" xml:space="preserve">
+    <value>Settings</value>
   </data>
   <data name="&gt;&gt;SavePathDialog.Name" xml:space="preserve">
     <value>SavePathDialog</value>

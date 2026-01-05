@@ -66,7 +66,7 @@
             this.lblTitle.AutoSize = true;
             this.lblTitle.Font = new System.Drawing.Font("Segoe UI", 18F, System.Drawing.FontStyle.Bold);
             this.lblTitle.ForeColor = System.Drawing.Color.White;
-            this.lblTitle.Location = new System.Drawing.Point(80, 25);
+            this.lblTitle.Location = new System.Drawing.Point(90, 25);
             this.lblTitle.Name = "lblTitle";
             this.lblTitle.Size = new System.Drawing.Size(250, 32);
             this.lblTitle.TabIndex = 1;
@@ -75,13 +75,13 @@
             // pictureBoxEarth
             // 
             this.pictureBoxEarth.BackColor = System.Drawing.Color.Transparent;
-            this.pictureBoxEarth.Location = new System.Drawing.Point(20, 15);
+            this.pictureBoxEarth.Location = new System.Drawing.Point(0, 0);
             this.pictureBoxEarth.Name = "pictureBoxEarth";
-            this.pictureBoxEarth.Size = new System.Drawing.Size(50, 50);
+            this.pictureBoxEarth.Size = new System.Drawing.Size(80, 80);
             this.pictureBoxEarth.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBoxEarth.TabIndex = 0;
             this.pictureBoxEarth.TabStop = false;
-            this.pictureBoxEarth.Paint += new System.Windows.Forms.PaintEventHandler(this.pictureBoxEarth_Paint);
+            this.pictureBoxEarth.Paint += new System.Windows.Forms.PaintEventHandler(this.PictureBoxEarth_Paint);
             // 
             // panelMain
             // 
@@ -206,7 +206,7 @@
             // 
             this.notifyIcon1.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIcon1.Icon")));
             this.notifyIcon1.Text = "EarthBackground";
-            this.notifyIcon1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.notifyIcon1_MouseClick);
+            this.notifyIcon1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.NotifyIcon1_MouseClick);
             // 
             // MainForm
             // 

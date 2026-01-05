@@ -144,8 +144,8 @@ namespace EarthBackground
             else
             {
                 //WinForm模式：注册窗体和单例服务
-                services.AddSingleton(typeof(MainForm));
-                services.AddTransient(typeof(SettingForm));
+                services.AddSingleton<MainForm>();
+                services.AddTransient<SettingForm>();
                 services.AddSingleton<WallpaperService>();
             }
         }

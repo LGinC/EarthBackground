@@ -26,6 +26,8 @@ namespace EarthBackground.Background
 
         public bool IsRunning { get; private set; }
 
+        private TaskCompletionSource<bool>? _triggerTcs;
+
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             // Default to running if configured, or wait for manual start?
@@ -38,11 +40,25 @@ namespace EarthBackground.Background
                     try
                     {
                         await RunCycleAsync(stoppingToken);
-                        
+
                         // Wait for interval
                         int intervalMinutes = options.CurrentValue.Interval;
                         if (intervalMinutes < 1) intervalMinutes = 10;
-                        await Task.Delay(TimeSpan.FromMinutes(intervalMinutes), stoppingToken);
+
+                        _triggerTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+                        try
+                        {
+                            var delayTask = Task.Delay(TimeSpan.FromMinutes(intervalMinutes), stoppingToken);
+                            var triggerTask = _triggerTcs.Task;
+
+                            // Wait for either delay or trigger
+                            await Task.WhenAny(delayTask, triggerTask);
+                        }
+                        finally
+                        {
+                            _triggerTcs = null;
+                        }
                     }
                     catch (OperationCanceledException)
                     {
@@ -63,6 +79,11 @@ namespace EarthBackground.Background
             }
         }
 
+        public void TriggerUpdate()
+        {
+            _triggerTcs?.TrySetResult(true);
+        }
+
         public void Start()
         {
             _customCancellationTokenSource = new CancellationTokenSource();
@@ -79,8 +100,8 @@ namespace EarthBackground.Background
 
         private async Task RunCycleAsync(CancellationToken token)
         {
-            var combinedToken = _customCancellationTokenSource != null 
-                ? CancellationTokenSource.CreateLinkedTokenSource(token, _customCancellationTokenSource.Token).Token 
+            var combinedToken = _customCancellationTokenSource != null
+                ? CancellationTokenSource.CreateLinkedTokenSource(token, _customCancellationTokenSource.Token).Token
                 : token;
             try
             {
@@ -95,7 +116,7 @@ namespace EarthBackground.Background
         private async Task RunCycleInternalAsync(CancellationToken token)
         {
             StatusChanged?.Invoke("Initializing...");
-            
+
             using var scope = serviceProvider.CreateScope();
             var captorKey = options.CurrentValue.Captor;
             var captor = scope.ServiceProvider.GetRequiredKeyedService<ICaptor>(captorKey);
@@ -106,37 +127,37 @@ namespace EarthBackground.Background
 
             var currentProgress = 0;
             var totalProgress = 0;
-            
-            Action<int> setTotalHandler = (t) => { totalProgress = t; currentProgress = 0; ProgressChanged?.Invoke(currentProgress, totalProgress); };
-            Action setProgressHandler = () => { currentProgress++; ProgressChanged?.Invoke(currentProgress, totalProgress); };
-            
+
+            void setTotalHandler(int t) { totalProgress = t; currentProgress = 0; ProgressChanged?.Invoke(currentProgress, totalProgress); }
+            void setProgressHandler() { currentProgress++; ProgressChanged?.Invoke(currentProgress, totalProgress); }
+
             captor.Downloader.SetTotal += setTotalHandler;
             captor.Downloader.SetCurrentProgress += setProgressHandler;
-            
+
             try
             {
                 var imagePath = await captor.GetImagePath(token);
-            
-            _ossFetchCount++;
-            if (_ossFetchCount > 3)
-            {
-                _ossFetchCount = 0;
-                await captor.ResetAsync(token);
-            }
 
-            logger.LogInformation("Wallpaper saved: {ImagePath}", imagePath);
-            ImageSaved?.Invoke(imagePath);
+                _ossFetchCount++;
+                if (_ossFetchCount > 3)
+                {
+                    _ossFetchCount = 0;
+                    await captor.ResetAsync(token);
+                }
 
-            if (options.CurrentValue.SetWallpaper)
-            {
-                StatusChanged?.Invoke("Setting Wallpaper...");
-                await setter.SetBackgroundAsync(imagePath, token);
-            }
+                logger.LogInformation("Wallpaper saved: {ImagePath}", imagePath);
+                ImageSaved?.Invoke(imagePath);
 
-            if (options.CurrentValue.SaveWallpaper)
-            {
-                SaveWallpaperLocal(imagePath);
-            }
+                if (options.CurrentValue.SetWallpaper)
+                {
+                    StatusChanged?.Invoke("Setting Wallpaper...");
+                    await setter.SetBackgroundAsync(imagePath, token);
+                }
+
+                if (options.CurrentValue.SaveWallpaper)
+                {
+                    SaveWallpaperLocal(imagePath);
+                }
 
                 StatusChanged?.Invoke("Complete");
                 ProgressChanged?.Invoke(totalProgress, totalProgress);

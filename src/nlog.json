@@ -10,7 +10,7 @@
         "rules": [
             {
                 "logger": "*",
-                "minLevel": "Debug",
+                "minLevel": "Info",
                 "writeTo": "logfile"
             }
         ]
