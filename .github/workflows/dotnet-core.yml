@@ -17,8 +17,8 @@ jobs:
     runs-on: windows-latest
 
     env:
-      Solution_Name: EarthBackground.sln
       Project_Path: src\EarthBackground.csproj
+      Test_Project_Path: EarthBackground.Tests\EarthBackground.Tests.csproj
 
     steps:
     - name: Checkout
@@ -32,14 +32,16 @@ jobs:
         dotnet-version: '10.0.x'
 
     - name: Restore dependencies
-      run: dotnet restore $env:Solution_Name
+      run: |
+        dotnet restore $env:Project_Path
+        dotnet restore $env:Test_Project_Path
 
     - name: Build
-      run: dotnet build $env:Solution_Name --configuration ${{ matrix.configuration }} --no-restore
+      run: dotnet build $env:Project_Path --configuration ${{ matrix.configuration }} --no-restore
 
     # Execute unit tests if they exist
     - name: Test
-      run: dotnet test $env:Solution_Name --configuration ${{ matrix.configuration }} --no-build --verbosity normal
+      run: dotnet test $env:Test_Project_Path --configuration ${{ matrix.configuration }} --no-restore --verbosity normal
       continue-on-error: true
 
     # Publish the application
