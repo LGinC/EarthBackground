@@ -158,25 +158,31 @@ namespace EarthBackground
 
         static void AddHttpClients(IServiceCollection services, IConfiguration config)
         {
-            //跳过ssl验证
-            var sslHandler = new HttpClientHandler { ServerCertificateCustomValidationCallback = (m, c, a3, a4) => true };
-
             services.AddHttpClient(NameConsts.Himawari8, client =>
             {
                 client.BaseAddress = new Uri($"https://rammb-slider.cira.colostate.edu/data/");
-            }).ConfigurePrimaryHttpMessageHandler(builder => sslHandler).AddPolicyHandler(GetRetryPolicy());
+            }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler 
+            { 
+                ServerCertificateCustomValidationCallback = (m, c, a3, a4) => true 
+            }).AddPolicyHandler(GetRetryPolicy());
 
 
 
             services.AddHttpClient(NameConsts.Cloudinary, client =>
             {
                 client.BaseAddress = new Uri($"https://res.cloudinary.com/{config["OssOptions:UserName"]}/image/fetch/");
-            }).ConfigurePrimaryHttpMessageHandler(builder => sslHandler).AddPolicyHandler(GetRetryPolicy());
+            }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler 
+            { 
+                ServerCertificateCustomValidationCallback = (m, c, a3, a4) => true 
+            }).AddPolicyHandler(GetRetryPolicy());
 
             services.AddHttpClient(NameConsts.Qiqiuyun, client =>
             {
                 client.BaseAddress = new Uri($"https://qiniu.com/{config["OssOptions:UserName"]}");
-            }).ConfigurePrimaryHttpMessageHandler(builder => sslHandler).AddPolicyHandler(GetRetryPolicy());
+            }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler 
+            { 
+                ServerCertificateCustomValidationCallback = (m, c, a3, a4) => true 
+            }).AddPolicyHandler(GetRetryPolicy());
 
             services.AddHttpClient(NameConsts.DirectDownload, client =>
             {
@@ -184,7 +190,10 @@ namespace EarthBackground
                 .Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36 Edg/85.0.564.51")
                 ;
             })
-                .ConfigurePrimaryHttpMessageHandler(builder => sslHandler).AddPolicyHandler(GetRetryPolicy());
+                .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler 
+                { 
+                    ServerCertificateCustomValidationCallback = (m, c, a3, a4) => true 
+                }).AddPolicyHandler(GetRetryPolicy());
         }
 
     }

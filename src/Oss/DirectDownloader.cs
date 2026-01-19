@@ -74,7 +74,7 @@ namespace EarthBackground.Oss
 
         public void Dispose()
         {
-            _client.Dispose();
+            // HttpClient 由 IHttpClientFactory 管理,不应手动释放
         }
     }
 }

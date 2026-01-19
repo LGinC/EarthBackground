@@ -1,11 +1,11 @@
 # EarthBackground
 ![.NET Core Desktop](https://github.com/LGinC/EarthBackground/workflows/.NET%20Core%20Desktop/badge.svg)
 
-## 基于.net 9 的小破球壁纸设置工具
+## 基于.net 10 的小破球壁纸设置工具
 
 ## 抓取器：
 + ### Himawari9 向日葵9号
-+ ### FY4A 风云4号
++ ### FY4B 风云4号
 ## OSS:
 + ### 直接下载
 + ### Cloudinary

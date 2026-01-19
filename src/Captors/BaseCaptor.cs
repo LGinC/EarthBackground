@@ -109,7 +109,7 @@ namespace EarthBackground.Captors
 
         public void Dispose()
         {
-            Client.Dispose();
+            // HttpClient 由 IHttpClientFactory 管理,不应手动释放
             Downloader.Dispose();
         }
     }
