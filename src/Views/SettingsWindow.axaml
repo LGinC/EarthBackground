@@ -1,0 +1,168 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:EarthBackground.ViewModels"
+        x:Class="EarthBackground.Views.SettingsWindow"
+        x:DataType="vm:SettingsWindowViewModel"
+        Title="设置 - EarthBackground"
+        Width="700" Height="520"
+        CanResize="False"
+        WindowStartupLocation="CenterScreen"
+        Icon="/Assets/earth.ico">
+
+    <Grid RowDefinitions="60,*">
+
+        <!-- Header -->
+        <Panel Grid.Row="0" Background="#3498DB">
+            <TextBlock
+                Text="⚙ 设置"
+                FontFamily="Segoe UI"
+                FontSize="18"
+                FontWeight="Bold"
+                Foreground="White"
+                VerticalAlignment="Center"
+                Margin="20,0,0,0" />
+        </Panel>
+
+        <!-- Content -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,10,*" Margin="10">
+
+            <!-- Left: Capture Settings -->
+            <Border Grid.Column="0"
+                    Background="White"
+                    BorderBrush="#E0E0E0"
+                    BorderThickness="1"
+                    Padding="15">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="{Binding Label_CaptureSection}" FontWeight="Bold" FontSize="13" Foreground="#2C3E50" />
+
+                    <CheckBox Content="{Binding Label_AutoStart}" IsChecked="{Binding AutoStart}" Foreground="#2C3E50" />
+                    <CheckBox Content="{Binding Label_SetWallpaper}" IsChecked="{Binding SetWallpaper}" Foreground="#2C3E50" />
+                    <CheckBox Content="{Binding Label_SaveWallpaper}" IsChecked="{Binding SaveWallpaper}" Foreground="#2C3E50" />
+
+                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto">
+                        <!-- Satellite -->
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding Label_Satellite}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4" />
+                        <ComboBox Grid.Row="0" Grid.Column="1"
+                                  ItemsSource="{Binding Captors}"
+                                  SelectedItem="{Binding SelectedCaptor}"
+                                  DisplayMemberBinding="{Binding Name}"
+                                  HorizontalAlignment="Stretch" Margin="0,0,0,4" />
+
+                        <!-- Resolution -->
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding Label_Resolution}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4" />
+                        <ComboBox Grid.Row="1" Grid.Column="1"
+                                  ItemsSource="{Binding Resolutions}"
+                                  SelectedItem="{Binding SelectedResolution}"
+                                  DisplayMemberBinding="{Binding Name}"
+                                  HorizontalAlignment="Stretch" Margin="0,0,0,4" />
+
+                        <!-- Interval -->
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="{Binding Label_Interval}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4" />
+                        <NumericUpDown Grid.Row="2" Grid.Column="1"
+                                       Value="{Binding Interval}"
+                                       Minimum="1" Maximum="1440"
+                                       Increment="10"
+                                       HorizontalAlignment="Stretch" Margin="0,0,0,4" />
+
+                        <!-- Zoom -->
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="{Binding Label_Zoom}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4" />
+                        <NumericUpDown Grid.Row="3" Grid.Column="1"
+                                       Value="{Binding Zoom}"
+                                       Minimum="1" Maximum="200"
+                                       HorizontalAlignment="Stretch" Margin="0,0,0,4" />
+                    </Grid>
+
+                    <!-- Save Path -->
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{Binding Label_SavePath}" Foreground="#2C3E50" />
+                        <TextBlock Text="{Binding SavePath}" Foreground="#7F8C8D" TextWrapping="Wrap" FontSize="10" />
+                        <Button Content="{Binding Label_ChoosePath}"
+                                Command="{Binding ChooseSavePathCommand}"
+                                IsEnabled="{Binding ChooseSavePathEnabled}"
+                                Background="#3498DB"
+                                Foreground="White"
+                                HorizontalAlignment="Left" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Right: Download Settings -->
+            <Border Grid.Column="2"
+                    Background="White"
+                    BorderBrush="#E0E0E0"
+                    BorderThickness="1"
+                    Padding="15">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="{Binding Label_DownloadSection}" FontWeight="Bold" FontSize="13" Foreground="#2C3E50" />
+
+                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+                        <!-- Downloader -->
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding Label_Downloader}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4" />
+                        <ComboBox Grid.Row="0" Grid.Column="1"
+                                  ItemsSource="{Binding Downloaders}"
+                                  SelectedItem="{Binding SelectedDownloader}"
+                                  DisplayMemberBinding="{Binding Name}"
+                                  HorizontalAlignment="Stretch" Margin="0,0,0,4" />
+
+                        <!-- Username -->
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding Label_Username}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4" />
+                        <TextBox Grid.Row="1" Grid.Column="1"
+                                 Text="{Binding Username}"
+                                 IsEnabled="{Binding UsernameEnabled}"
+                                 HorizontalAlignment="Stretch" Margin="0,0,0,4" />
+
+                        <!-- API Key -->
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="{Binding Label_ApiKey}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4" />
+                        <TextBox Grid.Row="2" Grid.Column="1"
+                                 Text="{Binding ApiKey}"
+                                 IsEnabled="{Binding ApiKeyEnabled}"
+                                 HorizontalAlignment="Stretch" Margin="0,0,0,4" />
+
+                        <!-- API Secret -->
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="{Binding Label_ApiSecret}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4" />
+                        <TextBox Grid.Row="3" Grid.Column="1"
+                                 Text="{Binding ApiSecret}"
+                                 IsEnabled="{Binding ApiSecretEnabled}"
+                                 PasswordChar="*"
+                                 HorizontalAlignment="Stretch" Margin="0,0,0,4" />
+
+                        <!-- Domain -->
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="{Binding Label_Domain}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4" />
+                        <TextBox Grid.Row="4" Grid.Column="1"
+                                 Text="{Binding Domain}"
+                                 IsEnabled="{Binding DomainEnabled}"
+                                 HorizontalAlignment="Stretch" Margin="0,0,0,4" />
+
+                        <!-- Bucket -->
+                        <TextBlock Grid.Row="5" Grid.Column="0" Text="{Binding Label_Bucket}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4" />
+                        <TextBox Grid.Row="5" Grid.Column="1"
+                                 Text="{Binding Bucket}"
+                                 IsEnabled="{Binding BucketEnabled}"
+                                 HorizontalAlignment="Stretch" Margin="0,0,0,4" />
+
+                        <!-- Zone -->
+                        <TextBlock Grid.Row="6" Grid.Column="0" Text="{Binding Label_Zone}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4" />
+                        <ComboBox Grid.Row="6" Grid.Column="1"
+                                  ItemsSource="{Binding Zones}"
+                                  SelectedItem="{Binding SelectedZone}"
+                                  DisplayMemberBinding="{Binding Name}"
+                                  IsEnabled="{Binding ZoneEnabled}"
+                                  HorizontalAlignment="Stretch" Margin="0,0,0,4" />
+                    </Grid>
+
+                    <!-- Save Button -->
+                    <Button Content="{Binding Label_Save}"
+                            Command="{Binding SaveCommand}"
+                            Background="#2ECC71"
+                            Foreground="White"
+                            FontWeight="Bold"
+                            HorizontalAlignment="Stretch"
+                            Height="36"
+                            Margin="0,10,0,0" />
+                </StackPanel>
+            </Border>
+
+        </Grid>
+    </Grid>
+
+</Window>

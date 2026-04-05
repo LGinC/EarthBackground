@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 using System.Diagnostics;
-using System.Windows.Forms;
+using System.Runtime.InteropServices;
 using Microsoft.Win32;
 
 namespace EarthBackground
@@ -9,15 +9,24 @@ namespace EarthBackground
     {
         public static bool Set(string key, bool enabled)
         {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return false;
+
             RegistryKey? runKey = null;
             try
             {
-                string path = Application.ExecutablePath;
+                string path = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                // For single-file publish, use process path
+                path = System.Environment.ProcessPath ?? path;
+
                 runKey = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run", true);
-                runKey?.SetValue(key, path);
-                if (!enabled)
+                if (enabled)
                 {
-                    runKey?.DeleteValue(key);
+                    runKey?.SetValue(key, path);
+                }
+                else
+                {
+                    runKey?.DeleteValue(key, throwOnMissingValue: false);
                 }
                 return true;
             }
@@ -28,10 +37,7 @@ namespace EarthBackground
             }
             finally
             {
-                if (runKey != null)
-                {
-                    runKey.Close();
-                }
+                runKey?.Close();
             }
         }
     }

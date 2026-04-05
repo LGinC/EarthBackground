@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -20,33 +20,23 @@ namespace EarthBackground.Captors
         public Himawari8Captor(IOptionsSnapshot<CaptureOption> options, IHttpClientFactory factory, IOssProvider downloaderProvider) : base(options, factory, downloaderProvider)
         {
         }
-        
 
         /// <summary>
-        /// 获取图片id
+        /// 获取最近N个图片时间戳列表
         /// </summary>
-        /// <returns></returns>
-        private async Task<string?> GetImageIdAsync(CancellationToken token=default)
+        private async Task<string[]> GetImageIdsAsync(int count = 20, CancellationToken token = default)
         {
-            //var response = await Client.GetAsync(Options.ImageIdUrl);
-            //if (!response.IsSuccessStatusCode)
-            //{
-            //    throw new InvalidOperationException($"{response.StatusCode.ToString()}:{response.Content}");
-            //}
-            ////20200915005000
-
-            //var reStr = await response.Content.ReadAsStringAsync();
-            //var json = JsonSerializer.Deserialize<DateResult>(reStr);
-            //return json.date.ToString("yyyy/MM/dd/hhmmss");
-            
-            return (await Client.GetFromJsonAsync<LastestTimes>(!string.IsNullOrEmpty(Options.ImageIdUrl) ? Options.ImageIdUrl : "json/himawari/full_disk/geocolor/latest_times.json", cancellationToken: token))?.timestamps_int.First().ToString();
+            var latest = await Client.GetFromJsonAsync<LastestTimes>(
+                !string.IsNullOrEmpty(Options.ImageIdUrl) ? Options.ImageIdUrl : "json/himawari/full_disk/geocolor/latest_times.json",
+                cancellationToken: token);
+            if (latest == null) return Array.Empty<string>();
+            return latest.timestamps_int.Take(count).Select(t => t.ToString()).ToArray();
         }
 
         /// <summary>
-        /// 保存图片
+        /// 保存指定时间戳的图片到子目录
         /// </summary>
-        /// <returns></returns>
-        private async Task SaveImageAsync(string imageId, CancellationToken token = default)
+        private async Task SaveImageAsync(string imageId, string saveDir, CancellationToken token = default)
         {
             var size = (int)Options.Resolution;
             int total = 1 << size;
@@ -56,7 +46,7 @@ namespace EarthBackground.Captors
                 for (int j = 0; j < total; j++)
                 {
                     var image = $"{i:000}_{j:000}.png";
-                    var filePath = Path.Combine(Options.SavePath, image);
+                    var filePath = Path.Combine(saveDir, image);
                     if (!File.Exists(filePath))
                     {
                         images.Add(($"{Client.BaseAddress?.AbsoluteUri}imagery/{imageId[..8]}/himawari---full_disk/geocolor/{imageId}/{size:00}/{image}", image));
@@ -64,28 +54,72 @@ namespace EarthBackground.Captors
                 }
             }
 
-            if (images.Count == 0)
-            {
-                return;
-            }
-
-            await Downloader.DownloadAsync(images, Options.SavePath, token);
+            if (images.Count == 0) return;
+            await Downloader.DownloadAsync(images, saveDir, token);
         }
-        
-        
+
         public override async Task<string> GetImagePath(CancellationToken token = default)
         {
+            var paths = await GetImagePaths(1, null, token);
+            return paths.Count > 0 ? paths[0] : ImagePath;
+        }
+
+        public override async Task<IReadOnlyList<string>> GetImagePaths(int count = 20, Action<int, int>? onFrameComplete = null, CancellationToken token = default)
+        {
             CreateDirectory();
-            var imageId = await GetImageIdAsync(token);
-            if (string.IsNullOrEmpty(imageId) || imageId == CurrentImageId)
+            var imageIds = await GetImageIdsAsync(count, token);
+            if (imageIds.Length == 0) return Array.Empty<string>();
+
+            // 最新的id用于判断是否有更新
+            var latestId = imageIds[0];
+            if (latestId == CurrentImageId && Directory.GetFiles(Options.SavePath, "frame_*.bmp").Length >= imageIds.Length)
             {
-                return ImagePath;
+                // 无更新，返回已有帧
+                var existing = GetExistingFramePaths(imageIds);
+                onFrameComplete?.Invoke(existing.Count, existing.Count);
+                return existing;
             }
-            CurrentImageId = imageId;
-            await SaveImageAsync(imageId, token);
-            var wallpaper = JoinImage();
+
+            CurrentImageId = latestId;
+            var result = new List<string>();
+            var total = imageIds.Length;
+
+            for (int fi = 0; fi < total; fi++)
+            {
+                var imageId = imageIds[fi];
+                var frameDir = Path.Combine(Options.SavePath, $"frame_{imageId}");
+                if (!Directory.Exists(frameDir)) Directory.CreateDirectory(frameDir);
+
+                await SaveImageAsync(imageId, frameDir, token);
+                var framePath = JoinImageToPath(frameDir, imageId);
+                result.Add(framePath);
+                onFrameComplete?.Invoke(fi + 1, total);
+            }
+
             await SetImageId(token);
-            return wallpaper;
+            if (result.Count > 0) ImagePath = result[0];
+            return result;
+        }
+
+        private IReadOnlyList<string> GetExistingFramePaths(string[] imageIds)
+        {
+            var result = new List<string>();
+            foreach (var imageId in imageIds)
+            {
+                var framePath = Path.Combine(Options.SavePath, $"frame_{imageId}.bmp");
+                if (File.Exists(framePath)) result.Add(framePath);
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// 将指定目录的分块图片拼接为单张bmp，返回路径
+        /// </summary>
+        private string JoinImageToPath(string frameDir, string imageId)
+        {
+            var outputPath = Path.Combine(Options.SavePath, $"frame_{imageId}.bmp");
+            if (File.Exists(outputPath)) return outputPath;
+            return JoinImageFromDir(frameDir, outputPath);
         }
     }
 

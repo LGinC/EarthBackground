@@ -57,6 +57,21 @@ namespace EarthBackground
         /// 更新频率 单位 min  默认20
         /// </summary>
         public int Interval { get; set; } = 20;
+
+        /// <summary>
+        /// 是否启用动态壁纸（图片序列循环播放）
+        /// </summary>
+        public bool DynamicWallpaper { get; set; } = true;
+
+        /// <summary>
+        /// 动态壁纸帧间隔 单位ms 默认500ms
+        /// </summary>
+        public int FrameIntervalMs { get; set; } = 500;
+
+        /// <summary>
+        /// 动态壁纸帧数 默认20
+        /// </summary>
+        public int FrameCount { get; set; } = 20;
     }
 
 

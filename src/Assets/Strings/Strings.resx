@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <!-- Main Window -->
+  <data name="Status_WaitForRun" xml:space="preserve"><value>Wait for run</value></data>
+  <data name="Status_Running" xml:space="preserve"><value>Running</value></data>
+  <data name="Status_Initializing" xml:space="preserve"><value>Initializing...</value></data>
+  <data name="Status_Downloading" xml:space="preserve"><value>Downloading...</value></data>
+  <data name="Status_SettingWallpaper" xml:space="preserve"><value>Setting Wallpaper...</value></data>
+  <data name="Status_Complete" xml:space="preserve"><value>Complete</value></data>
+  <data name="Status_Stopped" xml:space="preserve"><value>Stopped</value></data>
+  <data name="Btn_Start" xml:space="preserve"><value>🚀 Start</value></data>
+  <data name="Btn_Stop" xml:space="preserve"><value>⏹ Stop</value></data>
+  <data name="Btn_Settings" xml:space="preserve"><value>⚙ Settings</value></data>
+  <data name="Btn_Exit" xml:space="preserve"><value>✕ Exit</value></data>
+  <data name="Notify_ServiceStarted" xml:space="preserve"><value>Wallpaper service started</value></data>
+  <data name="Notify_DownloadFailed" xml:space="preserve"><value>Download failed: {0}</value></data>
+  <data name="TrayMenu_ShowWindow" xml:space="preserve"><value>Show Window</value></data>
+  <data name="TrayMenu_Exit" xml:space="preserve"><value>Exit</value></data>
+  <data name="AppTitle" xml:space="preserve"><value>EarthBackground</value></data>
+
+  <!-- Settings Window -->
+  <data name="Settings_Title" xml:space="preserve"><value>Settings</value></data>
+  <data name="Settings_CaptureSection" xml:space="preserve"><value>Capture Settings</value></data>
+  <data name="Settings_DownloadSection" xml:space="preserve"><value>Download Settings</value></data>
+  <data name="Settings_AutoStart" xml:space="preserve"><value>Launch at startup</value></data>
+  <data name="Settings_SetWallpaper" xml:space="preserve"><value>Set as wallpaper</value></data>
+  <data name="Settings_SaveWallpaper" xml:space="preserve"><value>Save wallpaper copy</value></data>
+  <data name="Settings_Satellite" xml:space="preserve"><value>Satellite</value></data>
+  <data name="Settings_Resolution" xml:space="preserve"><value>Resolution</value></data>
+  <data name="Settings_Interval" xml:space="preserve"><value>Interval</value></data>
+  <data name="Settings_IntervalUnit" xml:space="preserve"><value>min</value></data>
+  <data name="Settings_Zoom" xml:space="preserve"><value>Zoom</value></data>
+  <data name="Settings_ZoomUnit" xml:space="preserve"><value>%</value></data>
+  <data name="Settings_SavePath" xml:space="preserve"><value>Save path</value></data>
+  <data name="Settings_ChoosePath" xml:space="preserve"><value>📁 Browse</value></data>
+  <data name="Settings_Downloader" xml:space="preserve"><value>Downloader</value></data>
+  <data name="Settings_Username" xml:space="preserve"><value>Username</value></data>
+  <data name="Settings_ApiKey" xml:space="preserve"><value>API Key</value></data>
+  <data name="Settings_ApiSecret" xml:space="preserve"><value>API Secret</value></data>
+  <data name="Settings_Domain" xml:space="preserve"><value>Domain</value></data>
+  <data name="Settings_Bucket" xml:space="preserve"><value>Bucket</value></data>
+  <data name="Settings_Zone" xml:space="preserve"><value>Zone</value></data>
+  <data name="Settings_Save" xml:space="preserve"><value>Save Settings</value></data>
+  <data name="Settings_ChoosePathTitle" xml:space="preserve"><value>Choose save path</value></data>
+
+  <!-- Satellite names -->
+  <data name="Himawari8" xml:space="preserve"><value>Himawari-8</value></data>
+  <data name="fy-4b" xml:space="preserve"><value>FengYun-4B</value></data>
+
+  <!-- Downloader names -->
+  <data name="DirectDownload" xml:space="preserve"><value>Direct Download</value></data>
+  <data name="Cloudinary" xml:space="preserve"><value>Cloudinary</value></data>
+  <data name="Qiniuyun" xml:space="preserve"><value>Qiniu Cloud</value></data>
+
+  <!-- Qiniu zones -->
+  <data name="z0" xml:space="preserve"><value>East China</value></data>
+  <data name="z1" xml:space="preserve"><value>North China</value></data>
+  <data name="z2" xml:space="preserve"><value>South China</value></data>
+  <data name="na0" xml:space="preserve"><value>North America</value></data>
+  <data name="as0" xml:space="preserve"><value>Southeast Asia</value></data>
+</root>

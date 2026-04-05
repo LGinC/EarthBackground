@@ -1,0 +1,27 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="EarthBackground.App"
+             RequestedThemeVariant="Light">
+
+    <Application.Styles>
+        <FluentTheme />
+    </Application.Styles>
+
+    <TrayIcon.Icons>
+        <TrayIcons>
+            <TrayIcon Icon="/Assets/earth.ico"
+                      ToolTipText="EarthBackground">
+                <TrayIcon.Menu>
+                    <NativeMenu>
+                        <NativeMenuItem Header="显示主窗口"
+                                        Command="{Binding ShowMainWindowCommand}" />
+                        <NativeMenuItemSeparator />
+                        <NativeMenuItem Header="退出"
+                                        Command="{Binding ExitCommand}" />
+                    </NativeMenu>
+                </TrayIcon.Menu>
+            </TrayIcon>
+        </TrayIcons>
+    </TrayIcon.Icons>
+
+</Application>

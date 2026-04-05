@@ -1,5 +1,7 @@
 ﻿using EarthBackground.Oss;
 using Microsoft.Extensions.Options;
+using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -21,6 +23,14 @@ namespace EarthBackground.Captors
         public virtual Task<string> GetImagePath(CancellationToken token = default)
         {
             throw new System.NotImplementedException();
+        }
+
+        public virtual async Task<IReadOnlyList<string>> GetImagePaths(int count = 20, Action<int, int>? onFrameComplete = null, CancellationToken token = default)
+        {
+            // 默认实现：只返回单张
+            var path = await GetImagePath(token);
+            onFrameComplete?.Invoke(1, 1);
+            return new[] { path };
         }
         
         protected void CreateDirectory()
@@ -57,10 +67,18 @@ namespace EarthBackground.Captors
         }
         
         /// <summary>
-        /// 拼接图片
+        /// 拼接图片（从默认 SavePath 目录）
         /// </summary>
         /// <returns></returns>
         protected virtual string JoinImage()
+        {
+            return JoinImageFromDir(Options.SavePath, ImagePath);
+        }
+
+        /// <summary>
+        /// 从指定目录拼接分块图片，输出到 outputPath
+        /// </summary>
+        protected string JoinImageFromDir(string sourceDir, string outputPath)
         {
             var size = 1 << (int)Options.Resolution;
             using Bitmap bitmap = new Bitmap(BaseRate * size, BaseRate * size);
@@ -71,21 +89,21 @@ namespace EarthBackground.Captors
                 {
                     for (var j = 0; j < size; j++)
                     {
-                        images[i, j] = Image.FromFile(Path.Combine(Options.SavePath, $"{i:000}_{j:000}.png"));
+                        images[i, j] = Image.FromFile(Path.Combine(sourceDir, $"{i:000}_{j:000}.png"));
                         g.DrawImage(images[i, j], BaseRate * j, BaseRate * i);
                         images[i, j].Dispose();
                     }
                 }
                 g.Save();
             }
-            if (File.Exists(ImagePath))
+            if (File.Exists(outputPath))
             {
-                File.Delete(ImagePath);
+                File.Delete(outputPath);
             }
 
             if (Options.Zoom == 100)
             {
-                bitmap.Save(ImagePath, System.Drawing.Imaging.ImageFormat.Bmp);
+                bitmap.Save(outputPath, System.Drawing.Imaging.ImageFormat.Bmp);
             }
             else
             {
@@ -95,16 +113,16 @@ namespace EarthBackground.Captors
                 g2.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
                 g2.DrawImage(bitmap, 0, 0, newSize, newSize);
                 g2.Save();
-                zoomBitmap.Save(ImagePath, System.Drawing.Imaging.ImageFormat.Bmp);
+                zoomBitmap.Save(outputPath, System.Drawing.Imaging.ImageFormat.Bmp);
             }
 
-            //删除小文件
-            foreach (var f in Directory.GetFiles(Options.SavePath).Where(f => f.Contains("_")))
+            // 删除分块小文件
+            foreach (var f in Directory.GetFiles(sourceDir).Where(f => f.Contains("_")))
             {
                 File.Delete(f);
             }
 
-            return ImagePath;
+            return outputPath;
         }
 
         public void Dispose()

@@ -13,7 +13,8 @@ namespace EarthBackground.Background
         IServiceProvider serviceProvider,
         ILogger<WallpaperService> logger,
         IOptionsMonitor<CaptureOption> options,
-        IBackgroudSetProvider backgroundSetProvider)
+        IBackgroudSetProvider backgroundSetProvider,
+        WindowsDynamicWallpaperSetter dynamicWallpaperSetter)
         : BackgroundService
     {
         private int _ossFetchCount;
@@ -95,6 +96,7 @@ namespace EarthBackground.Background
         {
             _customCancellationTokenSource?.Cancel();
             IsRunning = false;
+            dynamicWallpaperSetter.StopDynamicBackground();
             StatusChanged?.Invoke("Stopped");
         }
 
@@ -131,41 +133,85 @@ namespace EarthBackground.Background
             void setTotalHandler(int t) { totalProgress = t; currentProgress = 0; ProgressChanged?.Invoke(currentProgress, totalProgress); }
             void setProgressHandler() { currentProgress++; ProgressChanged?.Invoke(currentProgress, totalProgress); }
 
-            captor.Downloader.SetTotal += setTotalHandler;
-            captor.Downloader.SetCurrentProgress += setProgressHandler;
-
-            try
+            var currentOptions = options.CurrentValue;
             {
-                var imagePath = await captor.GetImagePath(token);
+                var useDynamic = currentOptions.DynamicWallpaper;
+                var frameCount = currentOptions.FrameCount > 0 ? currentOptions.FrameCount : 20;
+                var frameIntervalMs = currentOptions.FrameIntervalMs > 0 ? currentOptions.FrameIntervalMs : 500;
 
-                _ossFetchCount++;
-                if (_ossFetchCount > 3)
+                if (useDynamic)
                 {
-                    _ossFetchCount = 0;
-                    await captor.ResetAsync(token);
+                    // 动态模式：用帧级总进度，不订阅 tile 级下载事件
+                    void onFrameComplete(int done, int total) => ProgressChanged?.Invoke(done, total);
+
+                    var imagePaths = await captor.GetImagePaths(frameCount, onFrameComplete, token);
+
+                    _ossFetchCount++;
+                    if (_ossFetchCount > 3)
+                    {
+                        _ossFetchCount = 0;
+                        await captor.ResetAsync(token);
+                    }
+
+                    if (imagePaths.Count > 0)
+                    {
+                        logger.LogInformation("Dynamic wallpaper: {Count} frames", imagePaths.Count);
+                        ImageSaved?.Invoke(imagePaths[0]);
+
+                        if (currentOptions.SetWallpaper)
+                        {
+                            StatusChanged?.Invoke("Setting Wallpaper...");
+                            await dynamicWallpaperSetter.SetDynamicBackgroundAsync(imagePaths, frameIntervalMs, token);
+                        }
+
+                        if (currentOptions.SaveWallpaper)
+                        {
+                            SaveWallpaperLocal(imagePaths[0]);
+                        }
+                    }
+
+                    StatusChanged?.Invoke("Complete");
+                    ProgressChanged?.Invoke(imagePaths.Count, imagePaths.Count);
                 }
-
-                logger.LogInformation("Wallpaper saved: {ImagePath}", imagePath);
-                ImageSaved?.Invoke(imagePath);
-
-                if (options.CurrentValue.SetWallpaper)
+                else
                 {
-                    StatusChanged?.Invoke("Setting Wallpaper...");
-                    await setter.SetBackgroundAsync(imagePath, token);
-                }
+                    // 单张静态壁纸：订阅 tile 级下载进度
+                    captor.Downloader.SetTotal += setTotalHandler;
+                    captor.Downloader.SetCurrentProgress += setProgressHandler;
+                    try
+                    {
+                        var imagePath = await captor.GetImagePath(token);
 
-                if (options.CurrentValue.SaveWallpaper)
-                {
-                    SaveWallpaperLocal(imagePath);
-                }
+                        _ossFetchCount++;
+                        if (_ossFetchCount > 3)
+                        {
+                            _ossFetchCount = 0;
+                            await captor.ResetAsync(token);
+                        }
 
-                StatusChanged?.Invoke("Complete");
-                ProgressChanged?.Invoke(totalProgress, totalProgress);
-            }
-            finally
-            {
-                captor.Downloader.SetTotal -= setTotalHandler;
-                captor.Downloader.SetCurrentProgress -= setProgressHandler;
+                        logger.LogInformation("Wallpaper saved: {ImagePath}", imagePath);
+                        ImageSaved?.Invoke(imagePath);
+
+                        if (currentOptions.SetWallpaper)
+                        {
+                            StatusChanged?.Invoke("Setting Wallpaper...");
+                            await setter.SetBackgroundAsync(imagePath, token);
+                        }
+
+                        if (currentOptions.SaveWallpaper)
+                        {
+                            SaveWallpaperLocal(imagePath);
+                        }
+
+                        StatusChanged?.Invoke("Complete");
+                        ProgressChanged?.Invoke(totalProgress, totalProgress);
+                    }
+                    finally
+                    {
+                        captor.Downloader.SetTotal -= setTotalHandler;
+                        captor.Downloader.SetCurrentProgress -= setProgressHandler;
+                    }
+                }
             }
         }
 

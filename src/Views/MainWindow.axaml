@@ -1,0 +1,122 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:EarthBackground.ViewModels"
+        xmlns:controls="using:EarthBackground.Controls"
+        x:Class="EarthBackground.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="EarthBackground - 地球背景"
+        Width="480" Height="300"
+        CanResize="False"
+        WindowStartupLocation="CenterScreen"
+        Icon="/Assets/earth.ico">
+
+    <Grid RowDefinitions="80,*">
+
+        <!-- Header Panel -->
+        <Panel Grid.Row="0" Background="#2980B9">
+            <controls:EarthCanvas
+                Width="80" Height="80"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                RotationAngle="{Binding EarthRotationAngle}" />
+            <TextBlock
+                Text="🌍 Earth Background"
+                FontFamily="Segoe UI"
+                FontSize="18"
+                FontWeight="Bold"
+                Foreground="White"
+                VerticalAlignment="Center"
+                Margin="90,0,0,0" />
+        </Panel>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1" Background="#F8F9FA" Margin="20">
+            <Grid RowDefinitions="*,Auto">
+
+                <!-- Status Panel -->
+                <Border Grid.Row="0"
+                        Background="White"
+                        BorderBrush="#E0E0E0"
+                        BorderThickness="1"
+                        Padding="20"
+                        Margin="0,0,0,10">
+                    <StackPanel Spacing="8">
+                        <TextBlock
+                            Text="{Binding StatusText}"
+                            FontFamily="Segoe UI"
+                            FontSize="12"
+                            HorizontalAlignment="Center"
+                            Foreground="#34495E" />
+                        <ProgressBar
+                            Value="{Binding ProgressValue}"
+                            Maximum="{Binding ProgressMax}"
+                            Height="20"
+                            Foreground="#2ECC71"
+                            Background="#ECF0F1" />
+                        <TextBlock
+                            Text="{Binding ProgressText}"
+                            FontFamily="Segoe UI"
+                            FontSize="9"
+                            HorizontalAlignment="Center"
+                            Foreground="#95A5A6" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Buttons Panel -->
+                <Border Grid.Row="1"
+                        Background="White"
+                        BorderBrush="#E0E0E0"
+                        BorderThickness="1"
+                        Padding="20,10">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Button
+                            Content="{Binding BtnStart}"
+                            Command="{Binding StartCommand}"
+                            IsEnabled="{Binding CanStart}"
+                            Background="#2ECC71"
+                            Foreground="White"
+                            FontFamily="Segoe UI"
+                            FontSize="10"
+                            FontWeight="Bold"
+                            Width="100" Height="40"
+                            Cursor="Hand" />
+                        <Button
+                            Content="{Binding BtnStop}"
+                            Command="{Binding StopCommand}"
+                            IsEnabled="{Binding CanStop}"
+                            Background="#E74C3C"
+                            Foreground="White"
+                            FontFamily="Segoe UI"
+                            FontSize="10"
+                            FontWeight="Bold"
+                            Width="100" Height="40"
+                            Cursor="Hand" />
+                        <Button
+                            Content="{Binding BtnSettings}"
+                            Command="{Binding SettingsCommand}"
+                            Background="#3498DB"
+                            Foreground="White"
+                            FontFamily="Segoe UI"
+                            FontSize="10"
+                            FontWeight="Bold"
+                            Width="100" Height="40"
+                            Cursor="Hand" />
+                        <Button
+                            Content="{Binding BtnExit}"
+                            Command="{Binding ExitCommand}"
+                            Background="#95A5A6"
+                            Foreground="White"
+                            FontFamily="Segoe UI"
+                            FontSize="10"
+                            FontWeight="Bold"
+                            Width="100" Height="40"
+                            Cursor="Hand" />
+                    </StackPanel>
+                </Border>
+
+            </Grid>
+        </Grid>
+
+    </Grid>
+
+</Window>
