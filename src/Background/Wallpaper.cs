@@ -13,7 +13,7 @@ namespace EarthBackground.Background
 
         public static void Set(string filePath)
         {
-            RegistryKey key = Registry.CurrentUser.OpenSubKey(@"Control Panel\Desktop", true);
+            using RegistryKey? key = Registry.CurrentUser.OpenSubKey(@"Control Panel\Desktop", true);
             if (key != null)
             {
                 key.SetValue(@"WallpaperStyle", 0.ToString()); // 0＝居中  1＝平铺  2＝拉伸

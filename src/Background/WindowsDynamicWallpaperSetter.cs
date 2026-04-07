@@ -20,20 +20,19 @@ namespace EarthBackground.Background
         public string Platform => nameof(OSPlatform.Windows);
 
         private readonly ILogger<WindowsDynamicWallpaperSetter> _logger;
-        private readonly ApngAssembler _apngAssembler;
         private readonly IServiceProvider _serviceProvider;
         private readonly IOptionsMonitor<CaptureOption> _captureOptions;
         private readonly List<WallpaperPlaybackWindow> _playbackWindows = new();
+        private string[]? _currentFramePaths;
+        private int _currentFrameIntervalMs;
         private IntPtr _workerW = IntPtr.Zero;
 
         public WindowsDynamicWallpaperSetter(
             ILogger<WindowsDynamicWallpaperSetter> logger,
-            ApngAssembler apngAssembler,
             IServiceProvider serviceProvider,
             IOptionsMonitor<CaptureOption> captureOptions)
         {
             _logger = logger;
-            _apngAssembler = apngAssembler;
             _serviceProvider = serviceProvider;
             _captureOptions = captureOptions;
         }
@@ -45,14 +44,22 @@ namespace EarthBackground.Background
             return Task.CompletedTask;
         }
 
-        public async Task SetDynamicBackgroundAsync(IReadOnlyList<string> filePaths, int frameIntervalMs = 500, CancellationToken token = default)
+        public async Task SetDynamicBackgroundAsync(IReadOnlyList<string> filePaths, int frameIntervalMs = 500, Action<int, int>? onProgress = null, CancellationToken token = default)
         {
             if (filePaths == null || filePaths.Count == 0)
             {
                 return;
             }
 
+            token.ThrowIfCancellationRequested();
             var orderedFilePaths = OrderFramePaths(filePaths);
+
+            if (IsSamePlaybackRequest(orderedFilePaths, frameIntervalMs))
+            {
+                onProgress?.Invoke(2, 2);
+                _logger.LogInformation("动态壁纸帧集合未变化，跳过重建，共 {Count} 帧", orderedFilePaths.Count);
+                return;
+            }
 
             StopDynamicBackground();
 
@@ -72,46 +79,54 @@ namespace EarthBackground.Background
                 GetWindowClassName(progman));
 
             var monitors = GetMonitors();
-            var apngPath = Path.Combine(Path.GetDirectoryName(orderedFilePaths[0]) ?? AppContext.BaseDirectory, "wallpaper.apng");
 
-            var assembleStopwatch = Stopwatch.StartNew();
-            _apngAssembler.CreateFromBitmaps(orderedFilePaths, apngPath, frameIntervalMs);
-            assembleStopwatch.Stop();
-            _logger.LogInformation("APNG 已生成: {ApngPath}，耗时 {ElapsedMs}ms", apngPath, assembleStopwatch.ElapsedMilliseconds);
-
-            var parseStopwatch = Stopwatch.StartNew();
-            var apngFrames = ApngParser.Parse(apngPath);
-            parseStopwatch.Stop();
-            _logger.LogInformation("APNG 已解析: {Count} 帧，耗时 {ElapsedMs}ms", apngFrames.Count, parseStopwatch.ElapsedMilliseconds);
+            onProgress?.Invoke(1, 2);
+            var openStopwatch = Stopwatch.StartNew();
+            var framePlayer = await Task.Run(() => PngSequencePlayer.Open(orderedFilePaths, frameIntervalMs), token);
+            openStopwatch.Stop();
+            token.ThrowIfCancellationRequested();
+            _logger.LogInformation("PNG 序列已建立流式播放上下文: {Count} 帧，耗时 {ElapsedMs}ms", framePlayer.FrameCount, openStopwatch.ElapsedMilliseconds);
 
             var showStopwatch = Stopwatch.StartNew();
-            await Dispatcher.UIThread.InvokeAsync(async () =>
+            try
             {
-                var logger = _serviceProvider.GetRequiredService<ILogger<WallpaperPlaybackWindow>>();
-                var displayRegions = new List<WallpaperPlaybackWindow.DisplayRegion>(monitors.Count);
-                foreach (var monitor in monitors)
+                token.ThrowIfCancellationRequested();
+                await Dispatcher.UIThread.InvokeAsync(async () =>
                 {
-                    displayRegions.Add(new WallpaperPlaybackWindow.DisplayRegion(monitor.X, monitor.Y, monitor.Width, monitor.Height));
-                }
+                    token.ThrowIfCancellationRequested();
+                    var logger = _serviceProvider.GetRequiredService<ILogger<WallpaperPlaybackWindow>>();
+                    var displayRegions = new List<WallpaperPlaybackWindow.DisplayRegion>(monitors.Count);
+                    foreach (var monitor in monitors)
+                    {
+                        displayRegions.Add(new WallpaperPlaybackWindow.DisplayRegion(monitor.X, monitor.Y, monitor.Width, monitor.Height));
+                    }
 
-                var window = new WallpaperPlaybackWindow(
-                    logger,
-                    apngFrames,
-                    _workerW,
-                    displayRegions,
-                    _captureOptions.CurrentValue.LoopPauseMilliseconds);
-                _playbackWindows.Add(window);
-                await window.ShowEmbeddedAsync();
-            });
+                    var window = new WallpaperPlaybackWindow(
+                        logger,
+                        framePlayer,
+                        _workerW,
+                        displayRegions,
+                        _captureOptions.CurrentValue.LoopPauseMilliseconds);
+                    _playbackWindows.Add(window);
+                    await window.ShowEmbeddedAsync();
+                });
+
+                _currentFramePaths = orderedFilePaths.ToArray();
+                _currentFrameIntervalMs = frameIntervalMs;
+            }
+            catch
+            {
+                framePlayer.Dispose();
+                throw;
+            }
             showStopwatch.Stop();
+            onProgress?.Invoke(2, 2);
 
             _logger.LogInformation(
-                "动态壁纸已启动，共 {Count} 帧，显示器数={MonitorCount}，播放源=APNG，APNG={ApngPath}，耗时: 生成={AssembleMs}ms, 解析={ParseMs}ms, 展示={ShowMs}ms",
-                apngFrames.Count,
+                "动态壁纸已启动，共 {Count} 帧，显示器数={MonitorCount}，播放源=PNG 序列，耗时: 建立={OpenMs}ms, 展示={ShowMs}ms",
+                framePlayer.FrameCount,
                 monitors.Count,
-                apngPath,
-                assembleStopwatch.ElapsedMilliseconds,
-                parseStopwatch.ElapsedMilliseconds,
+                openStopwatch.ElapsedMilliseconds,
                 showStopwatch.ElapsedMilliseconds);
         }
 
@@ -127,8 +142,33 @@ namespace EarthBackground.Background
                 _playbackWindows.Clear();
             });
 
+            _currentFramePaths = null;
+            _currentFrameIntervalMs = 0;
             _workerW = IntPtr.Zero;
             _logger.LogInformation("动态壁纸已停止");
+        }
+
+        private bool IsSamePlaybackRequest(IReadOnlyList<string> orderedFilePaths, int frameIntervalMs)
+        {
+            if (_playbackWindows.Count == 0 || _currentFramePaths == null)
+            {
+                return false;
+            }
+
+            if (_currentFrameIntervalMs != frameIntervalMs || _currentFramePaths.Length != orderedFilePaths.Count)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < orderedFilePaths.Count; i++)
+            {
+                if (!string.Equals(_currentFramePaths[i], orderedFilePaths[i], StringComparison.OrdinalIgnoreCase))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private IntPtr GetWorkerW(out IntPtr progman)

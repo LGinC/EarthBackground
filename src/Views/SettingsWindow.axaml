@@ -3,7 +3,7 @@
         xmlns:vm="using:EarthBackground.ViewModels"
         x:Class="EarthBackground.Views.SettingsWindow"
         x:DataType="vm:SettingsWindowViewModel"
-        Title="设置 - EarthBackground"
+        Title="{Binding WindowTitle}"
         Width="760" Height="680"
         MinWidth="760" MinHeight="620"
         CanResize="True"
@@ -15,7 +15,7 @@
         <!-- Header -->
         <Panel Grid.Row="0" Background="#3498DB">
             <TextBlock
-                Text="⚙ 设置"
+                Text="{Binding HeaderTitle}"
                 FontFamily="Segoe UI"
                 FontSize="18"
                 FontWeight="Bold"

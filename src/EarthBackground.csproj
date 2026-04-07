@@ -39,9 +39,15 @@
     <Compile Remove="obj\**\*.cs" />
     <Compile Remove="bin\**\*.cs" />
     <Compile Remove="codex_obj\**\*.cs" />
+    <Compile Remove="codex_obj_stream_verify\**\*.cs" />
+    <Compile Remove="codex_obj_stream_verify2\**\*.cs" />
+    <Compile Remove="codex_obj_perf\**\*.cs" />
     <EmbeddedResource Remove="obj\**\*" />
     <EmbeddedResource Remove="bin\**\*" />
     <EmbeddedResource Remove="codex_obj\**\*" />
+    <EmbeddedResource Remove="codex_obj_stream_verify\**\*" />
+    <EmbeddedResource Remove="codex_obj_stream_verify2\**\*" />
+    <EmbeddedResource Remove="codex_obj_perf\**\*" />
   </ItemGroup>
 
   <ItemGroup>

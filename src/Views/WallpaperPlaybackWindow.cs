@@ -1,28 +1,27 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Platform;
-using Avalonia.Controls.Shapes;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Avalonia.Threading;
 using EarthBackground.Imaging;
 using Microsoft.Extensions.Logging;
 
 namespace EarthBackground.Views
 {
-    public sealed class WallpaperPlaybackWindow : Window
+    internal sealed class WallpaperPlaybackWindow : Window
     {
         public readonly record struct DisplayRegion(int X, int Y, int Width, int Height);
 
         private readonly ILogger<WallpaperPlaybackWindow> _logger;
-        private readonly IReadOnlyList<ApngFrame> _frames;
+        private readonly IWallpaperFramePlayer _framePlayer;
         private readonly IntPtr _workerW;
-        private readonly IReadOnlyList<DisplayRegion> _displayRegions;
         private readonly int _windowX;
         private readonly int _windowY;
         private readonly int _windowW;
@@ -30,22 +29,26 @@ namespace EarthBackground.Views
         private readonly int _loopPauseMilliseconds;
         private readonly List<Image> _frameImages = new();
         private readonly DispatcherTimer _timer;
+        private readonly WriteableBitmap _bitmap;
         private TaskCompletionSource<bool>? _openedTcs;
-        private int _currentFrameIndex;
         private bool _started;
 
-        public WallpaperPlaybackWindow(
+        internal WallpaperPlaybackWindow(
             ILogger<WallpaperPlaybackWindow> logger,
-            IReadOnlyList<ApngFrame> frames,
+            IWallpaperFramePlayer framePlayer,
             IntPtr workerW,
             IReadOnlyList<DisplayRegion> displayRegions,
             int loopPauseMilliseconds)
         {
             _logger = logger;
-            _frames = frames;
+            _framePlayer = framePlayer;
             _workerW = workerW;
-            _displayRegions = displayRegions;
             _loopPauseMilliseconds = Math.Max(loopPauseMilliseconds, 0);
+            _bitmap = new WriteableBitmap(
+                _framePlayer.PixelSize,
+                new Vector(96, 96),
+                PixelFormat.Rgba8888,
+                AlphaFormat.Unpremul);
 
             var minX = int.MaxValue;
             var minY = int.MaxValue;
@@ -128,18 +131,19 @@ namespace EarthBackground.Views
 
             EmbedIntoWallpaper(hwnd, _workerW, _windowW, _windowH);
 
-            if (_frames.Count > 0)
+            if (_framePlayer.FrameCount > 0)
             {
+                var firstFrame = _framePlayer.RenderNextFrame(_bitmap);
                 foreach (var image in _frameImages)
                 {
-                    image.Source = _frames[0].Bitmap;
+                    image.Source = _bitmap;
                 }
-                _timer.Interval = TimeSpan.FromMilliseconds(_frames[0].DelayMilliseconds);
+                _timer.Interval = TimeSpan.FromMilliseconds(firstFrame.DelayMilliseconds);
                 _timer.Start();
             }
 
             _started = true;
-            _logger.LogInformation("Avalonia 壁纸窗口已加载 {Count} 帧", _frames.Count);
+            _logger.LogInformation("Avalonia 壁纸窗口已加载 {Count} 帧", _framePlayer.FrameCount);
             _logger.LogInformation(
                 "Avalonia 壁纸窗口已嵌入 WorkerW: Window=0x{Window:X}, WorkerW=0x{WorkerW:X}, Bounds={X},{Y},{W},{H}",
                 hwnd.ToInt64(),
@@ -153,29 +157,36 @@ namespace EarthBackground.Views
 
         private void OnTick(object? sender, EventArgs e)
         {
-            if (_frames.Count == 0)
+            if (_framePlayer.FrameCount == 0)
             {
                 return;
             }
 
-            foreach (var image in _frameImages)
+            try
             {
-                image.Source = _frames[_currentFrameIndex].Bitmap;
-            }
+                var renderedFrame = _framePlayer.RenderNextFrame(_bitmap);
+                foreach (var image in _frameImages)
+                {
+                    image.InvalidateVisual();
+                }
 
-            var isLastFrame = _currentFrameIndex == _frames.Count - 1;
-            _currentFrameIndex = (_currentFrameIndex + 1) % _frames.Count;
-            var nextDelay = isLastFrame ? _loopPauseMilliseconds : _frames[_currentFrameIndex].DelayMilliseconds;
-            _timer.Interval = TimeSpan.FromMilliseconds(nextDelay);
+                InvalidateVisual();
+
+                var nextDelay = renderedFrame.IsLastFrame ? _loopPauseMilliseconds : renderedFrame.DelayMilliseconds;
+                _timer.Interval = TimeSpan.FromMilliseconds(nextDelay);
+            }
+            catch (Exception ex)
+            {
+                _timer.Stop();
+                _logger.LogError(ex, "动态壁纸帧推进失败");
+            }
         }
 
         private void OnClosed(object? sender, EventArgs e)
         {
             _timer.Stop();
-            foreach (var frame in _frames)
-            {
-                frame.Dispose();
-            }
+            _bitmap.Dispose();
+            _framePlayer.Dispose();
             _started = false;
         }
 

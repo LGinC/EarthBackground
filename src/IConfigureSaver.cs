@@ -15,19 +15,27 @@ namespace EarthBackground
         public Task SaveAsync(CaptureOption option, OssOption ossOption)
         {
             string filePath = AppPaths.AppSettingsPath;
-            var settings = JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(filePath));
-            if(option == null && ossOption == null)
+            var settings = File.Exists(filePath)
+                ? JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(filePath))
+                : null;
+
+            if (option == null && ossOption == null)
             {
                 return Task.CompletedTask;
             }
-            if(option != null)
+
+            settings ??= new AppSettings();
+
+            if (option != null)
             {
                 settings.CaptureOptions = option;
             }
-            if(ossOption != null)
+
+            if (ossOption != null)
             {
                 settings.OssOptions = ossOption;
             }
+
             return File.WriteAllTextAsync(filePath, JsonSerializer.Serialize(settings));
         }
     }

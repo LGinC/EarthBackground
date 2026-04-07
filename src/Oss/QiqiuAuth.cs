@@ -16,9 +16,9 @@
         /// <param name="url">请求的URL</param>
         /// <param name="body">请求的主体内容</param>
         /// <returns>生成的管理凭证</returns>
-        public string CreateManageToken(string url, byte[] body)
+        public string CreateManageToken(string url, byte[]? body)
         {
-            return string.Format("QBox {0}", _signature.SignRequest(url, body));
+            return string.Format("QBox {0}", _signature.SignRequest(url, body ?? []));
         }
 
         /// <summary>
@@ -82,10 +82,10 @@
         /// <param name="url">访问的URL</param>
         /// <param name="body">请求的body</param>
         /// <returns>生成的管理凭证</returns>
-        public static string CreateManageToken(Mac mac, string url, byte[] body)
+        public static string CreateManageToken(Mac mac, string url, byte[]? body)
         {
             QiniuSignature sx = new QiniuSignature(mac);
-            return string.Format("QBox {0}", sx.SignRequest(url, body));
+            return string.Format("QBox {0}", sx.SignRequest(url, body ?? []));
         }
 
         /// <summary>

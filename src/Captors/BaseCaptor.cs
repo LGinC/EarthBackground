@@ -52,6 +52,63 @@ namespace EarthBackground.Captors
 
         protected Task SetImageId(CancellationToken token = default) => File.WriteAllTextAsync(NameConsts.ImageIdPath, CurrentImageId, token);
 
+        protected string GetFrameImagePath(string imageId)
+        {
+            return Path.Combine(Options.SavePath, $"frame_{imageId}.png");
+        }
+
+        protected bool TryGetExistingFrameImagePath(string imageId, out string framePath)
+        {
+            framePath = GetFrameImagePath(imageId);
+            return File.Exists(framePath);
+        }
+
+        protected async Task<IReadOnlyList<string>> BuildFrameSequenceAsync(
+            IReadOnlyList<string> imageIds,
+            Func<string, CancellationToken, Task<string>> frameFactory,
+            Action<int, int>? onFrameComplete = null,
+            CancellationToken token = default)
+        {
+            if (imageIds.Count == 0)
+            {
+                return Array.Empty<string>();
+            }
+
+            var result = new string[imageIds.Count];
+            var completedCount = 0;
+            var parallelism = GetFrameProcessingParallelism();
+            using var semaphore = new SemaphoreSlim(parallelism, parallelism);
+            var tasks = new Task[imageIds.Count];
+
+            for (int i = 0; i < imageIds.Count; i++)
+            {
+                var index = i;
+                var imageId = imageIds[index];
+                tasks[index] = Task.Run(async () =>
+                {
+                    await semaphore.WaitAsync(token);
+                    try
+                    {
+                        result[index] = await frameFactory(imageId, token);
+                    }
+                    finally
+                    {
+                        semaphore.Release();
+                        var done = Interlocked.Increment(ref completedCount);
+                        onFrameComplete?.Invoke(done, imageIds.Count);
+                    }
+                }, token);
+            }
+
+            await Task.WhenAll(tasks);
+            return result;
+        }
+
+        protected virtual int GetFrameProcessingParallelism()
+        {
+            return Math.Clamp(Environment.ProcessorCount / 4, 2, 4);
+        }
+
         protected void CleanupFramesOlderThan(string minImageId)
         {
             if (string.IsNullOrWhiteSpace(minImageId) || !Directory.Exists(Options.SavePath))
@@ -80,8 +137,30 @@ namespace EarthBackground.Captors
 
             foreach (var dirPath in Directory.GetDirectories(Options.SavePath, "frame_*"))
             {
-                Directory.Delete(dirPath);
+                ForceDeleteDirectory(dirPath);
             }
+        }
+
+        private static void ForceDeleteDirectory(string dirPath)
+        {
+            if (!Directory.Exists(dirPath))
+            {
+                return;
+            }
+
+            foreach (var filePath in Directory.GetFiles(dirPath))
+            {
+                File.SetAttributes(filePath, FileAttributes.Normal);
+                File.Delete(filePath);
+            }
+
+            foreach (var childDirPath in Directory.GetDirectories(dirPath))
+            {
+                ForceDeleteDirectory(childDirPath);
+            }
+
+            File.SetAttributes(dirPath, FileAttributes.Normal);
+            Directory.Delete(dirPath, recursive: false);
         }
 
         private static bool TryParseImageId(string imageId, out DateTime timestamp)

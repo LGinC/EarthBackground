@@ -24,20 +24,23 @@ namespace EarthBackground.Background
             var setters = _serviceProvider.GetServices<IBackgroundSetter>();
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                return setters.FirstOrDefault(s => s.Platform == nameof(OSPlatform.Windows));
+                return setters.FirstOrDefault(s => s.Platform == nameof(OSPlatform.Windows))
+                    ?? throw new PlatformNotSupportedException("No Windows wallpaper setter is registered.");
             }
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                return setters.FirstOrDefault(s => s.Platform == nameof(OSPlatform.Linux));
+                return setters.FirstOrDefault(s => s.Platform == nameof(OSPlatform.Linux))
+                    ?? throw new PlatformNotSupportedException("No Linux wallpaper setter is registered.");
             }
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                return setters.FirstOrDefault(s => s.Platform == nameof(OSPlatform.OSX));
+                return setters.FirstOrDefault(s => s.Platform == nameof(OSPlatform.OSX))
+                    ?? throw new PlatformNotSupportedException("No macOS wallpaper setter is registered.");
             }
 
-            return null;
+            throw new PlatformNotSupportedException("Current platform is not supported.");
         }
     }
 }

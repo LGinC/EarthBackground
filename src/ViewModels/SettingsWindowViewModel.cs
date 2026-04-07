@@ -221,10 +221,12 @@ namespace EarthBackground.ViewModels
         public Window? OwnerWindow { get; set; }
 
         // Localized labels for AXAML binding
+        public string WindowTitle => _loc["Settings_WindowTitle"];
+        public string HeaderTitle => _loc["Settings_Header"];
         public string Label_CaptureSection => _loc["Settings_CaptureSection"];
         public string Label_DownloadSection => _loc["Settings_DownloadSection"];
         public string Label_AutoStart => _loc["Settings_AutoStart"];
-        public string Label_DynamicWallpaper => "动态壁纸";
+        public string Label_DynamicWallpaper => _loc["Settings_DynamicWallpaper"];
         public string Label_SetWallpaper => _loc["Settings_SetWallpaper"];
         public string Label_SaveWallpaper => _loc["Settings_SaveWallpaper"];
         public string Label_Satellite => _loc["Settings_Satellite"];
@@ -233,8 +235,8 @@ namespace EarthBackground.ViewModels
         public string Label_IntervalUnit => _loc["Settings_IntervalUnit"];
         public string Label_Zoom => _loc["Settings_Zoom"];
         public string Label_ZoomUnit => _loc["Settings_ZoomUnit"];
-        public string Label_RecentHours => "最近时长(小时)";
-        public string Label_LoopPauseMilliseconds => "循环停顿(ms)";
+        public string Label_RecentHours => _loc["Settings_RecentHours"];
+        public string Label_LoopPauseMilliseconds => _loc["Settings_LoopPauseMilliseconds"];
         public string Label_SavePath => _loc["Settings_SavePath"];
         public string Label_ChoosePath => _loc["Settings_ChoosePath"];
         public string Label_Downloader => _loc["Settings_Downloader"];

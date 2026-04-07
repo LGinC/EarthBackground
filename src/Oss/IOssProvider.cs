@@ -13,7 +13,7 @@ namespace EarthBackground.Oss
         /// </summary>
         /// <param name="name">下载器名称</param>
         /// <returns></returns>
-        IOssDownloader GetDownloader(string name = null);
+        IOssDownloader GetDownloader(string? name = null);
     }
 
     public class OssProvider : IOssProvider
@@ -27,13 +27,14 @@ namespace EarthBackground.Oss
             _provider = provider;
         }
 
-        public IOssDownloader GetDownloader(string name = null)
+        public IOssDownloader GetDownloader(string? name = null)
         {
             if (string.IsNullOrEmpty(name))
             {
                 name = _option.IsEnable ? _option.CloudName : NameConsts.DirectDownload;
             }
-            return _provider.GetKeyedService< IOssDownloader >(name);
+            return _provider.GetKeyedService<IOssDownloader>(name)
+                ?? throw new InvalidOperationException($"Downloader '{name}' is not registered.");
         }
     }
 }

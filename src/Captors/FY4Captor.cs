@@ -85,20 +85,7 @@ namespace EarthBackground.Captors
             }
 
             CurrentImageId = latestId;
-            var result = new List<string>();
-            var total = imageIds.Length;
-
-            for (int fi = 0; fi < total; fi++)
-            {
-                var imageId = imageIds[fi];
-                var frameDir = Path.Combine(Options.SavePath, $"frame_{imageId}");
-                if (!Directory.Exists(frameDir)) Directory.CreateDirectory(frameDir);
-
-                await SaveImageAsync(imageId, frameDir, token);
-                var framePath = JoinImageToPath(frameDir, imageId);
-                result.Add(framePath);
-                onFrameComplete?.Invoke(fi + 1, total);
-            }
+            var result = await BuildFrameSequenceAsync(imageIds, GetOrCreateFrameAsync, onFrameComplete, token);
 
             await SetImageId(token);
             CleanupFramesOlderThan(imageIds[0]);
@@ -111,17 +98,33 @@ namespace EarthBackground.Captors
             var result = new List<string>();
             foreach (var imageId in imageIds)
             {
-                var framePath = Path.Combine(Options.SavePath, $"frame_{imageId}.png");
-                if (File.Exists(framePath)) result.Add(framePath);
+                if (TryGetExistingFrameImagePath(imageId, out var framePath)) result.Add(framePath);
             }
             return result;
         }
 
         private string JoinImageToPath(string frameDir, string imageId)
         {
-            var outputPath = Path.Combine(Options.SavePath, $"frame_{imageId}.png");
+            var outputPath = GetFrameImagePath(imageId);
             if (File.Exists(outputPath)) return outputPath;
             return JoinImageFromDir(frameDir, outputPath);
+        }
+
+        private async Task<string> GetOrCreateFrameAsync(string imageId, CancellationToken token)
+        {
+            if (TryGetExistingFrameImagePath(imageId, out var existingFramePath))
+            {
+                return existingFramePath;
+            }
+
+            var frameDir = Path.Combine(Options.SavePath, $"frame_{imageId}");
+            if (!Directory.Exists(frameDir))
+            {
+                Directory.CreateDirectory(frameDir);
+            }
+
+            await SaveImageAsync(imageId, frameDir, token);
+            return JoinImageToPath(frameDir, imageId);
         }
 
         private async Task SaveImageAsync(string imageId, string saveDir, CancellationToken token = default)

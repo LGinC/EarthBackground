@@ -12,7 +12,7 @@ namespace EarthBackground.Captors
         /// </summary>
         /// <param name="name">抓取器名称</param>
         /// <returns></returns>
-        ICaptor GetCaptor(string name = null);
+        ICaptor GetCaptor(string? name = null);
     }
 
     public class CaptorProvider : ICaptorProvider
@@ -26,11 +26,12 @@ namespace EarthBackground.Captors
             _option = options.Value;
         }
 
-        public ICaptor GetCaptor(string name = null)
+        public ICaptor GetCaptor(string? name = null)
         {
             name = string.IsNullOrEmpty(name) ? _option.Captor : name;
             var captors = _provider.GetServices<ICaptor>();
-            return captors.FirstOrDefault(p => p.ProviderName == name);
+            return captors.FirstOrDefault(p => p.ProviderName == name)
+                ?? throw new InvalidOperationException($"Captor '{name}' is not registered.");
         }
     }
 }

@@ -50,12 +50,17 @@
   <data name="TrayMenu_ShowWindow" xml:space="preserve"><value>显示主窗口</value></data>
   <data name="TrayMenu_Exit" xml:space="preserve"><value>退出</value></data>
   <data name="AppTitle" xml:space="preserve"><value>地球背景</value></data>
+  <data name="MainWindow_Title" xml:space="preserve"><value>EarthBackground - 地球背景</value></data>
+  <data name="MainWindow_Header" xml:space="preserve"><value>🌍 Earth Background</value></data>
 
   <!-- Settings Window -->
   <data name="Settings_Title" xml:space="preserve"><value>设置</value></data>
+  <data name="Settings_WindowTitle" xml:space="preserve"><value>设置 - EarthBackground</value></data>
+  <data name="Settings_Header" xml:space="preserve"><value>⚙ 设置</value></data>
   <data name="Settings_CaptureSection" xml:space="preserve"><value>抓取设置</value></data>
   <data name="Settings_DownloadSection" xml:space="preserve"><value>下载设置</value></data>
   <data name="Settings_AutoStart" xml:space="preserve"><value>开机自启</value></data>
+  <data name="Settings_DynamicWallpaper" xml:space="preserve"><value>动态壁纸</value></data>
   <data name="Settings_SetWallpaper" xml:space="preserve"><value>设置壁纸</value></data>
   <data name="Settings_SaveWallpaper" xml:space="preserve"><value>另存为壁纸</value></data>
   <data name="Settings_Satellite" xml:space="preserve"><value>卫星</value></data>
@@ -64,6 +69,8 @@
   <data name="Settings_IntervalUnit" xml:space="preserve"><value>分钟</value></data>
   <data name="Settings_Zoom" xml:space="preserve"><value>缩放</value></data>
   <data name="Settings_ZoomUnit" xml:space="preserve"><value>%</value></data>
+  <data name="Settings_RecentHours" xml:space="preserve"><value>最近时长(小时)</value></data>
+  <data name="Settings_LoopPauseMilliseconds" xml:space="preserve"><value>循环停顿(ms)</value></data>
   <data name="Settings_SavePath" xml:space="preserve"><value>保存路径</value></data>
   <data name="Settings_ChoosePath" xml:space="preserve"><value>📁 选择路径</value></data>
   <data name="Settings_Downloader" xml:space="preserve"><value>下载器</value></data>

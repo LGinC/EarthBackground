@@ -32,11 +32,11 @@ namespace EarthBackground
         /// <summary>
         /// 设置下载总数
         /// </summary>
-        event Action<int> SetTotal;
+        event Action<int>? SetTotal;
 
         /// <summary>
         /// 设置当前下载进度
         /// </summary>
-        event Action SetCurrentProgress;
+        event Action? SetCurrentProgress;
     }
 }

@@ -68,7 +68,8 @@ namespace EarthBackground.Controls
             {
                 Center = new RelativePoint(0.5, 0.5, RelativeUnit.Relative),
                 GradientOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative),
-                Radius = 0.5,
+                RadiusX = new RelativeScalar(0.5, RelativeUnit.Relative),
+                RadiusY = new RelativeScalar(0.5, RelativeUnit.Relative),
                 GradientStops =
                 {
                     new GradientStop(Color.FromArgb(60, 52, 152, 219), 0.4),
@@ -222,7 +223,8 @@ namespace EarthBackground.Controls
             {
                 Center = new RelativePoint(0.5, 0.5, RelativeUnit.Relative),
                 GradientOrigin = new RelativePoint(0.85, 0.85, RelativeUnit.Relative),
-                Radius = 0.5,
+                RadiusX = new RelativeScalar(0.5, RelativeUnit.Relative),
+                RadiusY = new RelativeScalar(0.5, RelativeUnit.Relative),
                 GradientStops =
                 {
                     new GradientStop(Color.FromArgb(0, 0, 0, 0), 0.85),
@@ -239,7 +241,8 @@ namespace EarthBackground.Controls
             {
                 Center = new RelativePoint(0.5, 0.5, RelativeUnit.Relative),
                 GradientOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative),
-                Radius = 0.5,
+                RadiusX = new RelativeScalar(0.5, RelativeUnit.Relative),
+                RadiusY = new RelativeScalar(0.5, RelativeUnit.Relative),
                 GradientStops =
                 {
                     new GradientStop(Color.FromArgb(140, 255, 255, 255), 0),

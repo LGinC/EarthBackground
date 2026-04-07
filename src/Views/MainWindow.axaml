@@ -4,7 +4,7 @@
         xmlns:controls="using:EarthBackground.Controls"
         x:Class="EarthBackground.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Title="EarthBackground - 地球背景"
+        Title="{Binding WindowTitle}"
         Width="480" Height="300"
         CanResize="False"
         WindowStartupLocation="CenterScreen"
@@ -20,7 +20,7 @@
                 VerticalAlignment="Top"
                 RotationAngle="{Binding EarthRotationAngle}" />
             <TextBlock
-                Text="🌍 Earth Background"
+                Text="{Binding HeaderTitle}"
                 FontFamily="Segoe UI"
                 FontSize="18"
                 FontWeight="Bold"
@@ -68,8 +68,9 @@
                         BorderBrush="#E0E0E0"
                         BorderThickness="1"
                         Padding="20,10">
-                    <StackPanel Orientation="Horizontal" Spacing="10">
+                    <Grid ColumnDefinitions="*,10,*,10,*,10,*">
                         <Button
+                            Grid.Column="0"
                             Content="{Binding BtnStart}"
                             Command="{Binding StartCommand}"
                             IsEnabled="{Binding CanStart}"
@@ -78,9 +79,12 @@
                             FontFamily="Segoe UI"
                             FontSize="10"
                             FontWeight="Bold"
-                            Width="100" Height="40"
+                            HorizontalAlignment="Stretch"
+                            MinWidth="0"
+                            Height="40"
                             Cursor="Hand" />
                         <Button
+                            Grid.Column="2"
                             Content="{Binding BtnStop}"
                             Command="{Binding StopCommand}"
                             IsEnabled="{Binding CanStop}"
@@ -89,9 +93,12 @@
                             FontFamily="Segoe UI"
                             FontSize="10"
                             FontWeight="Bold"
-                            Width="100" Height="40"
+                            HorizontalAlignment="Stretch"
+                            MinWidth="0"
+                            Height="40"
                             Cursor="Hand" />
                         <Button
+                            Grid.Column="4"
                             Content="{Binding BtnSettings}"
                             Command="{Binding SettingsCommand}"
                             Background="#3498DB"
@@ -99,9 +106,12 @@
                             FontFamily="Segoe UI"
                             FontSize="10"
                             FontWeight="Bold"
-                            Width="100" Height="40"
+                            HorizontalAlignment="Stretch"
+                            MinWidth="0"
+                            Height="40"
                             Cursor="Hand" />
                         <Button
+                            Grid.Column="6"
                             Content="{Binding BtnExit}"
                             Command="{Binding ExitCommand}"
                             Background="#95A5A6"
@@ -109,9 +119,11 @@
                             FontFamily="Segoe UI"
                             FontSize="10"
                             FontWeight="Bold"
-                            Width="100" Height="40"
+                            HorizontalAlignment="Stretch"
+                            MinWidth="0"
+                            Height="40"
                             Cursor="Hand" />
-                    </StackPanel>
+                    </Grid>
                 </Border>
 
             </Grid>

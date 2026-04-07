@@ -18,8 +18,8 @@ namespace EarthBackground.Oss
         private readonly OssOption _option;
         private readonly HttpClient _client;
 
-        public event Action<int> SetTotal;
-        public event Action SetCurrentProgress;
+        public event Action<int>? SetTotal;
+        public event Action? SetCurrentProgress;
 
         public CloudinaryDownloader(IOptionsSnapshot<OssOption> option, IHttpClientFactory httpClientFactory)
         {
@@ -89,7 +89,7 @@ namespace EarthBackground.Oss
 
             var reStr = await response.Content.ReadAsStringAsync(token);
             var json = JsonSerializer.Deserialize<CDNOperationResult>(reStr);
-            if (!string.IsNullOrEmpty(json.error))
+            if (!string.IsNullOrEmpty(json?.error))
             {
                 throw new InvalidOperationException(json.error);
             }

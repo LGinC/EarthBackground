@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Png;
@@ -17,13 +19,15 @@ namespace EarthBackground.Imaging
             _logger = logger;
         }
 
-        public string CreateFromBitmaps(IReadOnlyList<string> framePaths, string outputPath, int delayMs)
+        public string CreateFromBitmaps(IReadOnlyList<string> framePaths, string outputPath, int delayMs, CancellationToken token = default)
         {
             if (framePaths.Count == 0)
             {
                 throw new ArgumentException("At least one frame is required to create an APNG.", nameof(framePaths));
             }
 
+            var prepareStopwatch = Stopwatch.StartNew();
+            token.ThrowIfCancellationRequested();
             using var animation = Image.Load<Rgba32>(framePaths[0]);
             var animationMeta = animation.Metadata.GetPngMetadata();
             animationMeta.RepeatCount = 0;
@@ -36,9 +40,10 @@ namespace EarthBackground.Imaging
             {
                 for (int i = 1; i < framePaths.Count; i++)
                 {
+                    token.ThrowIfCancellationRequested();
                     using var originalFrame = Image.Load<Rgba32>(framePaths[i]);
                     using var encodedFrame = originalFrame.Clone();
-                    var ratio = ApplyUnchangedPixelTransparency(previousFrame, encodedFrame);
+                    var ratio = ApplyUnchangedPixelTransparency(previousFrame, encodedFrame, token);
                     _logger.LogInformation("APNG frame {Index}: unchanged-pixel filter ratio={Ratio:P2}", i, ratio);
 
                     ConfigureFrame(encodedFrame.Frames.RootFrame, delayMs, isDeltaFrame: true);
@@ -53,8 +58,31 @@ namespace EarthBackground.Imaging
                 previousFrame.Dispose();
             }
 
-            animation.Save(outputPath, new PngEncoder());
+            token.ThrowIfCancellationRequested();
+            prepareStopwatch.Stop();
+
+            var saveStopwatch = Stopwatch.StartNew();
+            animation.Save(outputPath, CreateFastEncoder());
+            saveStopwatch.Stop();
+
+            _logger.LogInformation(
+                "APNG assembled: frames={Count}, prepare={PrepareMs}ms, encode={EncodeMs}ms, output={OutputPath}",
+                framePaths.Count,
+                prepareStopwatch.ElapsedMilliseconds,
+                saveStopwatch.ElapsedMilliseconds,
+                outputPath);
+
             return outputPath;
+        }
+
+        private static PngEncoder CreateFastEncoder()
+        {
+            return new PngEncoder
+            {
+                CompressionLevel = PngCompressionLevel.BestSpeed,
+                FilterMethod = PngFilterMethod.None,
+                InterlaceMethod = PngInterlaceMode.None
+            };
         }
 
         private static void ConfigureFrame(ImageFrame<Rgba32> frame, int delayMs, bool isDeltaFrame)
@@ -65,7 +93,7 @@ namespace EarthBackground.Imaging
             frameMeta.DisposalMethod = PngDisposalMethod.DoNotDispose;
         }
 
-        private static double ApplyUnchangedPixelTransparency(Image<Rgba32> previousFrame, Image<Rgba32> currentFrame)
+        private static double ApplyUnchangedPixelTransparency(Image<Rgba32> previousFrame, Image<Rgba32> currentFrame, CancellationToken token)
         {
             if (previousFrame.Width != currentFrame.Width || previousFrame.Height != currentFrame.Height)
             {
@@ -75,17 +103,26 @@ namespace EarthBackground.Imaging
             long unchangedPixelCount = 0;
             long totalPixelCount = (long)currentFrame.Width * currentFrame.Height;
 
-            for (int y = 0; y < currentFrame.Height; y++)
+            previousFrame.ProcessPixelRows(currentFrame, (previousAccessor, currentAccessor) =>
             {
-                for (int x = 0; x < currentFrame.Width; x++)
+                for (int y = 0; y < currentAccessor.Height; y++)
                 {
-                    if (previousFrame[x, y].Equals(currentFrame[x, y]))
+                    token.ThrowIfCancellationRequested();
+                    Span<Rgba32> previousRow = previousAccessor.GetRowSpan(y);
+                    Span<Rgba32> currentRow = currentAccessor.GetRowSpan(y);
+
+                    for (int x = 0; x < currentRow.Length; x++)
                     {
-                        currentFrame[x, y] = new Rgba32(0, 0, 0, 0);
+                        if (!previousRow[x].Equals(currentRow[x]))
+                        {
+                            continue;
+                        }
+
+                        currentRow[x] = default;
                         unchangedPixelCount++;
                     }
                 }
-            }
+            });
 
             return totalPixelCount == 0 ? 0d : (double)unchangedPixelCount / totalPixelCount;
         }

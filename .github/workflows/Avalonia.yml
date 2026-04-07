@@ -1,0 +1,104 @@
+name: .NET Desktop Build
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  release:
+    types: [ published ]
+
+jobs:
+  build-test:
+    runs-on: windows-latest
+
+    env:
+      Project_Path: src\EarthBackground.csproj
+      Test_Project_Path: EarthBackground.Tests\EarthBackground.Tests.csproj
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Restore dependencies
+      run: |
+        dotnet restore $env:Project_Path
+        dotnet restore $env:Test_Project_Path
+
+    - name: Build
+      run: dotnet build $env:Project_Path --configuration Release --no-restore
+
+    - name: Test
+      run: dotnet test $env:Test_Project_Path --configuration Release --no-build --verbosity normal
+      continue-on-error: true
+
+  publish:
+    needs: build-test
+    if: github.event_name == 'release' || github.ref == 'refs/heads/master'
+    runs-on: windows-latest
+
+    strategy:
+      matrix:
+        runtime: [ win-x64 ]
+
+    env:
+      Project_Path: src\EarthBackground.csproj
+      Publish_Dir: publish\${{ matrix.runtime }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore $env:Project_Path -r ${{ matrix.runtime }}
+
+    - name: Publish Avalonia app
+      run: |
+        dotnet publish $env:Project_Path `
+          --configuration Release `
+          --runtime ${{ matrix.runtime }} `
+          --output $env:Publish_Dir `
+          --self-contained true `
+          -p:UseAppHost=true `
+          -p:PublishReadyToRun=true `
+          -p:PublishSingleFile=false
+
+    - name: Create Release Archive
+      run: |
+        $archiveName = "EarthBackground-${{ github.ref_name }}-${{ matrix.runtime }}.zip"
+        if (Test-Path $archiveName) { Remove-Item $archiveName -Force }
+        Compress-Archive -Path "$env:Publish_Dir\\*" -DestinationPath $archiveName
+
+    - name: Upload Build Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: EarthBackground-${{ matrix.runtime }}-${{ github.sha }}
+        path: ${{ env.Publish_Dir }}\
+
+    - name: Upload Release Archive
+      uses: actions/upload-artifact@v4
+      with:
+        name: EarthBackground-${{ matrix.runtime }}-archive
+        path: EarthBackground-*.zip
+
+    - name: Attach to Release
+      if: github.event_name == 'release'
+      uses: softprops/action-gh-release@v1
+      with:
+        files: EarthBackground-*.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

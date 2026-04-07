@@ -142,7 +142,20 @@ namespace EarthBackground.Background
                 if (useDynamic)
                 {
                     // 动态模式：用帧级总进度，不订阅 tile 级下载事件
-                    void onFrameComplete(int done, int total) => ProgressChanged?.Invoke(done, total);
+                    const int dynamicSetupSteps = 2;
+                    var frameProgressTotal = 0;
+
+                    void onFrameComplete(int done, int total)
+                    {
+                        frameProgressTotal = total;
+                        ProgressChanged?.Invoke(done, total + dynamicSetupSteps);
+                    }
+
+                    void onDynamicSetupProgress(int done, int total)
+                    {
+                        var baseTotal = frameProgressTotal > 0 ? frameProgressTotal : recentHours;
+                        ProgressChanged?.Invoke(baseTotal + done, baseTotal + total);
+                    }
 
                     var imagePaths = await captor.GetImagePaths(recentHours, onFrameComplete, token);
 
@@ -161,7 +174,7 @@ namespace EarthBackground.Background
                         if (currentOptions.SetWallpaper)
                         {
                             StatusChanged?.Invoke("Setting Wallpaper...");
-                            await dynamicWallpaperSetter.SetDynamicBackgroundAsync(imagePaths, frameIntervalMs, token);
+                            await dynamicWallpaperSetter.SetDynamicBackgroundAsync(imagePaths, frameIntervalMs, onDynamicSetupProgress, token);
                         }
 
                         if (currentOptions.SaveWallpaper)
@@ -171,7 +184,7 @@ namespace EarthBackground.Background
                     }
 
                     StatusChanged?.Invoke("Complete");
-                    ProgressChanged?.Invoke(imagePaths.Count, imagePaths.Count);
+                    ProgressChanged?.Invoke(imagePaths.Count + dynamicSetupSteps, imagePaths.Count + dynamicSetupSteps);
                 }
                 else
                 {

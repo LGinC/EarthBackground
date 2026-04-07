@@ -50,12 +50,17 @@
   <data name="TrayMenu_ShowWindow" xml:space="preserve"><value>Show Window</value></data>
   <data name="TrayMenu_Exit" xml:space="preserve"><value>Exit</value></data>
   <data name="AppTitle" xml:space="preserve"><value>EarthBackground</value></data>
+  <data name="MainWindow_Title" xml:space="preserve"><value>EarthBackground</value></data>
+  <data name="MainWindow_Header" xml:space="preserve"><value>Earth Background</value></data>
 
   <!-- Settings Window -->
   <data name="Settings_Title" xml:space="preserve"><value>Settings</value></data>
+  <data name="Settings_WindowTitle" xml:space="preserve"><value>Settings - EarthBackground</value></data>
+  <data name="Settings_Header" xml:space="preserve"><value>Settings</value></data>
   <data name="Settings_CaptureSection" xml:space="preserve"><value>Capture Settings</value></data>
   <data name="Settings_DownloadSection" xml:space="preserve"><value>Download Settings</value></data>
   <data name="Settings_AutoStart" xml:space="preserve"><value>Launch at startup</value></data>
+  <data name="Settings_DynamicWallpaper" xml:space="preserve"><value>Dynamic wallpaper</value></data>
   <data name="Settings_SetWallpaper" xml:space="preserve"><value>Set as wallpaper</value></data>
   <data name="Settings_SaveWallpaper" xml:space="preserve"><value>Save wallpaper copy</value></data>
   <data name="Settings_Satellite" xml:space="preserve"><value>Satellite</value></data>
@@ -64,6 +69,8 @@
   <data name="Settings_IntervalUnit" xml:space="preserve"><value>min</value></data>
   <data name="Settings_Zoom" xml:space="preserve"><value>Zoom</value></data>
   <data name="Settings_ZoomUnit" xml:space="preserve"><value>%</value></data>
+  <data name="Settings_RecentHours" xml:space="preserve"><value>Recent hours</value></data>
+  <data name="Settings_LoopPauseMilliseconds" xml:space="preserve"><value>Loop pause (ms)</value></data>
   <data name="Settings_SavePath" xml:space="preserve"><value>Save path</value></data>
   <data name="Settings_ChoosePath" xml:space="preserve"><value>📁 Browse</value></data>
   <data name="Settings_Downloader" xml:space="preserve"><value>Downloader</value></data>

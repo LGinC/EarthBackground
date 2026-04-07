@@ -76,6 +76,8 @@ namespace EarthBackground.ViewModels
         public bool CanStop => IsRunning;
 
         // Localized button labels
+        public string WindowTitle => _loc["MainWindow_Title"];
+        public string HeaderTitle => _loc["MainWindow_Header"];
         public string BtnStart => _loc["Btn_Start"];
         public string BtnStop => _loc["Btn_Stop"];
         public string BtnSettings => _loc["Btn_Settings"];

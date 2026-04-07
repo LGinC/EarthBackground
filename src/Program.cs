@@ -109,7 +109,6 @@ namespace EarthBackground
 
             services.AddTransient<IBackgroudSetProvider, BackgroudSetProvider>();
             services.AddTransient<IBackgroundSetter, WindowsBackgroudSetter>();
-            services.AddSingleton<ApngAssembler>();
             services.AddSingleton<WindowsDynamicWallpaperSetter>();
 
             AddHttpClients(services, config);
