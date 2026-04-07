@@ -14,7 +14,7 @@ namespace EarthBackground
     {
         public Task SaveAsync(CaptureOption option, OssOption ossOption)
         {
-            string filePath = "appsettings.json";
+            string filePath = AppPaths.AppSettingsPath;
             var settings = JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(filePath));
             if(option == null && ossOption == null)
             {

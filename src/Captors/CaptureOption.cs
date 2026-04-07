@@ -69,9 +69,14 @@ namespace EarthBackground
         public int FrameIntervalMs { get; set; } = 500;
 
         /// <summary>
-        /// 动态壁纸帧数 默认20
+        /// 动态壁纸回溯时长 单位小时 默认24
         /// </summary>
-        public int FrameCount { get; set; } = 20;
+        public int RecentHours { get; set; } = 24;
+
+        /// <summary>
+        /// 动态壁纸循环尾停顿 单位ms 默认3000
+        /// </summary>
+        public int LoopPauseMilliseconds { get; set; } = 3000;
     }
 
 

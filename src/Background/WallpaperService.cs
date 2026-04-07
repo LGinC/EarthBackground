@@ -136,7 +136,7 @@ namespace EarthBackground.Background
             var currentOptions = options.CurrentValue;
             {
                 var useDynamic = currentOptions.DynamicWallpaper;
-                var frameCount = currentOptions.FrameCount > 0 ? currentOptions.FrameCount : 20;
+                var recentHours = currentOptions.RecentHours > 0 ? currentOptions.RecentHours : 24;
                 var frameIntervalMs = currentOptions.FrameIntervalMs > 0 ? currentOptions.FrameIntervalMs : 500;
 
                 if (useDynamic)
@@ -144,7 +144,7 @@ namespace EarthBackground.Background
                     // 动态模式：用帧级总进度，不订阅 tile 级下载事件
                     void onFrameComplete(int done, int total) => ProgressChanged?.Invoke(done, total);
 
-                    var imagePaths = await captor.GetImagePaths(frameCount, onFrameComplete, token);
+                    var imagePaths = await captor.GetImagePaths(recentHours, onFrameComplete, token);
 
                     _ossFetchCount++;
                     if (_ossFetchCount > 3)
@@ -220,7 +220,7 @@ namespace EarthBackground.Background
             try
             {
                 var info = new FileInfo(imagePath);
-                var savePath = options.CurrentValue.SavePath;
+                var savePath = AppPaths.ResolveInAppDirectory(options.CurrentValue.SavePath);
                 if (!Directory.Exists(savePath))
                 {
                     Directory.CreateDirectory(savePath);

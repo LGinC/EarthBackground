@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -6,6 +7,7 @@ using Avalonia;
 using Avalonia.ReactiveUI;
 using EarthBackground.Background;
 using EarthBackground.Captors;
+using EarthBackground.Imaging;
 using EarthBackground.Localization;
 using EarthBackground.Oss;
 using Microsoft.Extensions.Configuration;
@@ -86,7 +88,7 @@ namespace EarthBackground
         static void ConfigureServicesInternal(IServiceCollection services, bool isBackgroundService)
         {
             var config = new ConfigurationBuilder()
-                .AddJsonFile(ConfigFile, optional: true, reloadOnChange: true)
+                .AddJsonFile(AppPaths.AppSettingsPath, optional: true, reloadOnChange: true)
                 .Build();
 
             services.AddOptions();
@@ -107,11 +109,14 @@ namespace EarthBackground
 
             services.AddTransient<IBackgroudSetProvider, BackgroudSetProvider>();
             services.AddTransient<IBackgroundSetter, WindowsBackgroudSetter>();
+            services.AddSingleton<ApngAssembler>();
             services.AddSingleton<WindowsDynamicWallpaperSetter>();
 
             AddHttpClients(services, config);
 
-            var nlogConfig = new ConfigurationBuilder().AddJsonFile("nlog.json").Build();
+            var nlogConfig = new ConfigurationBuilder()
+                .AddJsonFile(Path.Combine(AppPaths.BaseDirectory, "nlog.json"))
+                .Build();
             NLog.LogManager.Configuration = new NLogLoggingConfiguration(nlogConfig.GetSection("NLog"));
             services.AddLogging(builder =>
             {

@@ -1,6 +1,5 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -13,7 +12,7 @@ using Microsoft.Extensions.Options;
 namespace EarthBackground.Captors
 {
     /// <summary>
-    /// 风云4A
+    /// 风云4B
     /// </summary>
     public class FY4Captor: BaseCaptor
     {
@@ -25,11 +24,11 @@ namespace EarthBackground.Captors
         public override string ProviderName => NameConsts.Fy4;
 
         /// <summary>
-        /// 获取最近N个图片时间戳列表
+        /// 根据返回时间戳获取最近一天的图片时间戳列表
         /// </summary>
-        private async Task<string[]> GetImageIdsAsync(int count = 20, CancellationToken token = default)
+        private async Task<string[]> GetImageIdsAsync(int recentHours = 24, CancellationToken token = default)
         {
-            // duration=200 约可覆盖200帧，intervalCell=10分钟，取最近count张
+            // duration 取足够大一些，再根据时间戳筛选最近 N 小时
             var content = new FormUrlEncodedContent(new Dictionary<string, string>
             {
                 {"start", ""},
@@ -37,14 +36,32 @@ namespace EarthBackground.Captors
                 {"sat", NameConsts.Fy4},
                 {"obsType", "full_disk"},
                 {"interval", "1"},
-                {"duration", Math.Max(count * 2, 40).ToString()},
+                {"duration", "200"},
                 {"intervalCell", "10"},
                 {"queryProduct", "NatureColor_NoLit"}
             });
             var re = await Client.PostAsync("/swapQuery/public/DataQuery/playList", content, token);
             var ids = await re.Content.ReadFromJsonAsync<string[]>(cancellationToken: token);
             if (ids == null) return Array.Empty<string>();
-            return ids.Take(count).ToArray();
+
+            var ordered = ids
+                .Select(static id => (Raw: id, Time: ParseTimestamp(id)))
+                .OrderByDescending(static t => t.Time)
+                .ToArray();
+
+            if (ordered.Length == 0)
+            {
+                return Array.Empty<string>();
+            }
+
+            var newest = ordered[0].Time;
+            var cutoff = newest.AddHours(-Math.Max(recentHours, 1));
+
+            return ordered
+                .Where(t => t.Time >= cutoff)
+                .OrderBy(t => t.Time)
+                .Select(t => t.Raw)
+                .ToArray();
         }
 
         public override async Task<string> GetImagePath(CancellationToken token = default)
@@ -60,7 +77,7 @@ namespace EarthBackground.Captors
             if (imageIds.Length == 0) return Array.Empty<string>();
 
             var latestId = imageIds[0];
-            if (latestId == CurrentImageId && Directory.GetFiles(Options.SavePath, "frame_*.bmp").Length >= imageIds.Length)
+            if (latestId == CurrentImageId && Directory.GetFiles(Options.SavePath, "frame_*.png").Length >= imageIds.Length)
             {
                 var existing = GetExistingFramePaths(imageIds);
                 onFrameComplete?.Invoke(existing.Count, existing.Count);
@@ -84,6 +101,7 @@ namespace EarthBackground.Captors
             }
 
             await SetImageId(token);
+            CleanupFramesOlderThan(imageIds[0]);
             if (result.Count > 0) ImagePath = result[0];
             return result;
         }
@@ -93,7 +111,7 @@ namespace EarthBackground.Captors
             var result = new List<string>();
             foreach (var imageId in imageIds)
             {
-                var framePath = Path.Combine(Options.SavePath, $"frame_{imageId}.bmp");
+                var framePath = Path.Combine(Options.SavePath, $"frame_{imageId}.png");
                 if (File.Exists(framePath)) result.Add(framePath);
             }
             return result;
@@ -101,7 +119,7 @@ namespace EarthBackground.Captors
 
         private string JoinImageToPath(string frameDir, string imageId)
         {
-            var outputPath = Path.Combine(Options.SavePath, $"frame_{imageId}.bmp");
+            var outputPath = Path.Combine(Options.SavePath, $"frame_{imageId}.png");
             if (File.Exists(outputPath)) return outputPath;
             return JoinImageFromDir(frameDir, outputPath);
         }
@@ -132,6 +150,11 @@ namespace EarthBackground.Captors
         {
             Client.BaseAddress = new Uri("http://rsapp.nsmc.org.cn");
             BaseRate = 687;
+        }
+
+        private static DateTime ParseTimestamp(string value)
+        {
+            return DateTime.ParseExact(value, "yyyyMMddHHmmss", null);
         }
     }
 }

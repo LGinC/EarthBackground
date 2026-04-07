@@ -31,6 +31,6 @@
         /// </summary>
         public static readonly string[] DownloaderNames = [DirectDownload, Qiqiuyun, Cloudinary];
 
-        public const string ImageIdPath = "ImageId.txt";
+        public static string ImageIdPath => AppPaths.ImageIdPath;
     }
 }

@@ -28,6 +28,9 @@ namespace EarthBackground.ViewModels
         private NameValue<Resolution>? _selectedResolution;
         private int _interval;
         private int _zoom;
+        private int _recentHours;
+        private int _loopPauseMilliseconds;
+        private bool _dynamicWallpaper;
         private bool _setWallpaper;
         private bool _saveWallpaper;
         private string _savePath = string.Empty;
@@ -81,6 +84,24 @@ namespace EarthBackground.ViewModels
         {
             get => _zoom;
             set => this.RaiseAndSetIfChanged(ref _zoom, value);
+        }
+
+        public int RecentHours
+        {
+            get => _recentHours;
+            set => this.RaiseAndSetIfChanged(ref _recentHours, value);
+        }
+
+        public int LoopPauseMilliseconds
+        {
+            get => _loopPauseMilliseconds;
+            set => this.RaiseAndSetIfChanged(ref _loopPauseMilliseconds, value);
+        }
+
+        public bool DynamicWallpaper
+        {
+            get => _dynamicWallpaper;
+            set => this.RaiseAndSetIfChanged(ref _dynamicWallpaper, value);
         }
 
         public bool SetWallpaper
@@ -203,6 +224,7 @@ namespace EarthBackground.ViewModels
         public string Label_CaptureSection => _loc["Settings_CaptureSection"];
         public string Label_DownloadSection => _loc["Settings_DownloadSection"];
         public string Label_AutoStart => _loc["Settings_AutoStart"];
+        public string Label_DynamicWallpaper => "动态壁纸";
         public string Label_SetWallpaper => _loc["Settings_SetWallpaper"];
         public string Label_SaveWallpaper => _loc["Settings_SaveWallpaper"];
         public string Label_Satellite => _loc["Settings_Satellite"];
@@ -211,6 +233,8 @@ namespace EarthBackground.ViewModels
         public string Label_IntervalUnit => _loc["Settings_IntervalUnit"];
         public string Label_Zoom => _loc["Settings_Zoom"];
         public string Label_ZoomUnit => _loc["Settings_ZoomUnit"];
+        public string Label_RecentHours => "最近时长(小时)";
+        public string Label_LoopPauseMilliseconds => "循环停顿(ms)";
         public string Label_SavePath => _loc["Settings_SavePath"];
         public string Label_ChoosePath => _loc["Settings_ChoosePath"];
         public string Label_Downloader => _loc["Settings_Downloader"];
@@ -253,11 +277,14 @@ namespace EarthBackground.ViewModels
 
             // Capture settings
             AutoStart = _capture.AutoStart;
+            DynamicWallpaper = _capture.DynamicWallpaper;
             SetWallpaper = _capture.SetWallpaper;
             SaveWallpaper = _capture.SaveWallpaper;
-            SavePath = _capture.WallpaperFolder;
+            SavePath = AppPaths.ResolveInAppDirectory(_capture.SavePath);
             Interval = _capture.Interval;
             Zoom = _capture.Zoom;
+            RecentHours = _capture.RecentHours;
+            LoopPauseMilliseconds = _capture.LoopPauseMilliseconds;
             ChooseSavePathEnabled = _capture.SaveWallpaper;
 
             // Download settings
@@ -340,6 +367,7 @@ namespace EarthBackground.ViewModels
             {
                 SavePath = result[0].Path.LocalPath;
                 _capture.SavePath = SavePath;
+                _capture.WallpaperFolder = SavePath;
             }
         }
 
@@ -348,10 +376,15 @@ namespace EarthBackground.ViewModels
             _capture.Captor = SelectedCaptor?.Value ?? string.Empty;
             _capture.Interval = Interval;
             _capture.Resolution = SelectedResolution?.Value ?? Resolution.r_1376;
+            _capture.DynamicWallpaper = DynamicWallpaper;
             _capture.SaveWallpaper = SaveWallpaper;
             _capture.SetWallpaper = SetWallpaper;
             _capture.Zoom = Zoom;
+            _capture.RecentHours = RecentHours;
+            _capture.LoopPauseMilliseconds = LoopPauseMilliseconds;
             _capture.AutoStart = AutoStart;
+            _capture.SavePath = AppPaths.ResolveInAppDirectory(_capture.SavePath);
+            _capture.WallpaperFolder = _capture.SavePath;
 
             _oss.IsEnable = true;
             _oss.CloudName = SelectedDownloader?.Value ?? NameConsts.DirectDownload;

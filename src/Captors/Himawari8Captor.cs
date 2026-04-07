@@ -22,15 +22,33 @@ namespace EarthBackground.Captors
         }
 
         /// <summary>
-        /// 获取最近N个图片时间戳列表
+        /// 根据返回时间戳获取最近一天的图片时间戳列表
         /// </summary>
-        private async Task<string[]> GetImageIdsAsync(int count = 20, CancellationToken token = default)
+        private async Task<string[]> GetImageIdsAsync(int recentHours = 24, CancellationToken token = default)
         {
             var latest = await Client.GetFromJsonAsync<LastestTimes>(
                 !string.IsNullOrEmpty(Options.ImageIdUrl) ? Options.ImageIdUrl : "json/himawari/full_disk/geocolor/latest_times.json",
                 cancellationToken: token);
             if (latest == null) return Array.Empty<string>();
-            return latest.timestamps_int.Take(count).Select(t => t.ToString()).ToArray();
+
+            var ordered = latest.timestamps_int
+                .Select(static t => (Raw: t, Time: ParseTimestamp(t.ToString())))
+                .OrderByDescending(static t => t.Time)
+                .ToArray();
+
+            if (ordered.Length == 0)
+            {
+                return Array.Empty<string>();
+            }
+
+            var newest = ordered[0].Time;
+            var cutoff = newest.AddHours(-Math.Max(recentHours, 1));
+
+            return ordered
+                .Where(t => t.Time >= cutoff)
+                .OrderBy(t => t.Time)
+                .Select(t => t.Raw.ToString())
+                .ToArray();
         }
 
         /// <summary>
@@ -72,7 +90,7 @@ namespace EarthBackground.Captors
 
             // 最新的id用于判断是否有更新
             var latestId = imageIds[0];
-            if (latestId == CurrentImageId && Directory.GetFiles(Options.SavePath, "frame_*.bmp").Length >= imageIds.Length)
+            if (latestId == CurrentImageId && Directory.GetFiles(Options.SavePath, "frame_*.png").Length >= imageIds.Length)
             {
                 // 无更新，返回已有帧
                 var existing = GetExistingFramePaths(imageIds);
@@ -97,6 +115,7 @@ namespace EarthBackground.Captors
             }
 
             await SetImageId(token);
+            CleanupFramesOlderThan(imageIds[0]);
             if (result.Count > 0) ImagePath = result[0];
             return result;
         }
@@ -106,20 +125,25 @@ namespace EarthBackground.Captors
             var result = new List<string>();
             foreach (var imageId in imageIds)
             {
-                var framePath = Path.Combine(Options.SavePath, $"frame_{imageId}.bmp");
+                var framePath = Path.Combine(Options.SavePath, $"frame_{imageId}.png");
                 if (File.Exists(framePath)) result.Add(framePath);
             }
             return result;
         }
 
         /// <summary>
-        /// 将指定目录的分块图片拼接为单张bmp，返回路径
+        /// 将指定目录的分块图片拼接为单张png，返回路径
         /// </summary>
         private string JoinImageToPath(string frameDir, string imageId)
         {
-            var outputPath = Path.Combine(Options.SavePath, $"frame_{imageId}.bmp");
+            var outputPath = Path.Combine(Options.SavePath, $"frame_{imageId}.png");
             if (File.Exists(outputPath)) return outputPath;
             return JoinImageFromDir(frameDir, outputPath);
+        }
+
+        private static DateTime ParseTimestamp(string value)
+        {
+            return DateTime.ParseExact(value, "yyyyMMddHHmmss", null);
         }
     }
 
