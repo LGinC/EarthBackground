@@ -9,6 +9,7 @@ using EarthBackground.Localization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
+using ReactiveUI.Avalonia;
 
 namespace EarthBackground.ViewModels
 {
@@ -105,12 +106,12 @@ namespace EarthBackground.ViewModels
             _lifetime = lifetime;
             _statusText = _loc["Status_WaitForRun"];
 
-            StartCommand = ReactiveCommand.Create(OnStart, outputScheduler: RxApp.MainThreadScheduler);
-            StopCommand = ReactiveCommand.Create(OnStop, outputScheduler: RxApp.MainThreadScheduler);
-            SettingsCommand = ReactiveCommand.CreateFromTask(OnSettingsAsync, outputScheduler: RxApp.MainThreadScheduler);
+            StartCommand = ReactiveCommand.Create(OnStart, outputScheduler: AvaloniaScheduler.Instance);
+            StopCommand = ReactiveCommand.Create(OnStop, outputScheduler: AvaloniaScheduler.Instance);
+            SettingsCommand = ReactiveCommand.CreateFromTask(OnSettingsAsync, outputScheduler: AvaloniaScheduler.Instance);
 
-            ShowMainWindowCommand = ReactiveCommand.Create(OnShowMainWindow, outputScheduler: RxApp.MainThreadScheduler);
-            ExitCommand = ReactiveCommand.Create(OnExit, outputScheduler: RxApp.MainThreadScheduler);
+            ShowMainWindowCommand = ReactiveCommand.Create(OnShowMainWindow, outputScheduler: AvaloniaScheduler.Instance);
+            ExitCommand = ReactiveCommand.Create(OnExit, outputScheduler: AvaloniaScheduler.Instance);
 
             SubscribeToWallpaperServiceEvents();
 
@@ -261,7 +262,8 @@ namespace EarthBackground.ViewModels
                 _provider.GetRequiredService<Microsoft.Extensions.Options.IOptionsMonitor<Oss.OssOption>>(),
                 _provider.GetRequiredService<IConfigureSaver>(),
                 _wallpaperService,
-                _loc);
+                _loc,
+                _provider.GetRequiredService<IWallpaperMonitorProvider>());
 
             var settingsWindow = new Views.SettingsWindow
             {

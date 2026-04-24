@@ -21,6 +21,7 @@ namespace EarthBackground.Tests
         private readonly Mock<IOssDownloader> _downloaderMock = new();
         private readonly Mock<IBackgroundSetter> _setterMock = new();
         private readonly Mock<ILogger<WindowsDynamicWallpaperSetter>> _dynamicLoggerMock = new();
+        private readonly Mock<IWallpaperMonitorProvider> _monitorProviderMock = new();
         private readonly TestOptionsMonitor<CaptureOption> _optionsMonitor;
         private readonly ServiceProvider _serviceProvider;
         private readonly WindowsDynamicWallpaperSetter _dynamicWallpaperSetter;
@@ -50,7 +51,8 @@ namespace EarthBackground.Tests
             _dynamicWallpaperSetter = new WindowsDynamicWallpaperSetter(
                 _dynamicLoggerMock.Object,
                 _serviceProvider,
-                _optionsMonitor);
+                _optionsMonitor,
+                _monitorProviderMock.Object);
         }
 
         [Fact]
@@ -113,7 +115,7 @@ namespace EarthBackground.Tests
             service.ProgressChanged += (current, total) => progress.Add((current, total));
             service.ImageSaved += path => savedImage = path;
 
-            await InvokeRunCycleInternalAsync(service);
+            await InvokeRunCycleInternalAsync(service, TestContext.Current.CancellationToken);
 
             _setterMock.Verify(x => x.SetBackgroundAsync("wallpaper.png", It.IsAny<CancellationToken>()), Times.Once);
             Assert.Equal("wallpaper.png", savedImage);
@@ -167,7 +169,7 @@ namespace EarthBackground.Tests
             service.StatusChanged += statuses.Add;
             service.ImageSaved += path => savedImage = path;
 
-            await InvokeRunCycleInternalAsync(service);
+            await InvokeRunCycleInternalAsync(service, TestContext.Current.CancellationToken);
 
             _setterMock.Verify(x => x.SetBackgroundAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
             Assert.Equal("frame_20260407170000.png", savedImage);
@@ -187,7 +189,7 @@ namespace EarthBackground.Tests
             var sourceDir = CreateTempDirectory();
             var saveDir = CreateTempDirectory();
             var imagePath = Path.Combine(sourceDir, "wallpaper.png");
-            await File.WriteAllTextAsync(imagePath, "test-image");
+            await File.WriteAllTextAsync(imagePath, "test-image", TestContext.Current.CancellationToken);
 
             _optionsMonitor.CurrentValue = new CaptureOption
             {
@@ -204,11 +206,11 @@ namespace EarthBackground.Tests
 
             var service = CreateService();
 
-            await InvokeRunCycleInternalAsync(service);
+            await InvokeRunCycleInternalAsync(service, TestContext.Current.CancellationToken);
 
             var copiedFile = Path.Combine(saveDir, "wallpaper.png");
             Assert.True(File.Exists(copiedFile));
-            Assert.Equal("test-image", await File.ReadAllTextAsync(copiedFile));
+            Assert.Equal("test-image", await File.ReadAllTextAsync(copiedFile, TestContext.Current.CancellationToken));
         }
 
         [Fact]
@@ -230,10 +232,35 @@ namespace EarthBackground.Tests
 
             for (int i = 0; i < 4; i++)
             {
-                await InvokeRunCycleInternalAsync(service);
+                await InvokeRunCycleInternalAsync(service, TestContext.Current.CancellationToken);
             }
 
             _captorMock.Verify(x => x.ResetAsync(It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task RunCycle_ShouldRaiseErrorOccurred_WhenInternalCycleFails()
+        {
+            var expected = new InvalidOperationException("download failed");
+            _optionsMonitor.CurrentValue = new CaptureOption
+            {
+                Captor = "TestCaptor",
+                DynamicWallpaper = false,
+                SetWallpaper = false,
+                SaveWallpaper = false
+            };
+
+            _captorMock
+                .Setup(x => x.GetImagePath(It.IsAny<CancellationToken>()))
+                .ThrowsAsync(expected);
+
+            var service = CreateService();
+            Exception? actual = null;
+            service.ErrorOccurred += ex => actual = ex;
+
+            await InvokeRunCycleAsync(service, TestContext.Current.CancellationToken);
+
+            Assert.Same(expected, actual);
         }
 
         private WallpaperService CreateService()
@@ -253,7 +280,17 @@ namespace EarthBackground.Tests
 
             var task = method!.Invoke(service, new object[] { token }) as Task;
             Assert.NotNull(task);
-            await task!;
+            await task!.WaitAsync(token);
+        }
+
+        private static async Task InvokeRunCycleAsync(WallpaperService service, CancellationToken token = default)
+        {
+            var method = typeof(WallpaperService).GetMethod("RunCycleAsync", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.NotNull(method);
+
+            var task = method!.Invoke(service, new object[] { token }) as Task;
+            Assert.NotNull(task);
+            await task!.WaitAsync(token);
         }
 
         private string CreateTempDirectory()

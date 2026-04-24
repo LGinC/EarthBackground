@@ -22,19 +22,23 @@ namespace EarthBackground.Background
         private readonly ILogger<WindowsDynamicWallpaperSetter> _logger;
         private readonly IServiceProvider _serviceProvider;
         private readonly IOptionsMonitor<CaptureOption> _captureOptions;
+        private readonly IWallpaperMonitorProvider _monitorProvider;
         private readonly List<WallpaperPlaybackWindow> _playbackWindows = new();
         private string[]? _currentFramePaths;
+        private string[]? _currentMonitorIds;
         private int _currentFrameIntervalMs;
         private IntPtr _workerW = IntPtr.Zero;
 
         public WindowsDynamicWallpaperSetter(
             ILogger<WindowsDynamicWallpaperSetter> logger,
             IServiceProvider serviceProvider,
-            IOptionsMonitor<CaptureOption> captureOptions)
+            IOptionsMonitor<CaptureOption> captureOptions,
+            IWallpaperMonitorProvider monitorProvider)
         {
             _logger = logger;
             _serviceProvider = serviceProvider;
             _captureOptions = captureOptions;
+            _monitorProvider = monitorProvider;
         }
 
         public Task SetBackgroundAsync(string filePath, CancellationToken token = default)
@@ -53,11 +57,13 @@ namespace EarthBackground.Background
 
             token.ThrowIfCancellationRequested();
             var orderedFilePaths = OrderFramePaths(filePaths);
+            var monitors = GetTargetMonitors(_monitorProvider.GetMonitors(), _captureOptions.CurrentValue.DynamicWallpaperMonitorIds);
+            var targetMonitorIds = OrderMonitorIds(monitors.Select(monitor => monitor.Id));
 
-            if (IsSamePlaybackRequest(orderedFilePaths, frameIntervalMs))
+            if (IsSamePlaybackRequest(orderedFilePaths, frameIntervalMs, targetMonitorIds))
             {
                 onProgress?.Invoke(2, 2);
-                _logger.LogInformation("动态壁纸帧集合未变化，跳过重建，共 {Count} 帧", orderedFilePaths.Count);
+                _logger.LogInformation("动态壁纸帧集合和目标显示器未变化，跳过重建，共 {Count} 帧", orderedFilePaths.Count);
                 return;
             }
 
@@ -77,8 +83,6 @@ namespace EarthBackground.Background
                 progman.ToInt64(),
                 GetWindowClassName(_workerW),
                 GetWindowClassName(progman));
-
-            var monitors = GetMonitors();
 
             onProgress?.Invoke(1, 2);
             var openStopwatch = Stopwatch.StartNew();
@@ -112,6 +116,7 @@ namespace EarthBackground.Background
                 });
 
                 _currentFramePaths = orderedFilePaths.ToArray();
+                _currentMonitorIds = targetMonitorIds.ToArray();
                 _currentFrameIntervalMs = frameIntervalMs;
             }
             catch
@@ -143,19 +148,25 @@ namespace EarthBackground.Background
             });
 
             _currentFramePaths = null;
+            _currentMonitorIds = null;
             _currentFrameIntervalMs = 0;
             _workerW = IntPtr.Zero;
             _logger.LogInformation("动态壁纸已停止");
         }
 
-        private bool IsSamePlaybackRequest(IReadOnlyList<string> orderedFilePaths, int frameIntervalMs)
+        private bool IsSamePlaybackRequest(
+            IReadOnlyList<string> orderedFilePaths,
+            int frameIntervalMs,
+            IReadOnlyList<string> orderedMonitorIds)
         {
-            if (_playbackWindows.Count == 0 || _currentFramePaths == null)
+            if (_playbackWindows.Count == 0 || _currentFramePaths == null || _currentMonitorIds == null)
             {
                 return false;
             }
 
-            if (_currentFrameIntervalMs != frameIntervalMs || _currentFramePaths.Length != orderedFilePaths.Count)
+            if (_currentFrameIntervalMs != frameIntervalMs ||
+                _currentFramePaths.Length != orderedFilePaths.Count ||
+                _currentMonitorIds.Length != orderedMonitorIds.Count)
             {
                 return false;
             }
@@ -163,6 +174,14 @@ namespace EarthBackground.Background
             for (int i = 0; i < orderedFilePaths.Count; i++)
             {
                 if (!string.Equals(_currentFramePaths[i], orderedFilePaths[i], StringComparison.OrdinalIgnoreCase))
+                {
+                    return false;
+                }
+            }
+
+            for (int i = 0; i < orderedMonitorIds.Count; i++)
+            {
+                if (!string.Equals(_currentMonitorIds[i], orderedMonitorIds[i], StringComparison.OrdinalIgnoreCase))
                 {
                     return false;
                 }
@@ -264,54 +283,60 @@ namespace EarthBackground.Background
         private static extern int GetSystemMetrics(int nIndex);
 
         private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
-        private delegate bool MonitorEnumProc(IntPtr hMonitor, IntPtr hdcMonitor, ref RECT lprcMonitor, IntPtr dwData);
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct RECT
-        {
-            public int Left;
-            public int Top;
-            public int Right;
-            public int Bottom;
-            public int Width => Right - Left;
-            public int Height => Bottom - Top;
-        }
-
         private const uint SMTO_NORMAL = 0x0000;
 
-        private IReadOnlyList<MonitorBounds> GetMonitors()
+        public static IReadOnlyList<WallpaperMonitor> SelectTargetMonitors(
+            IReadOnlyList<WallpaperMonitor> monitors,
+            IReadOnlyList<string>? selectedMonitorIds)
         {
-            var monitors = new List<MonitorBounds>();
-
-            bool OnMonitor(IntPtr hMonitor, IntPtr hdcMonitor, ref RECT rect, IntPtr dwData)
+            if (selectedMonitorIds == null || selectedMonitorIds.Count == 0)
             {
-                monitors.Add(new MonitorBounds(rect.Left, rect.Top, rect.Width, rect.Height));
-                return true;
+                return monitors;
             }
 
-            EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero, OnMonitor, IntPtr.Zero);
-
-            if (monitors.Count == 0)
+            var selectedIds = new HashSet<string>(selectedMonitorIds.Where(id => !string.IsNullOrWhiteSpace(id)), StringComparer.OrdinalIgnoreCase);
+            if (selectedIds.Count == 0)
             {
-                monitors.Add(new MonitorBounds(0, 0, 1920, 1080));
+                return monitors;
             }
 
-            _logger.LogInformation("检测到显示器: {Monitors}", string.Join("; ", monitors));
-            return monitors;
+            var selectedMonitors = monitors
+                .Where(monitor => selectedIds.Contains(monitor.Id))
+                .ToArray();
+
+            return selectedMonitors.Length > 0 ? selectedMonitors : monitors;
         }
 
-        [DllImport("user32.dll")]
-        private static extern bool EnumDisplayMonitors(IntPtr hdc, IntPtr lprcClip, MonitorEnumProc lpfnEnum, IntPtr dwData);
-
-        private readonly record struct MonitorBounds(int X, int Y, int Width, int Height)
+        private IReadOnlyList<WallpaperMonitor> GetTargetMonitors(
+            IReadOnlyList<WallpaperMonitor> monitors,
+            IReadOnlyList<string>? selectedMonitorIds)
         {
-            public override string ToString() => $"{X},{Y},{Width},{Height}";
+            var targetMonitors = SelectTargetMonitors(monitors, selectedMonitorIds);
+            if (selectedMonitorIds != null && selectedMonitorIds.Count > 0 && targetMonitors.Count == monitors.Count)
+            {
+                var selectedIds = new HashSet<string>(selectedMonitorIds.Where(id => !string.IsNullOrWhiteSpace(id)), StringComparer.OrdinalIgnoreCase);
+                if (selectedIds.Count > 0 && !monitors.Any(monitor => selectedIds.Contains(monitor.Id)))
+                {
+                    _logger.LogWarning("配置的动态壁纸显示器当前均不可用，回退到全部显示器: {MonitorIds}", string.Join("; ", selectedIds));
+                }
+            }
+
+            _logger.LogInformation("动态壁纸目标显示器: {Monitors}", string.Join("; ", targetMonitors));
+            return targetMonitors;
         }
 
         private static IReadOnlyList<string> OrderFramePaths(IReadOnlyList<string> filePaths)
         {
             return filePaths
                 .OrderBy(static path => Path.GetFileNameWithoutExtension(path), StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+        }
+
+        private static IReadOnlyList<string> OrderMonitorIds(IEnumerable<string> monitorIds)
+        {
+            return monitorIds
+                .Where(static id => !string.IsNullOrWhiteSpace(id))
+                .OrderBy(static id => id, StringComparer.OrdinalIgnoreCase)
                 .ToArray();
         }
     }

@@ -11,6 +11,7 @@ using EarthBackground.Localization;
 using EarthBackground.Oss;
 using Microsoft.Extensions.Options;
 using ReactiveUI;
+using ReactiveUI.Avalonia;
 
 namespace EarthBackground.ViewModels
 {
@@ -21,6 +22,7 @@ namespace EarthBackground.ViewModels
         private readonly IConfigureSaver _configureSaver;
         private readonly WallpaperService _wallpaperService;
         private readonly ILocalizationService _loc;
+        private readonly IWallpaperMonitorProvider _monitorProvider;
 
         // Capture settings
         private bool _autoStart;
@@ -33,6 +35,8 @@ namespace EarthBackground.ViewModels
         private bool _dynamicWallpaper;
         private bool _setWallpaper;
         private bool _saveWallpaper;
+        private bool _allDynamicWallpaperMonitors = true;
+        private bool _dynamicWallpaperMonitorListVisible;
         private string _savePath = string.Empty;
 
         // Download settings
@@ -55,6 +59,7 @@ namespace EarthBackground.ViewModels
         public ObservableCollection<NameValue<Resolution>> Resolutions { get; } = new();
         public ObservableCollection<NameValue<string>> Downloaders { get; } = new();
         public ObservableCollection<NameValue<string>> Zones { get; } = new();
+        public ObservableCollection<MonitorSelectionItem> DynamicWallpaperMonitors { get; } = new();
 
         public bool AutoStart
         {
@@ -101,7 +106,11 @@ namespace EarthBackground.ViewModels
         public bool DynamicWallpaper
         {
             get => _dynamicWallpaper;
-            set => this.RaiseAndSetIfChanged(ref _dynamicWallpaper, value);
+            set
+            {
+                this.RaiseAndSetIfChanged(ref _dynamicWallpaper, value);
+                RefreshDynamicWallpaperMonitorVisibility();
+            }
         }
 
         public bool SetWallpaper
@@ -118,6 +127,32 @@ namespace EarthBackground.ViewModels
                 this.RaiseAndSetIfChanged(ref _saveWallpaper, value);
                 ChooseSavePathEnabled = value;
             }
+        }
+
+        public bool AllDynamicWallpaperMonitors
+        {
+            get => _allDynamicWallpaperMonitors;
+            set
+            {
+                var wasAll = _allDynamicWallpaperMonitors;
+                this.RaiseAndSetIfChanged(ref _allDynamicWallpaperMonitors, value);
+                if (wasAll && !value && !DynamicWallpaperMonitors.Any(monitor => monitor.IsSelected))
+                {
+                    var firstMonitor = DynamicWallpaperMonitors.FirstOrDefault();
+                    if (firstMonitor != null)
+                    {
+                        firstMonitor.IsSelected = true;
+                    }
+                }
+
+                RefreshDynamicWallpaperMonitorVisibility();
+            }
+        }
+
+        public bool DynamicWallpaperMonitorListVisible
+        {
+            get => _dynamicWallpaperMonitorListVisible;
+            set => this.RaiseAndSetIfChanged(ref _dynamicWallpaperMonitorListVisible, value);
         }
 
         public string SavePath
@@ -237,6 +272,8 @@ namespace EarthBackground.ViewModels
         public string Label_ZoomUnit => _loc["Settings_ZoomUnit"];
         public string Label_RecentHours => _loc["Settings_RecentHours"];
         public string Label_LoopPauseMilliseconds => _loc["Settings_LoopPauseMilliseconds"];
+        public string Label_DynamicWallpaperMonitors => _loc["Settings_DynamicWallpaperMonitors"];
+        public string Label_AllDynamicWallpaperMonitors => _loc["Settings_AllDynamicWallpaperMonitors"];
         public string Label_SavePath => _loc["Settings_SavePath"];
         public string Label_ChoosePath => _loc["Settings_ChoosePath"];
         public string Label_Downloader => _loc["Settings_Downloader"];
@@ -253,11 +290,13 @@ namespace EarthBackground.ViewModels
             IOptionsMonitor<OssOption> ossOption,
             IConfigureSaver saver,
             WallpaperService wallpaperService,
-            ILocalizationService loc)
+            ILocalizationService loc,
+            IWallpaperMonitorProvider monitorProvider)
         {
             _configureSaver = saver;
             _wallpaperService = wallpaperService;
             _loc = loc;
+            _monitorProvider = monitorProvider;
             _capture = captureOption.CurrentValue;
             _oss = ossOption.CurrentValue;
 
@@ -288,6 +327,8 @@ namespace EarthBackground.ViewModels
             RecentHours = _capture.RecentHours;
             LoopPauseMilliseconds = _capture.LoopPauseMilliseconds;
             ChooseSavePathEnabled = _capture.SaveWallpaper;
+            InitializeDynamicWallpaperMonitors();
+            RefreshDynamicWallpaperMonitorVisibility();
 
             // Download settings
             if (!string.IsNullOrEmpty(_oss.CloudName) && _oss.IsEnable)
@@ -309,8 +350,8 @@ namespace EarthBackground.ViewModels
                 if (zone != null) SelectedZone = zone;
             }
 
-            ChooseSavePathCommand = ReactiveCommand.CreateFromTask(OnChooseSavePath, outputScheduler: RxApp.MainThreadScheduler);
-            SaveCommand = ReactiveCommand.CreateFromTask(OnSave, outputScheduler: RxApp.MainThreadScheduler);
+            ChooseSavePathCommand = ReactiveCommand.CreateFromTask(OnChooseSavePath, outputScheduler: AvaloniaScheduler.Instance);
+            SaveCommand = ReactiveCommand.CreateFromTask(OnSave, outputScheduler: AvaloniaScheduler.Instance);
         }
 
         private void OnDownloaderChanged(string? cloud)
@@ -355,6 +396,26 @@ namespace EarthBackground.ViewModels
             }
         }
 
+        private void InitializeDynamicWallpaperMonitors()
+        {
+            DynamicWallpaperMonitors.Clear();
+            var selectedIds = new System.Collections.Generic.HashSet<string>(
+                _capture.DynamicWallpaperMonitorIds ?? Array.Empty<string>(),
+                StringComparer.OrdinalIgnoreCase);
+
+            AllDynamicWallpaperMonitors = selectedIds.Count == 0;
+
+            foreach (var monitor in _monitorProvider.GetMonitors())
+            {
+                DynamicWallpaperMonitors.Add(new MonitorSelectionItem(monitor, selectedIds.Contains(monitor.Id)));
+            }
+        }
+
+        private void RefreshDynamicWallpaperMonitorVisibility()
+        {
+            DynamicWallpaperMonitorListVisible = DynamicWallpaper && !AllDynamicWallpaperMonitors;
+        }
+
         private async Task OnChooseSavePath()
         {
             if (OwnerWindow == null) return;
@@ -384,6 +445,9 @@ namespace EarthBackground.ViewModels
             _capture.Zoom = Zoom;
             _capture.RecentHours = RecentHours;
             _capture.LoopPauseMilliseconds = LoopPauseMilliseconds;
+            _capture.DynamicWallpaperMonitorIds = AllDynamicWallpaperMonitors
+                ? Array.Empty<string>()
+                : DynamicWallpaperMonitors.Where(monitor => monitor.IsSelected).Select(monitor => monitor.Id).ToArray();
             _capture.AutoStart = AutoStart;
             _capture.SavePath = AppPaths.ResolveInAppDirectory(_capture.SavePath);
             _capture.WallpaperFolder = _capture.SavePath;

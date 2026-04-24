@@ -71,6 +71,8 @@
   <data name="Settings_ZoomUnit" xml:space="preserve"><value>%</value></data>
   <data name="Settings_RecentHours" xml:space="preserve"><value>Recent hours</value></data>
   <data name="Settings_LoopPauseMilliseconds" xml:space="preserve"><value>Loop pause (ms)</value></data>
+  <data name="Settings_DynamicWallpaperMonitors" xml:space="preserve"><value>Apply to displays</value></data>
+  <data name="Settings_AllDynamicWallpaperMonitors" xml:space="preserve"><value>All displays</value></data>
   <data name="Settings_SavePath" xml:space="preserve"><value>Save path</value></data>
   <data name="Settings_ChoosePath" xml:space="preserve"><value>📁 Browse</value></data>
   <data name="Settings_Downloader" xml:space="preserve"><value>Downloader</value></data>

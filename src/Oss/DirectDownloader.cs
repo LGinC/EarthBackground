@@ -59,14 +59,7 @@ namespace EarthBackground.Oss
 
         private async Task DownLoadImageAsync(string url,string path, CancellationToken token = default)
         {
-            await using var stream = await  _client.GetStreamAsync(url, token);
-            if (File.Exists(path))
-            {
-                File.Delete(path);
-            }
-
-            await using var fileStream = new FileStream(path, FileMode.CreateNew);
-            await stream.CopyToAsync(fileStream, token);
+            await HttpFileDownloader.DownloadAsync(_client, url, path, token);
             SetCurrentProgress?.Invoke();
         }
 

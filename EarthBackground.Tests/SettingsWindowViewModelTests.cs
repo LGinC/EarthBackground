@@ -22,6 +22,7 @@ namespace EarthBackground.Tests
         private readonly TestOptionsMonitor<CaptureOption> _captureOptionsMonitor;
         private readonly TestOptionsMonitor<OssOption> _ossOptionsMonitor;
         private readonly Mock<IConfigureSaver> _configureSaverMock = new();
+        private readonly Mock<IWallpaperMonitorProvider> _monitorProviderMock = new();
         private readonly WallpaperService _wallpaperService;
         private readonly ServiceProvider _serviceProvider;
         private readonly string _imageIdPath;
@@ -42,7 +43,8 @@ namespace EarthBackground.Tests
                 DynamicWallpaper = true,
                 FrameIntervalMs = 500,
                 RecentHours = 24,
-                LoopPauseMilliseconds = 3000
+                LoopPauseMilliseconds = 3000,
+                DynamicWallpaperMonitorIds = Array.Empty<string>()
             };
 
             _ossOption = new OssOption
@@ -66,11 +68,19 @@ namespace EarthBackground.Tests
 
             var services = new ServiceCollection();
             _serviceProvider = services.BuildServiceProvider();
+            _monitorProviderMock
+                .Setup(x => x.GetMonitors())
+                .Returns(new[]
+                {
+                    new WallpaperMonitor(@"\\?\DISPLAY#MONITOR1", "DISPLAY1 (1920x1080)", 0, 0, 1920, 1080),
+                    new WallpaperMonitor(@"\\?\DISPLAY#MONITOR2", "DISPLAY2 (2560x1440)", 1920, 0, 2560, 1440)
+                });
 
             var dynamicWallpaperSetter = new WindowsDynamicWallpaperSetter(
                 dynamicLogger.Object,
                 _serviceProvider,
-                _captureOptionsMonitor);
+                _captureOptionsMonitor,
+                _monitorProviderMock.Object);
 
             backgroundProvider
                 .Setup(x => x.GetSetter())
@@ -102,9 +112,53 @@ namespace EarthBackground.Tests
             Assert.True(viewModel.DynamicWallpaper);
             Assert.True(viewModel.SaveWallpaper);
             Assert.True(viewModel.ChooseSavePathEnabled);
+            Assert.True(viewModel.AllDynamicWallpaperMonitors);
+            Assert.False(viewModel.DynamicWallpaperMonitorListVisible);
+            Assert.Equal(2, viewModel.DynamicWallpaperMonitors.Count);
             Assert.False(string.IsNullOrWhiteSpace(viewModel.WindowTitle));
             Assert.False(string.IsNullOrWhiteSpace(viewModel.Label_DynamicWallpaper));
             Assert.Equal(ResolveInAppDirectory(_captureOption.SavePath), viewModel.SavePath);
+        }
+
+        [Fact]
+        public async Task Save_ShouldPersistSelectedDynamicWallpaperMonitors()
+        {
+            var viewModel = CreateViewModel();
+            CaptureOption? savedCapture = null;
+            _configureSaverMock
+                .Setup(x => x.SaveAsync(It.IsAny<CaptureOption>(), It.IsAny<OssOption>()))
+                .Callback<CaptureOption, OssOption>((capture, _) => savedCapture = capture)
+                .Returns(Task.CompletedTask);
+
+            viewModel.AllDynamicWallpaperMonitors = false;
+            viewModel.DynamicWallpaperMonitors[0].IsSelected = true;
+            viewModel.DynamicWallpaperMonitors[1].IsSelected = true;
+
+            await InvokeOnSaveAsync(viewModel);
+
+            Assert.NotNull(savedCapture);
+            Assert.Equal(
+                new[] { @"\\?\DISPLAY#MONITOR1", @"\\?\DISPLAY#MONITOR2" },
+                savedCapture!.DynamicWallpaperMonitorIds);
+        }
+
+        [Fact]
+        public async Task Save_ShouldPersistEmptyMonitorIds_WhenAllDynamicWallpaperMonitorsSelected()
+        {
+            var viewModel = CreateViewModel();
+            CaptureOption? savedCapture = null;
+            _configureSaverMock
+                .Setup(x => x.SaveAsync(It.IsAny<CaptureOption>(), It.IsAny<OssOption>()))
+                .Callback<CaptureOption, OssOption>((capture, _) => savedCapture = capture)
+                .Returns(Task.CompletedTask);
+
+            viewModel.AllDynamicWallpaperMonitors = true;
+            viewModel.DynamicWallpaperMonitors[0].IsSelected = true;
+
+            await InvokeOnSaveAsync(viewModel);
+
+            Assert.NotNull(savedCapture);
+            Assert.Empty(savedCapture!.DynamicWallpaperMonitorIds);
         }
 
         [Fact]
@@ -117,6 +171,21 @@ namespace EarthBackground.Tests
 
             viewModel.SaveWallpaper = true;
             Assert.True(viewModel.ChooseSavePathEnabled);
+        }
+
+        [Fact]
+        public void AllDynamicWallpaperMonitors_Setter_ShouldSelectFirstMonitor_WhenSwitchingToCustomSelection()
+        {
+            var viewModel = CreateViewModel();
+
+            Assert.True(viewModel.AllDynamicWallpaperMonitors);
+            Assert.All(viewModel.DynamicWallpaperMonitors, monitor => Assert.False(monitor.IsSelected));
+
+            viewModel.AllDynamicWallpaperMonitors = false;
+
+            Assert.False(viewModel.AllDynamicWallpaperMonitors);
+            Assert.True(viewModel.DynamicWallpaperMonitorListVisible);
+            Assert.True(viewModel.DynamicWallpaperMonitors[0].IsSelected);
         }
 
         [Fact]
@@ -199,6 +268,7 @@ namespace EarthBackground.Tests
             Assert.False(savedCapture.SetWallpaper);
             Assert.True(savedCapture.SaveWallpaper);
             Assert.Equal(ResolveInAppDirectory(_captureOption.SavePath), savedCapture.SavePath);
+            Assert.Empty(savedCapture.DynamicWallpaperMonitorIds);
 
             Assert.True(savedOss!.IsEnable);
             Assert.Equal(NameConsts.Cloudinary, savedOss.CloudName);
@@ -218,7 +288,8 @@ namespace EarthBackground.Tests
                 _ossOptionsMonitor,
                 _configureSaverMock.Object,
                 _wallpaperService,
-                new ResourceLocalizationService());
+                new ResourceLocalizationService(),
+                _monitorProviderMock.Object);
         }
 
         private static async Task InvokeOnSaveAsync(SettingsWindowViewModel viewModel)

@@ -67,7 +67,7 @@ namespace EarthBackground.Views
             _windowW = maxRight - minX;
             _windowH = maxBottom - minY;
 
-            SystemDecorations = SystemDecorations.None;
+            WindowDecorations = WindowDecorations.None;
             ShowInTaskbar = false;
             CanResize = false;
             ShowActivated = false;
@@ -129,7 +129,7 @@ namespace EarthBackground.Views
                 return;
             }
 
-            EmbedIntoWallpaper(hwnd, _workerW, _windowW, _windowH);
+            EmbedIntoWallpaper(hwnd, _workerW, _windowX, _windowY, _windowW, _windowH);
 
             if (_framePlayer.FrameCount > 0)
             {
@@ -190,17 +190,27 @@ namespace EarthBackground.Views
             _started = false;
         }
 
-        private void EmbedIntoWallpaper(IntPtr hwnd, IntPtr workerW, int screenW, int screenH)
+        private void EmbedIntoWallpaper(IntPtr hwnd, IntPtr workerW, int screenX, int screenY, int screenW, int screenH)
         {
+            var parentPoint = ConvertVirtualScreenToWallpaperParentPoint(screenX, screenY);
             var style = GetWindowLongPtr(hwnd, GWL_STYLE).ToInt64();
             style |= WS_CHILD;
             style &= ~WS_POPUP;
             SetWindowLongPtr(hwnd, GWL_STYLE, new IntPtr(style));
             SetParent(hwnd, workerW);
-            SetWindowPos(hwnd, HWND_BOTTOM, 0, 0, screenW, screenH, SWP_NOACTIVATE | SWP_SHOWWINDOW);
+            SetWindowPos(hwnd, HWND_BOTTOM, parentPoint.X, parentPoint.Y, screenW, screenH, SWP_NOACTIVATE | SWP_SHOWWINDOW);
+        }
+
+        internal static PixelPoint ConvertVirtualScreenToWallpaperParentPoint(int screenX, int screenY)
+        {
+            var virtualScreenX = GetSystemMetrics(SM_XVIRTUALSCREEN);
+            var virtualScreenY = GetSystemMetrics(SM_YVIRTUALSCREEN);
+            return new PixelPoint(screenX - virtualScreenX, screenY - virtualScreenY);
         }
 
         private const int GWL_STYLE = -16;
+        private const int SM_XVIRTUALSCREEN = 76;
+        private const int SM_YVIRTUALSCREEN = 77;
         private const long WS_CHILD = 0x40000000L;
         private const long WS_POPUP = 0x80000000L;
         private const uint SWP_NOACTIVATE = 0x0010;
@@ -224,6 +234,9 @@ namespace EarthBackground.Views
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, uint flags);
+
+        [DllImport("user32.dll")]
+        private static extern int GetSystemMetrics(int nIndex);
 
         private static IntPtr GetWindowLongPtr(IntPtr hWnd, int nIndex)
             => IntPtr.Size == 8 ? GetWindowLongPtr64(hWnd, nIndex) : GetWindowLongPtr32(hWnd, nIndex);

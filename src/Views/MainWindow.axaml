@@ -2,23 +2,59 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:EarthBackground.ViewModels"
         xmlns:controls="using:EarthBackground.Controls"
+        xmlns:converters="using:EarthBackground.Converters"
         x:Class="EarthBackground.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
+        x:CompileBindings="False"
         Title="{Binding WindowTitle}"
         Width="480" Height="300"
         CanResize="False"
         WindowStartupLocation="CenterScreen"
         Icon="/Assets/earth.ico">
 
+    <Window.Resources>
+        <converters:ButtonLabelConverter x:Key="ButtonLabelConverter" />
+        <converters:MultiplyConverter x:Key="ButtonTextWidthConverter" Factor="0.7" />
+    </Window.Resources>
+
+    <Window.Styles>
+        <Style Selector="Button.mainActionButton">
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="FontFamily" Value="Segoe UI" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="MinWidth" Value="0" />
+            <Setter Property="Height" Value="38" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.mainActionButton:disabled">
+            <Setter Property="Opacity" Value="0.7" />
+        </Style>
+        <Style Selector="Button.mainActionButton TextBlock">
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextAlignment" Value="Center" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+        </Style>
+    </Window.Styles>
+
     <Grid RowDefinitions="80,*">
 
         <!-- Header Panel -->
         <Panel Grid.Row="0" Background="#2980B9">
-            <controls:EarthCanvas
-                Width="80" Height="80"
+            <controls:AnimatedGifImage
+                AssetPath="avares://EarthBackground/Assets/Rotating_earth_animated_transparent.gif"
+                DecodeWidth="58"
+                Width="58" Height="58"
+                Margin="11,11,0,0"
+                Stretch="Uniform"
                 HorizontalAlignment="Left"
-                VerticalAlignment="Top"
-                RotationAngle="{Binding EarthRotationAngle}" />
+                VerticalAlignment="Top" />
             <TextBlock
                 Text="{Binding HeaderTitle}"
                 FontFamily="Segoe UI"
@@ -71,58 +107,43 @@
                     <Grid ColumnDefinitions="*,10,*,10,*,10,*">
                         <Button
                             Grid.Column="0"
-                            Content="{Binding BtnStart}"
+                            Classes="mainActionButton"
                             Command="{Binding StartCommand}"
                             IsEnabled="{Binding CanStart}"
                             Background="#2ECC71"
-                            Foreground="White"
-                            FontFamily="Segoe UI"
-                            FontSize="10"
-                            FontWeight="Bold"
-                            HorizontalAlignment="Stretch"
-                            MinWidth="0"
-                            Height="40"
-                            Cursor="Hand" />
+                            Foreground="#FFFFFF">
+                            <TextBlock
+                                Text="{Binding BtnStart, Converter={StaticResource ButtonLabelConverter}}"
+                                Width="{Binding Bounds.Width, RelativeSource={RelativeSource AncestorType=Button}, Converter={StaticResource ButtonTextWidthConverter}}" />
+                        </Button>
                         <Button
                             Grid.Column="2"
-                            Content="{Binding BtnStop}"
+                            Classes="mainActionButton"
                             Command="{Binding StopCommand}"
                             IsEnabled="{Binding CanStop}"
-                            Background="#E74C3C"
-                            Foreground="White"
-                            FontFamily="Segoe UI"
-                            FontSize="10"
-                            FontWeight="Bold"
-                            HorizontalAlignment="Stretch"
-                            MinWidth="0"
-                            Height="40"
-                            Cursor="Hand" />
+                            Background="#E74C3C">
+                            <TextBlock
+                                Text="{Binding BtnStop, Converter={StaticResource ButtonLabelConverter}}"
+                                Width="{Binding Bounds.Width, RelativeSource={RelativeSource AncestorType=Button}, Converter={StaticResource ButtonTextWidthConverter}}" />
+                        </Button>
                         <Button
                             Grid.Column="4"
-                            Content="{Binding BtnSettings}"
+                            Classes="mainActionButton"
                             Command="{Binding SettingsCommand}"
-                            Background="#3498DB"
-                            Foreground="White"
-                            FontFamily="Segoe UI"
-                            FontSize="10"
-                            FontWeight="Bold"
-                            HorizontalAlignment="Stretch"
-                            MinWidth="0"
-                            Height="40"
-                            Cursor="Hand" />
+                            Background="#3498DB">
+                            <TextBlock
+                                Text="{Binding BtnSettings, Converter={StaticResource ButtonLabelConverter}}"
+                                Width="{Binding Bounds.Width, RelativeSource={RelativeSource AncestorType=Button}, Converter={StaticResource ButtonTextWidthConverter}}" />
+                        </Button>
                         <Button
                             Grid.Column="6"
-                            Content="{Binding BtnExit}"
+                            Classes="mainActionButton"
                             Command="{Binding ExitCommand}"
-                            Background="#95A5A6"
-                            Foreground="White"
-                            FontFamily="Segoe UI"
-                            FontSize="10"
-                            FontWeight="Bold"
-                            HorizontalAlignment="Stretch"
-                            MinWidth="0"
-                            Height="40"
-                            Cursor="Hand" />
+                            Background="#95A5A6">
+                            <TextBlock
+                                Text="{Binding BtnExit, Converter={StaticResource ButtonLabelConverter}}"
+                                Width="{Binding Bounds.Width, RelativeSource={RelativeSource AncestorType=Button}, Converter={StaticResource ButtonTextWidthConverter}}" />
+                        </Button>
                     </Grid>
                 </Border>
 

@@ -39,14 +39,17 @@ namespace EarthBackground.Tests
             var backgroundProvider = new Mock<IBackgroudSetProvider>();
             var logger = new Mock<ILogger<WallpaperService>>();
             var dynamicLogger = new Mock<ILogger<WindowsDynamicWallpaperSetter>>();
+            var monitorProvider = new Mock<IWallpaperMonitorProvider>();
 
             var services = new ServiceCollection();
+            services.AddSingleton(monitorProvider.Object);
             _serviceProvider = services.BuildServiceProvider();
 
             var dynamicWallpaperSetter = new WindowsDynamicWallpaperSetter(
                 dynamicLogger.Object,
                 _serviceProvider,
-                _optionsMonitor);
+                _optionsMonitor,
+                monitorProvider.Object);
 
             backgroundProvider
                 .Setup(x => x.GetSetter())

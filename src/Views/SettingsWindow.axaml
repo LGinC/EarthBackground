@@ -3,6 +3,7 @@
         xmlns:vm="using:EarthBackground.ViewModels"
         x:Class="EarthBackground.Views.SettingsWindow"
         x:DataType="vm:SettingsWindowViewModel"
+        x:CompileBindings="False"
         Title="{Binding WindowTitle}"
         Width="760" Height="680"
         MinWidth="760" MinHeight="620"
@@ -36,7 +37,8 @@
                     Padding="15">
                 <ScrollViewer VerticalScrollBarVisibility="Auto"
                               HorizontalScrollBarVisibility="Disabled">
-                <StackPanel Spacing="10">
+                <StackPanel Spacing="10"
+                            Margin="0,0,16,0">
                     <TextBlock Text="{Binding Label_CaptureSection}" FontWeight="Bold" FontSize="13" Foreground="#2C3E50" />
 
                     <CheckBox Content="{Binding Label_AutoStart}" IsChecked="{Binding AutoStart}" Foreground="#2C3E50" />
@@ -44,7 +46,7 @@
                     <CheckBox Content="{Binding Label_SetWallpaper}" IsChecked="{Binding SetWallpaper}" Foreground="#2C3E50" />
                     <CheckBox Content="{Binding Label_SaveWallpaper}" IsChecked="{Binding SaveWallpaper}" Foreground="#2C3E50" />
 
-                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
+                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
                         <!-- Satellite -->
                         <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding Label_Satellite}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4" />
                         <ComboBox Grid.Row="0" Grid.Column="1"
@@ -95,6 +97,30 @@
                                        Increment="500"
                                        HorizontalAlignment="Stretch" Margin="0,0,0,4"
                                        IsVisible="{Binding DynamicWallpaper}" />
+
+                        <!-- Dynamic wallpaper monitors -->
+                        <TextBlock Grid.Row="6" Grid.Column="0" Text="{Binding Label_DynamicWallpaperMonitors}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4"
+                                   IsVisible="{Binding DynamicWallpaper}" />
+                        <CheckBox Grid.Row="6" Grid.Column="1"
+                                  Content="{Binding Label_AllDynamicWallpaperMonitors}"
+                                  IsChecked="{Binding AllDynamicWallpaperMonitors}"
+                                  Foreground="#2C3E50"
+                                  Margin="0,0,0,4"
+                                  IsVisible="{Binding DynamicWallpaper}" />
+
+                        <ItemsControl Grid.Row="7" Grid.Column="1"
+                                      ItemsSource="{Binding DynamicWallpaperMonitors}"
+                                      IsVisible="{Binding DynamicWallpaperMonitorListVisible}"
+                                      Margin="0,0,0,4">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <CheckBox Content="{Binding Name}"
+                                              IsChecked="{Binding IsSelected}"
+                                              Foreground="#2C3E50"
+                                              Margin="0,0,0,3" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </Grid>
 
                     <!-- Save Path -->
@@ -127,7 +153,8 @@
                     Padding="15">
                 <ScrollViewer VerticalScrollBarVisibility="Auto"
                               HorizontalScrollBarVisibility="Disabled">
-                <StackPanel Spacing="10">
+                <StackPanel Spacing="10"
+                            Margin="0,0,16,0">
                     <TextBlock Text="{Binding Label_DownloadSection}" FontWeight="Bold" FontSize="13" Foreground="#2C3E50" />
 
                     <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto">

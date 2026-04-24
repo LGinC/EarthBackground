@@ -77,6 +77,11 @@ namespace EarthBackground
         /// 动态壁纸循环尾停顿 单位ms 默认3000
         /// </summary>
         public int LoopPauseMilliseconds { get; set; } = 3000;
+
+        /// <summary>
+        /// 动态壁纸应用的显示器设备路径；空列表表示全部显示器
+        /// </summary>
+        public string[] DynamicWallpaperMonitorIds { get; set; } = Array.Empty<string>();
     }
 
 

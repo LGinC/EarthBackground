@@ -1,5 +1,5 @@
 # EarthBackground
-![.NET Core Desktop](https://github.com/LGinC/EarthBackground/workflows/.NET%20Core%20Desktop/badge.svg)
+![.NET Core Desktop](https://github.com/LGinC/EarthBackground/workflows/.NET%20Desktop%20Build/badge.svg)
 
 基于 `.NET 10` 和 `Avalonia` 的地球壁纸工具，支持静态壁纸和 Windows 动态壁纸。
 

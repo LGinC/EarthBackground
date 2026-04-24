@@ -71,6 +71,8 @@
   <data name="Settings_ZoomUnit" xml:space="preserve"><value>%</value></data>
   <data name="Settings_RecentHours" xml:space="preserve"><value>最近时长(小时)</value></data>
   <data name="Settings_LoopPauseMilliseconds" xml:space="preserve"><value>循环停顿(ms)</value></data>
+  <data name="Settings_DynamicWallpaperMonitors" xml:space="preserve"><value>应用显示器</value></data>
+  <data name="Settings_AllDynamicWallpaperMonitors" xml:space="preserve"><value>全部显示器</value></data>
   <data name="Settings_SavePath" xml:space="preserve"><value>保存路径</value></data>
   <data name="Settings_ChoosePath" xml:space="preserve"><value>📁 选择路径</value></data>
   <data name="Settings_Downloader" xml:space="preserve"><value>下载器</value></data>

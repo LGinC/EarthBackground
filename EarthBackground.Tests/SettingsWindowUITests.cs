@@ -45,6 +45,7 @@ namespace EarthBackground.Tests
             Assert.Contains(checkBoxes, x => string.Equals(x.Content?.ToString(), viewModel.Label_DynamicWallpaper, StringComparison.Ordinal));
             Assert.Contains(checkBoxes, x => string.Equals(x.Content?.ToString(), viewModel.Label_SetWallpaper, StringComparison.Ordinal));
             Assert.Contains(checkBoxes, x => string.Equals(x.Content?.ToString(), viewModel.Label_SaveWallpaper, StringComparison.Ordinal));
+            Assert.Contains(checkBoxes, x => string.Equals(x.Content?.ToString(), viewModel.Label_AllDynamicWallpaperMonitors, StringComparison.Ordinal));
 
             Assert.True(comboBoxes.Count >= 4);
         }
@@ -64,6 +65,38 @@ namespace EarthBackground.Tests
             Assert.NotNull(loopPauseLabel);
             Assert.True(recentHoursLabel!.IsVisible);
             Assert.True(loopPauseLabel!.IsVisible);
+        }
+
+        [AvaloniaFact]
+        public void SettingsWindow_ShouldShowDynamicWallpaperMonitorSelection()
+        {
+            var viewModel = CreateViewModel();
+            viewModel.AllDynamicWallpaperMonitors = false;
+            viewModel.DynamicWallpaperMonitorListVisible = true;
+            var window = CreateWindow(viewModel);
+
+            var textBlocks = window.GetLogicalDescendants().OfType<TextBlock>().ToList();
+            var monitorList = window.GetLogicalDescendants().OfType<ItemsControl>().FirstOrDefault(x => ReferenceEquals(x.ItemsSource, viewModel.DynamicWallpaperMonitors));
+
+            Assert.Contains(textBlocks, x => string.Equals(x.Text, viewModel.Label_DynamicWallpaperMonitors, StringComparison.Ordinal));
+            Assert.NotNull(monitorList);
+            Assert.True(monitorList!.IsVisible);
+            Assert.Same(viewModel.DynamicWallpaperMonitors, monitorList.ItemsSource);
+        }
+
+        [AvaloniaFact]
+        public void SettingsWindow_ShouldHideDynamicWallpaperMonitorSelection_WhenDynamicWallpaperDisabled()
+        {
+            var viewModel = CreateViewModel();
+            viewModel.DynamicWallpaper = false;
+            viewModel.DynamicWallpaperMonitorListVisible = false;
+            var window = CreateWindow(viewModel);
+
+            var textBlocks = window.GetLogicalDescendants().OfType<TextBlock>().ToList();
+            var monitorLabel = textBlocks.FirstOrDefault(x => string.Equals(x.Text, viewModel.Label_DynamicWallpaperMonitors, StringComparison.Ordinal));
+
+            Assert.NotNull(monitorLabel);
+            Assert.False(monitorLabel!.IsVisible);
         }
 
         private static SettingsWindow CreateWindow(SettingsWindowTestViewModel viewModel)
@@ -100,6 +133,8 @@ namespace EarthBackground.Tests
                 Label_Zoom = "Zoom",
                 Label_RecentHours = "Recent hours",
                 Label_LoopPauseMilliseconds = "Loop pause (ms)",
+                Label_DynamicWallpaperMonitors = "Apply to displays",
+                Label_AllDynamicWallpaperMonitors = "All displays",
                 Label_SavePath = "Save path",
                 Label_ChoosePath = "Browse",
                 Label_Downloader = "Downloader",
@@ -123,7 +158,10 @@ namespace EarthBackground.Tests
                 SelectedResolution = new NameValueStub("2752*2752"),
                 SelectedDownloader = new NameValueStub("Direct Download"),
                 SelectedZone = new NameValueStub("East China"),
-                ChooseSavePathEnabled = true
+                ChooseSavePathEnabled = true,
+                AllDynamicWallpaperMonitors = true,
+                DynamicWallpaperMonitorListVisible = false,
+                DynamicWallpaperMonitors = new[] { new MonitorSelectionStub("DISPLAY1 (1920x1080)") }
             };
         }
 
@@ -143,6 +181,8 @@ namespace EarthBackground.Tests
             public string Label_Zoom { get; init; } = string.Empty;
             public string Label_RecentHours { get; init; } = string.Empty;
             public string Label_LoopPauseMilliseconds { get; init; } = string.Empty;
+            public string Label_DynamicWallpaperMonitors { get; init; } = string.Empty;
+            public string Label_AllDynamicWallpaperMonitors { get; init; } = string.Empty;
             public string Label_SavePath { get; init; } = string.Empty;
             public string Label_ChoosePath { get; init; } = string.Empty;
             public string Label_Downloader { get; init; } = string.Empty;
@@ -154,7 +194,7 @@ namespace EarthBackground.Tests
             public string Label_Zone { get; init; } = string.Empty;
             public string Label_Save { get; init; } = string.Empty;
             public bool AutoStart { get; init; }
-            public bool DynamicWallpaper { get; init; }
+            public bool DynamicWallpaper { get; set; }
             public bool SetWallpaper { get; init; }
             public bool SaveWallpaper { get; init; }
             public string SavePath { get; init; } = string.Empty;
@@ -162,6 +202,7 @@ namespace EarthBackground.Tests
             public IEnumerable Resolutions { get; init; } = Array.Empty<object>();
             public IEnumerable Downloaders { get; init; } = Array.Empty<object>();
             public IEnumerable Zones { get; init; } = Array.Empty<object>();
+            public IEnumerable DynamicWallpaperMonitors { get; init; } = Array.Empty<object>();
             public object? SelectedCaptor { get; init; }
             public object? SelectedResolution { get; init; }
             public object? SelectedDownloader { get; init; }
@@ -182,6 +223,8 @@ namespace EarthBackground.Tests
             public bool DomainEnabled { get; init; } = true;
             public bool BucketEnabled { get; init; } = true;
             public bool ChooseSavePathEnabled { get; init; }
+            public bool AllDynamicWallpaperMonitors { get; set; }
+            public bool DynamicWallpaperMonitorListVisible { get; set; }
             public ICommand ChooseSavePathCommand { get; } = new NoOpCommand();
             public ICommand SaveCommand { get; } = new NoOpCommand();
         }
@@ -194,6 +237,17 @@ namespace EarthBackground.Tests
             }
 
             public string Name { get; }
+        }
+
+        private sealed class MonitorSelectionStub
+        {
+            public MonitorSelectionStub(string name)
+            {
+                Name = name;
+            }
+
+            public string Name { get; }
+            public bool IsSelected { get; set; }
         }
 
         private sealed class NoOpCommand : ICommand

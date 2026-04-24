@@ -112,6 +112,7 @@ namespace EarthBackground.Background
             catch (Exception e)
             {
                 logger.LogError(e, "error in cycle");
+                ErrorOccurred?.Invoke(e);
             }
         }
 

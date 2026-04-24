@@ -1,13 +1,11 @@
 using System;
 using System.IO;
 using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
-using Avalonia.ReactiveUI;
+using ReactiveUI.Avalonia;
 using EarthBackground.Background;
 using EarthBackground.Captors;
-using EarthBackground.Imaging;
 using EarthBackground.Localization;
 using EarthBackground.Oss;
 using Microsoft.Extensions.Configuration;
@@ -28,7 +26,7 @@ namespace EarthBackground
         public static AppBuilder BuildAvaloniaApp()
             => AppBuilder.Configure<App>()
                 .UsePlatformDetect()
-                .UseReactiveUI()
+                .UseReactiveUI(_ => { })
                 .WithInterFont()
                 .LogToTrace();
 
@@ -109,6 +107,7 @@ namespace EarthBackground
 
             services.AddTransient<IBackgroudSetProvider, BackgroudSetProvider>();
             services.AddTransient<IBackgroundSetter, WindowsBackgroudSetter>();
+            services.AddSingleton<IWallpaperMonitorProvider, WindowsWallpaperMonitorProvider>();
             services.AddSingleton<WindowsDynamicWallpaperSetter>();
 
             AddHttpClients(services, config);

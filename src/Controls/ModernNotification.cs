@@ -23,7 +23,7 @@ namespace EarthBackground.Controls
 
         private ModernNotification(string message, NotificationType type, int duration)
         {
-            SystemDecorations = SystemDecorations.None;
+            WindowDecorations = WindowDecorations.None;
             ShowInTaskbar = false;
             Topmost = true;
             Width = 350;

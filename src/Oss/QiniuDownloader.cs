@@ -127,7 +127,7 @@ namespace EarthBackground.Oss
                     SetCurrentProgress?.Invoke();
                     continue;
                 }
-                tasks.Add(DownLoadImageAsync($"{_options.Value.Domain}/{Prefix}{file}", path));
+                tasks.Add(DownLoadImageAsync($"{_options.Value.Domain}/{Prefix}{file}", path, token));
                 result.Add((url, path));
             }
 
@@ -142,16 +142,9 @@ namespace EarthBackground.Oss
 
 
 
-        private async Task DownLoadImageAsync(string url, string path)
+        private async Task DownLoadImageAsync(string url, string path, CancellationToken token = default)
         {
-            await using var stream = await _client.GetStreamAsync(url);
-            if (File.Exists(path))
-            {
-                File.Delete(path);
-            }
-
-            await using var fileStream = new FileStream(path, FileMode.CreateNew);
-            await stream.CopyToAsync(fileStream);
+            await HttpFileDownloader.DownloadAsync(_client, url, path, token);
             SetCurrentProgress?.Invoke();
         }
     }

@@ -110,15 +110,12 @@ namespace EarthBackground.Tests
 
             var textBlocks = window.GetLogicalDescendants().OfType<TextBlock>().ToList();
             var progressBar = window.GetLogicalDescendants().OfType<ProgressBar>().FirstOrDefault();
-            var earthCanvas = window.GetLogicalDescendants().OfType<EarthCanvas>().FirstOrDefault();
 
             Assert.Contains(textBlocks, x => string.Equals(x.Text, viewModel.StatusText, StringComparison.Ordinal));
             Assert.Contains(textBlocks, x => string.Equals(x.Text, viewModel.ProgressText, StringComparison.Ordinal));
             Assert.NotNull(progressBar);
             Assert.Equal(viewModel.ProgressValue, progressBar!.Value);
             Assert.Equal(viewModel.ProgressMax, progressBar.Maximum);
-            Assert.NotNull(earthCanvas);
-            Assert.Equal(viewModel.EarthRotationAngle, earthCanvas!.RotationAngle);
         }
 
         private static MainWindow CreateWindow(MainWindowTestViewModel viewModel)
@@ -139,7 +136,17 @@ namespace EarthBackground.Tests
 
         private static Button? FindButton(IEnumerable<Button> buttons, string content)
         {
-            return buttons.FirstOrDefault(button => string.Equals(button.Content?.ToString(), content, StringComparison.Ordinal));
+            return buttons.FirstOrDefault(button => string.Equals(GetButtonText(button), content, StringComparison.Ordinal));
+        }
+
+        private static string? GetButtonText(Button button)
+        {
+            return button.Content switch
+            {
+                TextBlock textBlock => textBlock.Text,
+                string text => text,
+                _ => button.Content?.ToString()
+            };
         }
 
         private sealed class MainWindowTestViewModel
