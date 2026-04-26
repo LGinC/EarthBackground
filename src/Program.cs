@@ -98,6 +98,10 @@ namespace EarthBackground
 
             services.AddTransient<ICaptorProvider, CaptorProvider>();
             services.AddKeyedTransient<ICaptor, HimawariCaptor>(NameConsts.Himawari);
+            services.AddKeyedTransient<ICaptor, GoesCaptor>(NameConsts.Goes);
+            services.AddKeyedTransient<ICaptor, GeoKompsatCaptor>(NameConsts.GeoKompsat);
+            services.AddKeyedTransient<ICaptor, MeteosatCaptor>(NameConsts.Meteosat);
+            services.AddKeyedTransient<ICaptor, JpssCaptor>(NameConsts.Jpss);
             services.AddKeyedTransient<ICaptor, FY4Captor>(NameConsts.Fy4);
 
             services.AddTransient<IOssProvider, OssProvider>();
@@ -139,6 +143,38 @@ namespace EarthBackground
         static void AddHttpClients(IServiceCollection services, IConfiguration config)
         {
             services.AddHttpClient(NameConsts.Himawari, client =>
+            {
+                client.BaseAddress = new Uri("https://slider.cira.colostate.edu/data/");
+            }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = (m, c, a3, a4) => true
+            }).AddPolicyHandler(GetRetryPolicy());
+
+            services.AddHttpClient(NameConsts.Goes, client =>
+            {
+                client.BaseAddress = new Uri("https://slider.cira.colostate.edu/data/");
+            }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = (m, c, a3, a4) => true
+            }).AddPolicyHandler(GetRetryPolicy());
+
+            services.AddHttpClient(NameConsts.GeoKompsat, client =>
+            {
+                client.BaseAddress = new Uri("https://slider.cira.colostate.edu/data/");
+            }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = (m, c, a3, a4) => true
+            }).AddPolicyHandler(GetRetryPolicy());
+
+            services.AddHttpClient(NameConsts.Meteosat, client =>
+            {
+                client.BaseAddress = new Uri("https://slider.cira.colostate.edu/data/");
+            }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = (m, c, a3, a4) => true
+            }).AddPolicyHandler(GetRetryPolicy());
+
+            services.AddHttpClient(NameConsts.Jpss, client =>
             {
                 client.BaseAddress = new Uri("https://slider.cira.colostate.edu/data/");
             }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler

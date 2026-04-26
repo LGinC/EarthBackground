@@ -436,6 +436,9 @@ namespace EarthBackground.ViewModels
 
         private async Task OnSave()
         {
+            var oldCaptor = _capture.Captor;
+            var oldSavePath = AppPaths.ResolveInAppDirectory(_capture.SavePath);
+
             _capture.Captor = SelectedCaptor?.Value ?? string.Empty;
             _capture.Interval = Interval;
             _capture.Resolution = SelectedResolution?.Value ?? Resolution.r_1376;
@@ -465,6 +468,15 @@ namespace EarthBackground.ViewModels
 
             await _configureSaver.SaveAsync(_capture, _oss);
 
+            if (!string.Equals(oldCaptor, _capture.Captor, StringComparison.Ordinal))
+            {
+                ClearImageCache(oldSavePath);
+                if (!string.Equals(oldSavePath, _capture.SavePath, StringComparison.OrdinalIgnoreCase))
+                {
+                    ClearImageCache(_capture.SavePath);
+                }
+            }
+
             if (File.Exists(NameConsts.ImageIdPath))
                 File.Delete(NameConsts.ImageIdPath);
 
@@ -474,6 +486,63 @@ namespace EarthBackground.ViewModels
             EarthBackground.AutoStart.Set(nameof(EarthBackground), _capture.AutoStart);
 
             OwnerWindow?.Close();
+        }
+
+        private static void ClearImageCache(string savePath)
+        {
+            if (string.IsNullOrWhiteSpace(savePath) || !Directory.Exists(savePath))
+            {
+                return;
+            }
+
+            foreach (var filePath in Directory.GetFiles(savePath, "frame_*.png"))
+            {
+                DeleteFileIfExists(filePath);
+            }
+
+            foreach (var filePath in Directory.GetFiles(savePath, "*.download"))
+            {
+                DeleteFileIfExists(filePath);
+            }
+
+            DeleteFileIfExists(Path.Combine(savePath, "wallpaper.png"));
+
+            foreach (var dirPath in Directory.GetDirectories(savePath, "frame_*"))
+            {
+                ForceDeleteDirectory(dirPath);
+            }
+        }
+
+        private static void DeleteFileIfExists(string filePath)
+        {
+            if (!File.Exists(filePath))
+            {
+                return;
+            }
+
+            File.SetAttributes(filePath, FileAttributes.Normal);
+            File.Delete(filePath);
+        }
+
+        private static void ForceDeleteDirectory(string dirPath)
+        {
+            if (!Directory.Exists(dirPath))
+            {
+                return;
+            }
+
+            foreach (var filePath in Directory.GetFiles(dirPath))
+            {
+                DeleteFileIfExists(filePath);
+            }
+
+            foreach (var childDirPath in Directory.GetDirectories(dirPath))
+            {
+                ForceDeleteDirectory(childDirPath);
+            }
+
+            File.SetAttributes(dirPath, FileAttributes.Normal);
+            Directory.Delete(dirPath, recursive: false);
         }
     }
 }

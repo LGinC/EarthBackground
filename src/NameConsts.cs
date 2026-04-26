@@ -17,14 +17,39 @@
         public const string Himawari = "Himawari";
 
         /// <summary>
-        /// 风云4A
+        /// GOES
         /// </summary>
-        public const string Fy4 = "fy-4b";
+        public const string Goes = "GOES";
+
+        /// <summary>
+        /// Geo-KOMPSAT
+        /// </summary>
+        public const string GeoKompsat = "GeoKompsat";
+
+        /// <summary>
+        /// Meteosat
+        /// </summary>
+        public const string Meteosat = "Meteosat";
+
+        /// <summary>
+        /// JPSS
+        /// </summary>
+        public const string Jpss = "JPSS";
+
+        /// <summary>
+        /// 风云4
+        /// </summary>
+        public const string Fy4 = "fy-4";
+
+        /// <summary>
+        /// 当前使用的风云4卫星
+        /// </summary>
+        public const string Fy4CurrentSatellite = "fy-4b";
 
         /// <summary>
         /// 抓取器名称列表
         /// </summary>
-        public static readonly string[] CaptorNames = [Himawari, Fy4];
+        public static readonly string[] CaptorNames = [Himawari, Goes, GeoKompsat, Meteosat, Jpss, Fy4];
 
         /// <summary>
         /// 下载器名称列表

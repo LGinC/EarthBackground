@@ -9,11 +9,6 @@ namespace EarthBackground
     public class CaptureOption
     {
         /// <summary>
-        /// 图片id url
-        /// </summary>
-        public string ImageIdUrl { get; set; } = string.Empty;
-
-        /// <summary>
         /// 抓取者
         /// </summary>
         public string Captor { get; set; } = string.Empty;

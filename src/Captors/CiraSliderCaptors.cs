@@ -13,21 +13,25 @@ using Microsoft.Extensions.Options;
 
 namespace EarthBackground.Captors
 {
-    public class HimawariCaptor : BaseCaptor
+    public abstract class CiraSliderCaptor : BaseCaptor
     {
-        //const string jsonUrl = "https://himawari8-dl.nict.go.jp/himawari8/img/FULL_24h/latest.json";
-        public override string ProviderName => NameConsts.Himawari;
-        public HimawariCaptor(IOptionsSnapshot<CaptureOption> options, IHttpClientFactory factory, IOssProvider downloaderProvider) : base(options, factory, downloaderProvider)
+        protected abstract string JsonSatelliteName { get; }
+        protected abstract string ImagerySatelliteName { get; }
+        protected virtual string Sector => "full_disk";
+        protected virtual string Product => "geocolor";
+
+        protected CiraSliderCaptor(
+            IOptionsSnapshot<CaptureOption> options,
+            IHttpClientFactory factory,
+            IOssProvider downloaderProvider)
+            : base(options, factory, downloaderProvider)
         {
         }
 
-        /// <summary>
-        /// 根据返回时间戳获取最近一天的图片时间戳列表
-        /// </summary>
         private async Task<string[]> GetImageIdsAsync(int recentHours = 24, CancellationToken token = default)
         {
             var latest = await Client.GetFromJsonAsync<LastestTimes>(
-                !string.IsNullOrEmpty(Options.ImageIdUrl) ? Options.ImageIdUrl : "json/himawari/full_disk/geocolor/latest_times.json",
+                $"json/{JsonSatelliteName}/{Sector}/{Product}/latest_times.json",
                 cancellationToken: token);
             if (latest == null) return Array.Empty<string>();
 
@@ -51,9 +55,6 @@ namespace EarthBackground.Captors
                 .ToArray();
         }
 
-        /// <summary>
-        /// 保存指定时间戳的图片到子目录
-        /// </summary>
         private async Task SaveImageAsync(string imageId, string saveDir, CancellationToken token = default)
         {
             var size = (int)Options.Resolution;
@@ -67,7 +68,7 @@ namespace EarthBackground.Captors
                     var filePath = Path.Combine(saveDir, image);
                     if (!File.Exists(filePath))
                     {
-                        images.Add(($"{Client.BaseAddress?.AbsoluteUri}imagery/{FormatImageDatePath(imageId)}/himawari-9---full_disk/geocolor/{imageId}/{size:00}/{image}", image));
+                        images.Add((BuildTileUrl(imageId, size, image), image));
                     }
                 }
             }
@@ -88,11 +89,9 @@ namespace EarthBackground.Captors
             var imageIds = await GetImageIdsAsync(count, token);
             if (imageIds.Length == 0) return Array.Empty<string>();
 
-            // 最新的id用于判断是否有更新
             var latestId = imageIds[0];
             if (latestId == CurrentImageId && Directory.GetFiles(Options.SavePath, "frame_*.png").Length >= imageIds.Length)
             {
-                // 无更新，返回已有帧
                 var existing = GetExistingFramePaths(imageIds);
                 onFrameComplete?.Invoke(existing.Count, existing.Count);
                 return existing;
@@ -114,12 +113,10 @@ namespace EarthBackground.Captors
             {
                 if (TryGetExistingFrameImagePath(imageId, out var framePath)) result.Add(framePath);
             }
+
             return result;
         }
 
-        /// <summary>
-        /// 将指定目录的分块图片拼接为单张png，返回路径
-        /// </summary>
         private string JoinImageToPath(string frameDir, string imageId)
         {
             var outputPath = GetFrameImagePath(imageId);
@@ -156,6 +153,11 @@ namespace EarthBackground.Captors
             }
         }
 
+        private string BuildTileUrl(string imageId, int size, string image)
+        {
+            return $"{Client.BaseAddress?.AbsoluteUri}imagery/{FormatImageDatePath(imageId)}/{ImagerySatelliteName}---{Sector}/{Product}/{imageId}/{size:00}/{image}";
+        }
+
         private static DateTime ParseTimestamp(string value)
         {
             return DateTime.ParseExact(value, "yyyyMMddHHmmss", null);
@@ -164,6 +166,68 @@ namespace EarthBackground.Captors
         private static string FormatImageDatePath(string imageId)
         {
             return ParseTimestamp(imageId).ToString("yyyy/MM/dd");
+        }
+    }
+
+    public class HimawariCaptor : CiraSliderCaptor
+    {
+        public override string ProviderName => NameConsts.Himawari;
+        protected override string JsonSatelliteName => "himawari";
+        protected override string ImagerySatelliteName => "himawari";
+
+        public HimawariCaptor(IOptionsSnapshot<CaptureOption> options, IHttpClientFactory factory, IOssProvider downloaderProvider)
+            : base(options, factory, downloaderProvider)
+        {
+        }
+    }
+
+    public class GoesCaptor : CiraSliderCaptor
+    {
+        public override string ProviderName => NameConsts.Goes;
+        protected override string JsonSatelliteName => "goes-19";
+        protected override string ImagerySatelliteName => "goes-19";
+
+        public GoesCaptor(IOptionsSnapshot<CaptureOption> options, IHttpClientFactory factory, IOssProvider downloaderProvider)
+            : base(options, factory, downloaderProvider)
+        {
+        }
+    }
+
+    public class GeoKompsatCaptor : CiraSliderCaptor
+    {
+        public override string ProviderName => NameConsts.GeoKompsat;
+        protected override string JsonSatelliteName => "gk2a";
+        protected override string ImagerySatelliteName => "gk2a";
+
+        public GeoKompsatCaptor(IOptionsSnapshot<CaptureOption> options, IHttpClientFactory factory, IOssProvider downloaderProvider)
+            : base(options, factory, downloaderProvider)
+        {
+        }
+    }
+
+    public class MeteosatCaptor : CiraSliderCaptor
+    {
+        public override string ProviderName => NameConsts.Meteosat;
+        protected override string JsonSatelliteName => "meteosat-12";
+        protected override string ImagerySatelliteName => "meteosat-12";
+
+        public MeteosatCaptor(IOptionsSnapshot<CaptureOption> options, IHttpClientFactory factory, IOssProvider downloaderProvider)
+            : base(options, factory, downloaderProvider)
+        {
+        }
+    }
+
+    public class JpssCaptor : CiraSliderCaptor
+    {
+        public override string ProviderName => NameConsts.Jpss;
+        protected override string JsonSatelliteName => "jpss";
+        protected override string ImagerySatelliteName => "jpss";
+        protected override string Sector => "northern_hemisphere";
+        protected override string Product => "cira_geocolor";
+
+        public JpssCaptor(IOptionsSnapshot<CaptureOption> options, IHttpClientFactory factory, IOssProvider downloaderProvider)
+            : base(options, factory, downloaderProvider)
+        {
         }
     }
 

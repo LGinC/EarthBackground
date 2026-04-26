@@ -281,6 +281,42 @@ namespace EarthBackground.Tests
             Assert.False(File.Exists(_imageIdPath));
         }
 
+        [Fact]
+        public async Task Save_ShouldClearImageCache_WhenCaptorChanges()
+        {
+            var saveDir = CreateTempDirectory();
+            _captureOption.SavePath = saveDir;
+            _captureOption.WallpaperFolder = saveDir;
+            _captureOption.Captor = NameConsts.Fy4;
+
+            var frameFile = Path.Combine(saveDir, "frame_20260425203000.png");
+            var wallpaperFile = Path.Combine(saveDir, "wallpaper.png");
+            var partialFile = Path.Combine(saveDir, "000_000.png.download");
+            var keepFile = Path.Combine(saveDir, "saved-wallpaper.png");
+            var frameDir = Path.Combine(saveDir, "frame_20260425203000");
+            Directory.CreateDirectory(frameDir);
+            File.WriteAllText(frameFile, "frame");
+            File.WriteAllText(wallpaperFile, "wallpaper");
+            File.WriteAllText(partialFile, "partial");
+            File.WriteAllText(keepFile, "keep");
+            File.WriteAllText(Path.Combine(frameDir, "000_000.png"), "tile");
+
+            var viewModel = CreateViewModel();
+            viewModel.SelectedCaptor = new NameValue<string>("GOES-19", NameConsts.Goes);
+
+            _configureSaverMock
+                .Setup(x => x.SaveAsync(It.IsAny<CaptureOption>(), It.IsAny<OssOption>()))
+                .Returns(Task.CompletedTask);
+
+            await InvokeOnSaveAsync(viewModel);
+
+            Assert.False(File.Exists(frameFile));
+            Assert.False(File.Exists(wallpaperFile));
+            Assert.False(File.Exists(partialFile));
+            Assert.False(Directory.Exists(frameDir));
+            Assert.True(File.Exists(keepFile));
+        }
+
         private SettingsWindowViewModel CreateViewModel()
         {
             return new SettingsWindowViewModel(
@@ -313,11 +349,23 @@ namespace EarthBackground.Tests
             return Path.IsPathRooted(path) ? path : Path.Combine(baseDirectory, path);
         }
 
+        private static string CreateTempDirectory()
+        {
+            var path = Path.Combine(Path.GetTempPath(), "EarthBackground.Tests", Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(path);
+            return path;
+        }
+
         public void Dispose()
         {
             if (File.Exists(_imageIdPath))
             {
                 File.Delete(_imageIdPath);
+            }
+
+            if (Path.IsPathRooted(_captureOption.SavePath) && Directory.Exists(_captureOption.SavePath))
+            {
+                Directory.Delete(_captureOption.SavePath, true);
             }
 
             _serviceProvider.Dispose();

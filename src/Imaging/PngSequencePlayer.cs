@@ -39,8 +39,14 @@ namespace EarthBackground.Imaging
             }
 
             using var firstFrame = Image.Load<Rgba32>(filePaths[0]);
+            var compatibleFilePaths = FilterCompatibleFrames(filePaths, firstFrame.Width, firstFrame.Height);
+            if (compatibleFilePaths.Length == 0)
+            {
+                throw new InvalidOperationException("No compatible PNG frames were found.");
+            }
+
             return new PngSequencePlayer(
-                ToArray(filePaths),
+                compatibleFilePaths,
                 firstFrame.Width,
                 firstFrame.Height,
                 Math.Max(delayMilliseconds, 1));
@@ -55,6 +61,12 @@ namespace EarthBackground.Imaging
 
             _currentFrameIndex = (_currentFrameIndex + 1) % _filePaths.Length;
             using var frameImage = Image.Load<Rgba32>(_filePaths[_currentFrameIndex]);
+            if (frameImage.Width != _width || frameImage.Height != _height)
+            {
+                throw new InvalidOperationException(
+                    $"PNG frame size mismatch: expected {_width}x{_height}, got {frameImage.Width}x{frameImage.Height}. Path: {_filePaths[_currentFrameIndex]}");
+            }
+
             frameImage.CopyPixelDataTo(_pixelBuffer);
             CopyPixelsToBitmap(bitmap);
 
@@ -77,6 +89,36 @@ namespace EarthBackground.Imaging
                     framebuffer.Address + (y * framebuffer.RowBytes),
                     sourceRowBytes);
             }
+        }
+
+        private static string[] FilterCompatibleFrames(IReadOnlyList<string> filePaths, int width, int height)
+        {
+            List<string>? result = null;
+            for (int i = 0; i < filePaths.Count; i++)
+            {
+                var path = filePaths[i];
+                var frame = Image.Identify(path);
+                if (frame == null || frame.Width != width || frame.Height != height)
+                {
+                    result ??= CopyBefore(filePaths, i);
+                    continue;
+                }
+
+                result?.Add(path);
+            }
+
+            return result?.ToArray() ?? ToArray(filePaths);
+        }
+
+        private static List<string> CopyBefore(IReadOnlyList<string> filePaths, int exclusiveEnd)
+        {
+            var result = new List<string>(filePaths.Count);
+            for (int i = 0; i < exclusiveEnd; i++)
+            {
+                result.Add(filePaths[i]);
+            }
+
+            return result;
         }
 
         private static string[] ToArray(IReadOnlyList<string> filePaths)

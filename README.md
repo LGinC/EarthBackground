@@ -13,7 +13,11 @@
 
 ### 抓取源
 - `Himawari` 向日葵 9 号
-- `FY4B` 风云 4B
+- `GOES` GOES-19
+- `GeoKompsat` Geo-KOMPSAT-2A
+- `Meteosat` Meteosat-12
+- `JPSS` JPSS / NOAA-21
+- `fy-4` 风云 4B
 
 ### 下载方式
 - 直接下载
@@ -138,8 +142,7 @@ flowchart TD
 ```json
 {
   "CaptureOptions": {
-    "ImageIdUrl": "json/himawari/full_disk/geocolor/latest_times.json",
-    "Captor": "fy-4b",
+    "Captor": "fy-4",
     "AutoStart": false,
     "SetWallpaper": true,
     "SaveWallpaper": false,
@@ -169,7 +172,11 @@ flowchart TD
 字段说明补充：
 - `Captor`
   - `Himawari`
-  - `fy-4b`
+  - `GOES`
+  - `GeoKompsat`
+  - `Meteosat`
+  - `JPSS`
+  - `fy-4`
 - `Resolution`
   - `0` = `688 x 688`
   - `1` = `1376 x 1376`

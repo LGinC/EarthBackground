@@ -18,7 +18,7 @@ namespace EarthBackground.Captors
     {
         private const string Url =
             // "http://rsapp.nsmc.org.cn/swapQuery/public/tileServer/getTile/fy-4b/reg_china/NatureColor/20211109010000/jpg/3/{i}/{j}.png";
-            $$"""http://rsapp.nsmc.org.cn/swapQuery/public/tileServer/getTile/{{NameConsts.Fy4}}/full_disk/NatureColor_NoLit/{0}/jpg/{1}/{2}/{3}.png""";
+            $$"""http://rsapp.nsmc.org.cn/swapQuery/public/tileServer/getTile/{{NameConsts.Fy4CurrentSatellite}}/full_disk/NatureColor_NoLit/{0}/jpg/{1}/{2}/{3}.png""";
 
 
         public override string ProviderName => NameConsts.Fy4;
@@ -33,7 +33,7 @@ namespace EarthBackground.Captors
             {
                 {"start", ""},
                 {"end", ""},
-                {"sat", NameConsts.Fy4},
+                {"sat", NameConsts.Fy4CurrentSatellite},
                 {"obsType", "full_disk"},
                 {"interval", "1"},
                 {"duration", "200"},

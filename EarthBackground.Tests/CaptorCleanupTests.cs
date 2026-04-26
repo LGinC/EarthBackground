@@ -41,27 +41,30 @@ namespace EarthBackground.Tests
             Assert.False(Directory.Exists(frameDir));
         }
 
-        [Fact]
-        public async Task HimawariCaptor_ShouldUseSliderDomainHimawari9AndDatePath()
+        [Theory]
+        [MemberData(nameof(CiraSliderCaptorCases))]
+        public async Task CiraSliderCaptors_ShouldUseLatestSatelliteTilePath(
+            CiraSliderCaptor captor,
+            string expectedTilePathSegment)
         {
             Directory.CreateDirectory(_tempDirectory);
             var downloader = new CapturingDownloader();
-            using var captor = new HimawariCaptor(
-                new TestOptionsSnapshot<CaptureOption>(new CaptureOption
-                {
-                    SavePath = _tempDirectory,
-                    WallpaperFolder = _tempDirectory,
-                    Resolution = 0,
-                    Zoom = 100
-                }),
-                new TestHttpClientFactory(new Uri("https://slider.cira.colostate.edu/data/")),
-                new TestOssProvider(downloader));
+            captor.Downloader = downloader;
 
             await InvokeSaveImageAsync(captor, "20260426185000", Path.Combine(_tempDirectory, "frame_20260426185000"));
 
             Assert.Equal(
-                "https://slider.cira.colostate.edu/data/imagery/2026/04/26/himawari-9---full_disk/geocolor/20260426185000/00/000_000.png",
+                $"https://slider.cira.colostate.edu/data/imagery/2026/04/26/{expectedTilePathSegment}/20260426185000/00/000_000.png",
                 downloader.Url);
+        }
+
+        public static IEnumerable<object[]> CiraSliderCaptorCases()
+        {
+            yield return new object[] { CreateCiraCaptor(static (options, factory, provider) => new HimawariCaptor(options, factory, provider)), "himawari---full_disk/geocolor" };
+            yield return new object[] { CreateCiraCaptor(static (options, factory, provider) => new GoesCaptor(options, factory, provider)), "goes-19---full_disk/geocolor" };
+            yield return new object[] { CreateCiraCaptor(static (options, factory, provider) => new GeoKompsatCaptor(options, factory, provider)), "gk2a---full_disk/geocolor" };
+            yield return new object[] { CreateCiraCaptor(static (options, factory, provider) => new MeteosatCaptor(options, factory, provider)), "meteosat-12---full_disk/geocolor" };
+            yield return new object[] { CreateCiraCaptor(static (options, factory, provider) => new JpssCaptor(options, factory, provider)), "jpss---northern_hemisphere/cira_geocolor" };
         }
 
         public void Dispose()
@@ -82,9 +85,24 @@ namespace EarthBackground.Tests
             return await task!;
         }
 
-        private static async Task InvokeSaveImageAsync(HimawariCaptor captor, string imageId, string saveDir)
+        private static CiraSliderCaptor CreateCiraCaptor(
+            Func<IOptionsSnapshot<CaptureOption>, IHttpClientFactory, IOssProvider, CiraSliderCaptor> factory)
         {
-            var method = typeof(HimawariCaptor).GetMethod("SaveImageAsync", BindingFlags.Instance | BindingFlags.NonPublic);
+            return factory(
+                new TestOptionsSnapshot<CaptureOption>(new CaptureOption
+                {
+                    SavePath = Path.Combine(Path.GetTempPath(), "EarthBackground.Tests", Guid.NewGuid().ToString("N")),
+                    WallpaperFolder = Path.Combine(Path.GetTempPath(), "EarthBackground.Tests", Guid.NewGuid().ToString("N")),
+                    Resolution = 0,
+                    Zoom = 100
+                }),
+                new TestHttpClientFactory(new Uri("https://slider.cira.colostate.edu/data/")),
+                new TestOssProvider(new CapturingDownloader()));
+        }
+
+        private static async Task InvokeSaveImageAsync(CiraSliderCaptor captor, string imageId, string saveDir)
+        {
+            var method = typeof(CiraSliderCaptor).GetMethod("SaveImageAsync", BindingFlags.Instance | BindingFlags.NonPublic);
             Assert.NotNull(method);
 
             var task = method!.Invoke(captor, new object[] { imageId, saveDir, TestContext.Current.CancellationToken }) as Task;

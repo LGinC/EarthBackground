@@ -78,6 +78,8 @@ namespace EarthBackground.Captors
             var completedCount = 0;
             var parallelism = GetFrameProcessingParallelism();
             using var semaphore = new SemaphoreSlim(parallelism, parallelism);
+            using var batchCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
+            var batchToken = batchCancellationTokenSource.Token;
             var tasks = new Task[imageIds.Count];
 
             for (int i = 0; i < imageIds.Count; i++)
@@ -86,18 +88,23 @@ namespace EarthBackground.Captors
                 var imageId = imageIds[index];
                 tasks[index] = Task.Run(async () =>
                 {
-                    await semaphore.WaitAsync(token);
+                    await semaphore.WaitAsync(batchToken);
                     try
                     {
-                        result[index] = await frameFactory(imageId, token);
+                        result[index] = await frameFactory(imageId, batchToken);
+                        var done = Interlocked.Increment(ref completedCount);
+                        onFrameComplete?.Invoke(done, imageIds.Count);
+                    }
+                    catch
+                    {
+                        batchCancellationTokenSource.Cancel();
+                        throw;
                     }
                     finally
                     {
                         semaphore.Release();
-                        var done = Interlocked.Increment(ref completedCount);
-                        onFrameComplete?.Invoke(done, imageIds.Count);
                     }
-                }, token);
+                }, batchToken);
             }
 
             await Task.WhenAll(tasks);
