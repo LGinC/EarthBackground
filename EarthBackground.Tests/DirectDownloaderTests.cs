@@ -62,6 +62,23 @@ namespace EarthBackground.Tests
             Assert.Equal(2, handler.RequestCount);
         }
 
+        [Fact]
+        public async Task DownloadAsync_ShouldDeleteTempFile_WhenFinalAttemptFails()
+        {
+            Directory.CreateDirectory(_tempDirectory);
+            var handler = new StatusCodeHandler(HttpStatusCode.NotFound);
+            var downloader = new DirectDownloader(new TestHttpClientFactory(new HttpClient(handler)));
+
+            await Assert.ThrowsAsync<HttpRequestException>(() => downloader.DownloadAsync(
+                new[] { ("https://example.test/missing.png", "missing.png") },
+                _tempDirectory,
+                TestContext.Current.CancellationToken));
+
+            Assert.False(File.Exists(Path.Combine(_tempDirectory, "missing.png")));
+            Assert.False(File.Exists(Path.Combine(_tempDirectory, "missing.png.download")));
+            Assert.Equal(3, handler.RequestCount);
+        }
+
         public void Dispose()
         {
             if (Directory.Exists(_tempDirectory))
@@ -112,6 +129,27 @@ namespace EarthBackground.Tests
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = _contentFactories[index]()
+                });
+            }
+        }
+
+        private sealed class StatusCodeHandler : HttpMessageHandler
+        {
+            private readonly HttpStatusCode _statusCode;
+
+            public StatusCodeHandler(HttpStatusCode statusCode)
+            {
+                _statusCode = statusCode;
+            }
+
+            public int RequestCount { get; private set; }
+
+            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+            {
+                RequestCount++;
+                return Task.FromResult(new HttpResponseMessage(_statusCode)
+                {
+                    Content = new ByteArrayContent(Array.Empty<byte>())
                 });
             }
         }

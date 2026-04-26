@@ -25,6 +25,11 @@ namespace EarthBackground.Oss
                     DeleteIfExists(tempPath);
                     await Task.Delay(TimeSpan.FromMilliseconds(300 * attempt), token);
                 }
+                catch
+                {
+                    DeleteIfExists(tempPath);
+                    throw;
+                }
             }
         }
 

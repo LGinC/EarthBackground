@@ -67,8 +67,6 @@ namespace EarthBackground.Background
                 return;
             }
 
-            StopDynamicBackground();
-
             _workerW = GetWorkerW(out var progman);
             if (_workerW == IntPtr.Zero)
             {
@@ -92,6 +90,7 @@ namespace EarthBackground.Background
             _logger.LogInformation("PNG 序列已建立流式播放上下文: {Count} 帧，耗时 {ElapsedMs}ms", framePlayer.FrameCount, openStopwatch.ElapsedMilliseconds);
 
             var showStopwatch = Stopwatch.StartNew();
+            WallpaperPlaybackWindow? newWindow = null;
             try
             {
                 token.ThrowIfCancellationRequested();
@@ -105,14 +104,21 @@ namespace EarthBackground.Background
                         displayRegions.Add(new WallpaperPlaybackWindow.DisplayRegion(monitor.X, monitor.Y, monitor.Width, monitor.Height));
                     }
 
-                    var window = new WallpaperPlaybackWindow(
+                    newWindow = new WallpaperPlaybackWindow(
                         logger,
                         framePlayer,
                         _workerW,
                         displayRegions,
                         _captureOptions.CurrentValue.LoopPauseMilliseconds);
-                    _playbackWindows.Add(window);
-                    await window.ShowEmbeddedAsync();
+                    await newWindow.ShowEmbeddedAsync();
+
+                    var oldWindows = _playbackWindows.ToArray();
+                    _playbackWindows.Clear();
+                    _playbackWindows.Add(newWindow);
+                    foreach (var window in oldWindows)
+                    {
+                        window.Close();
+                    }
                 });
 
                 _currentFramePaths = orderedFilePaths.ToArray();
@@ -121,7 +127,15 @@ namespace EarthBackground.Background
             }
             catch
             {
-                framePlayer.Dispose();
+                if (newWindow != null)
+                {
+                    Dispatcher.UIThread.Post(newWindow.Close);
+                }
+                else
+                {
+                    framePlayer.Dispose();
+                }
+
                 throw;
             }
             showStopwatch.Stop();

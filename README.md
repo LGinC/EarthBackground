@@ -12,7 +12,7 @@
 ## 当前功能
 
 ### 抓取源
-- `Himawari8` 向日葵 8 号
+- `Himawari` 向日葵 9 号
 - `FY4B` 风云 4B
 
 ### 下载方式
@@ -168,7 +168,7 @@ flowchart TD
 
 字段说明补充：
 - `Captor`
-  - `Himawari8`
+  - `Himawari`
   - `fy-4b`
 - `Resolution`
   - `0` = `688 x 688`

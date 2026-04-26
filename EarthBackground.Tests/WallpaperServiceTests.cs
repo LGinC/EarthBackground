@@ -263,6 +263,60 @@ namespace EarthBackground.Tests
             Assert.Same(expected, actual);
         }
 
+        [Fact]
+        public async Task StopThenStart_ShouldWakeWaitingLoop_AndRunNextCyclePromptly()
+        {
+            _optionsMonitor.CurrentValue = new CaptureOption
+            {
+                Captor = "TestCaptor",
+                DynamicWallpaper = false,
+                SetWallpaper = false,
+                SaveWallpaper = false,
+                Interval = 60
+            };
+
+            var cycleCount = 0;
+            var secondCycleCompleted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            _captorMock
+                .Setup(x => x.GetImagePath(It.IsAny<CancellationToken>()))
+                .Returns(async (CancellationToken token) =>
+                {
+                    await Task.Yield();
+                    token.ThrowIfCancellationRequested();
+                    if (Interlocked.Increment(ref cycleCount) == 2)
+                    {
+                        secondCycleCompleted.TrySetResult(true);
+                    }
+
+                    return "wallpaper.png";
+                });
+
+            using var service = CreateService();
+
+            await service.StartAsync(TestContext.Current.CancellationToken);
+            try
+            {
+                service.Start();
+
+                await WaitUntilAsync(
+                    () => Volatile.Read(ref cycleCount) >= 1,
+                    TimeSpan.FromSeconds(2),
+                    TestContext.Current.CancellationToken);
+
+                await Task.Delay(100, TestContext.Current.CancellationToken);
+
+                service.Stop();
+                service.Start();
+
+                await secondCycleCompleted.Task.WaitAsync(TimeSpan.FromSeconds(2), TestContext.Current.CancellationToken);
+            }
+            finally
+            {
+                await service.StopAsync(TestContext.Current.CancellationToken);
+            }
+        }
+
         private WallpaperService CreateService()
         {
             return new WallpaperService(
@@ -291,6 +345,17 @@ namespace EarthBackground.Tests
             var task = method!.Invoke(service, new object[] { token }) as Task;
             Assert.NotNull(task);
             await task!.WaitAsync(token);
+        }
+
+        private static async Task WaitUntilAsync(Func<bool> condition, TimeSpan timeout, CancellationToken token)
+        {
+            using var timeoutCts = new CancellationTokenSource(timeout);
+            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(token, timeoutCts.Token);
+
+            while (!condition())
+            {
+                await Task.Delay(10, linkedCts.Token);
+            }
         }
 
         private string CreateTempDirectory()

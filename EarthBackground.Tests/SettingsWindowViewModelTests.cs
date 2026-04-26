@@ -236,7 +236,7 @@ namespace EarthBackground.Tests
                 })
                 .Returns(Task.CompletedTask);
 
-            viewModel.SelectedCaptor = new NameValue<string>("Himawari-8", NameConsts.Himawari8);
+            viewModel.SelectedCaptor = new NameValue<string>("Himawari-9", NameConsts.Himawari);
             viewModel.SelectedResolution = new NameValue<Resolution>("1376*1376", Resolution.r_1376);
             viewModel.SelectedDownloader = new NameValue<string>("Cloudinary", NameConsts.Cloudinary);
             viewModel.Interval = 15;
@@ -258,7 +258,7 @@ namespace EarthBackground.Tests
             Assert.NotNull(savedCapture);
             Assert.NotNull(savedOss);
 
-            Assert.Equal(NameConsts.Himawari8, savedCapture!.Captor);
+            Assert.Equal(NameConsts.Himawari, savedCapture!.Captor);
             Assert.Equal(Resolution.r_1376, savedCapture.Resolution);
             Assert.Equal(15, savedCapture.Interval);
             Assert.Equal(90, savedCapture.Zoom);

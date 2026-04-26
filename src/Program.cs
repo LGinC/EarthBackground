@@ -97,7 +97,7 @@ namespace EarthBackground
             services.AddSingleton<ILocalizationService, ResourceLocalizationService>();
 
             services.AddTransient<ICaptorProvider, CaptorProvider>();
-            services.AddKeyedTransient<ICaptor, Himawari8Captor>(NameConsts.Himawari8);
+            services.AddKeyedTransient<ICaptor, HimawariCaptor>(NameConsts.Himawari);
             services.AddKeyedTransient<ICaptor, FY4Captor>(NameConsts.Fy4);
 
             services.AddTransient<IOssProvider, OssProvider>();
@@ -138,9 +138,9 @@ namespace EarthBackground
 
         static void AddHttpClients(IServiceCollection services, IConfiguration config)
         {
-            services.AddHttpClient(NameConsts.Himawari8, client =>
+            services.AddHttpClient(NameConsts.Himawari, client =>
             {
-                client.BaseAddress = new Uri($"https://rammb-slider.cira.colostate.edu/data/");
+                client.BaseAddress = new Uri("https://slider.cira.colostate.edu/data/");
             }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
             {
                 ServerCertificateCustomValidationCallback = (m, c, a3, a4) => true

@@ -86,7 +86,7 @@
   <data name="Settings_ChoosePathTitle" xml:space="preserve"><value>选择保存路径</value></data>
 
   <!-- Satellite names -->
-  <data name="Himawari8" xml:space="preserve"><value>向日葵8号</value></data>
+  <data name="Himawari" xml:space="preserve"><value>向日葵9号</value></data>
   <data name="fy-4b" xml:space="preserve"><value>风云4号</value></data>
 
   <!-- Downloader names -->

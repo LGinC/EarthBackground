@@ -141,7 +141,7 @@ namespace EarthBackground.Captors
             }
         }
 
-        private static void ForceDeleteDirectory(string dirPath)
+        protected static void ForceDeleteDirectory(string dirPath)
         {
             if (!Directory.Exists(dirPath))
             {

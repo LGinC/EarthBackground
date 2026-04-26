@@ -41,6 +41,10 @@ namespace EarthBackground.Background
                     try
                     {
                         await RunCycleAsync(stoppingToken);
+                        if (!IsRunning)
+                        {
+                            continue;
+                        }
 
                         // Wait for interval
                         int intervalMinutes = options.CurrentValue.Interval;
@@ -89,6 +93,7 @@ namespace EarthBackground.Background
         {
             _customCancellationTokenSource = new CancellationTokenSource();
             IsRunning = true;
+            TriggerUpdate();
             StatusChanged?.Invoke("Running");
         }
 
@@ -96,18 +101,25 @@ namespace EarthBackground.Background
         {
             _customCancellationTokenSource?.Cancel();
             IsRunning = false;
+            TriggerUpdate();
             dynamicWallpaperSetter.StopDynamicBackground();
             StatusChanged?.Invoke("Stopped");
         }
 
         private async Task RunCycleAsync(CancellationToken token)
         {
-            var combinedToken = _customCancellationTokenSource != null
-                ? CancellationTokenSource.CreateLinkedTokenSource(token, _customCancellationTokenSource.Token).Token
-                : token;
+            var stopToken = _customCancellationTokenSource?.Token;
+            using var linkedTokenSource = stopToken.HasValue
+                ? CancellationTokenSource.CreateLinkedTokenSource(token, stopToken.Value)
+                : null;
+            var combinedToken = linkedTokenSource?.Token ?? token;
             try
             {
                 await RunCycleInternalAsync(combinedToken);
+            }
+            catch (OperationCanceledException) when (combinedToken.IsCancellationRequested)
+            {
+                // Manual stop should interrupt the current cycle without surfacing as a user-visible error.
             }
             catch (Exception e)
             {

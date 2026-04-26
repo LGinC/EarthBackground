@@ -13,11 +13,11 @@ using Microsoft.Extensions.Options;
 
 namespace EarthBackground.Captors
 {
-    public class Himawari8Captor : BaseCaptor
+    public class HimawariCaptor : BaseCaptor
     {
         //const string jsonUrl = "https://himawari8-dl.nict.go.jp/himawari8/img/FULL_24h/latest.json";
-        public override string ProviderName => NameConsts.Himawari8;
-        public Himawari8Captor(IOptionsSnapshot<CaptureOption> options, IHttpClientFactory factory, IOssProvider downloaderProvider) : base(options, factory, downloaderProvider)
+        public override string ProviderName => NameConsts.Himawari;
+        public HimawariCaptor(IOptionsSnapshot<CaptureOption> options, IHttpClientFactory factory, IOssProvider downloaderProvider) : base(options, factory, downloaderProvider)
         {
         }
 
@@ -67,7 +67,7 @@ namespace EarthBackground.Captors
                     var filePath = Path.Combine(saveDir, image);
                     if (!File.Exists(filePath))
                     {
-                        images.Add(($"{Client.BaseAddress?.AbsoluteUri}imagery/{imageId[..8]}/himawari---full_disk/geocolor/{imageId}/{size:00}/{image}", image));
+                        images.Add(($"{Client.BaseAddress?.AbsoluteUri}imagery/{FormatImageDatePath(imageId)}/himawari-9---full_disk/geocolor/{imageId}/{size:00}/{image}", image));
                     }
                 }
             }
@@ -140,13 +140,30 @@ namespace EarthBackground.Captors
                 Directory.CreateDirectory(frameDir);
             }
 
-            await SaveImageAsync(imageId, frameDir, token);
-            return JoinImageToPath(frameDir, imageId);
+            try
+            {
+                await SaveImageAsync(imageId, frameDir, token);
+                return JoinImageToPath(frameDir, imageId);
+            }
+            catch
+            {
+                if (!File.Exists(GetFrameImagePath(imageId)))
+                {
+                    ForceDeleteDirectory(frameDir);
+                }
+
+                throw;
+            }
         }
 
         private static DateTime ParseTimestamp(string value)
         {
             return DateTime.ParseExact(value, "yyyyMMddHHmmss", null);
+        }
+
+        private static string FormatImageDatePath(string imageId)
+        {
+            return ParseTimestamp(imageId).ToString("yyyy/MM/dd");
         }
     }
 

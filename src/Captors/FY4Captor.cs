@@ -123,8 +123,20 @@ namespace EarthBackground.Captors
                 Directory.CreateDirectory(frameDir);
             }
 
-            await SaveImageAsync(imageId, frameDir, token);
-            return JoinImageToPath(frameDir, imageId);
+            try
+            {
+                await SaveImageAsync(imageId, frameDir, token);
+                return JoinImageToPath(frameDir, imageId);
+            }
+            catch
+            {
+                if (!File.Exists(GetFrameImagePath(imageId)))
+                {
+                    ForceDeleteDirectory(frameDir);
+                }
+
+                throw;
+            }
         }
 
         private async Task SaveImageAsync(string imageId, string saveDir, CancellationToken token = default)
