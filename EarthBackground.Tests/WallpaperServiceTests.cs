@@ -20,11 +20,9 @@ namespace EarthBackground.Tests
         private readonly Mock<ICaptor> _captorMock = new();
         private readonly Mock<IOssDownloader> _downloaderMock = new();
         private readonly Mock<IBackgroundSetter> _setterMock = new();
-        private readonly Mock<ILogger<WindowsDynamicWallpaperSetter>> _dynamicLoggerMock = new();
-        private readonly Mock<IWallpaperMonitorProvider> _monitorProviderMock = new();
+        private readonly Mock<IDynamicWallpaperSetter> _dynamicWallpaperSetterMock = new();
         private readonly TestOptionsMonitor<CaptureOption> _optionsMonitor;
         private readonly ServiceProvider _serviceProvider;
-        private readonly WindowsDynamicWallpaperSetter _dynamicWallpaperSetter;
         private readonly List<string> _tempDirectories = new();
 
         public WallpaperServiceTests()
@@ -48,11 +46,9 @@ namespace EarthBackground.Tests
             services.AddKeyedSingleton<ICaptor>("TestCaptor", _captorMock.Object);
             _serviceProvider = services.BuildServiceProvider();
 
-            _dynamicWallpaperSetter = new WindowsDynamicWallpaperSetter(
-                _dynamicLoggerMock.Object,
-                _serviceProvider,
-                _optionsMonitor,
-                _monitorProviderMock.Object);
+            _dynamicWallpaperSetterMock
+                .SetupGet(x => x.Platform)
+                .Returns(nameof(System.Runtime.InteropServices.OSPlatform.Windows));
         }
 
         [Fact]
@@ -80,6 +76,7 @@ namespace EarthBackground.Tests
 
             Assert.False(service.IsRunning);
             Assert.Equal("Stopped", status);
+            _dynamicWallpaperSetterMock.Verify(x => x.StopDynamicBackground(), Times.Once);
         }
 
         [Fact]
@@ -172,6 +169,13 @@ namespace EarthBackground.Tests
             await InvokeRunCycleInternalAsync(service, TestContext.Current.CancellationToken);
 
             _setterMock.Verify(x => x.SetBackgroundAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+            _dynamicWallpaperSetterMock.Verify(
+                x => x.SetDynamicBackgroundAsync(
+                    It.IsAny<IReadOnlyList<string>>(),
+                    It.IsAny<int>(),
+                    It.IsAny<Action<int, int>?>(),
+                    It.IsAny<CancellationToken>()),
+                Times.Never);
             Assert.Equal("frame_20260407170000.png", savedImage);
             Assert.Contains("Initializing...", statuses);
             Assert.Contains("Downloading...", statuses);
@@ -324,7 +328,7 @@ namespace EarthBackground.Tests
                 _loggerMock.Object,
                 _optionsMonitor,
                 _backgroundSetProviderMock.Object,
-                _dynamicWallpaperSetter);
+                _dynamicWallpaperSetterMock.Object);
         }
 
         private static async Task InvokeRunCycleInternalAsync(WallpaperService service, CancellationToken token = default)
@@ -368,7 +372,6 @@ namespace EarthBackground.Tests
 
         public void Dispose()
         {
-            _dynamicWallpaperSetter.Dispose();
             _serviceProvider.Dispose();
 
             foreach (var dir in _tempDirectories)

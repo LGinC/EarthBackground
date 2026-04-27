@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using Microsoft.Extensions.Logging;
 
 namespace EarthBackground.Background
 {
+    [SupportedOSPlatform("windows")]
     public sealed class WindowsWallpaperMonitorProvider : IWallpaperMonitorProvider
     {
         private readonly ILogger<WindowsWallpaperMonitorProvider> _logger;

@@ -14,7 +14,7 @@ namespace EarthBackground.Background
         ILogger<WallpaperService> logger,
         IOptionsMonitor<CaptureOption> options,
         IBackgroudSetProvider backgroundSetProvider,
-        WindowsDynamicWallpaperSetter dynamicWallpaperSetter)
+        IDynamicWallpaperSetter dynamicWallpaperSetter)
         : BackgroundService
     {
         private int _ossFetchCount;

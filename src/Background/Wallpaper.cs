@@ -1,8 +1,10 @@
 ﻿using System.Runtime.InteropServices;
 using Microsoft.Win32;
+using System.Runtime.Versioning;
 
 namespace EarthBackground.Background
 {
+    [SupportedOSPlatform("windows")]
     static class Wallpaper
     {
         public const int COLOR_DESKTOP = 1;

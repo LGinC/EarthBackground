@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 using SixLabors.ImageSharp;
@@ -8,6 +9,7 @@ using SixLabors.ImageSharp.Formats.Bmp;
 
 namespace EarthBackground.Background
 {
+    [SupportedOSPlatform("windows")]
     public class WindowsBackgroudSetter : IBackgroundSetter
     {
         public string Platform => nameof(OSPlatform.Windows);

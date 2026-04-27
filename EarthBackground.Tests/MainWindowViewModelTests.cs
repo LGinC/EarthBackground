@@ -38,18 +38,12 @@ namespace EarthBackground.Tests
 
             var backgroundProvider = new Mock<IBackgroudSetProvider>();
             var logger = new Mock<ILogger<WallpaperService>>();
-            var dynamicLogger = new Mock<ILogger<WindowsDynamicWallpaperSetter>>();
+            var dynamicWallpaperSetter = new Mock<IDynamicWallpaperSetter>();
             var monitorProvider = new Mock<IWallpaperMonitorProvider>();
 
             var services = new ServiceCollection();
             services.AddSingleton(monitorProvider.Object);
             _serviceProvider = services.BuildServiceProvider();
-
-            var dynamicWallpaperSetter = new WindowsDynamicWallpaperSetter(
-                dynamicLogger.Object,
-                _serviceProvider,
-                _optionsMonitor,
-                monitorProvider.Object);
 
             backgroundProvider
                 .Setup(x => x.GetSetter())
@@ -60,7 +54,7 @@ namespace EarthBackground.Tests
                 logger.Object,
                 _optionsMonitor,
                 backgroundProvider.Object,
-                dynamicWallpaperSetter);
+                dynamicWallpaperSetter.Object);
 
             _lifetimeMock.SetupProperty(x => x.MainWindow, new Window());
             _lifetimeMock.SetupProperty(x => x.ShutdownMode, ShutdownMode.OnExplicitShutdown);
@@ -163,7 +157,7 @@ namespace EarthBackground.Tests
                 _loggerMock.Object,
                 _serviceProvider,
                 _wallpaperService,
-                new ResourceLocalizationService(),
+                new TestLocalizationService(),
                 _lifetimeMock.Object);
         }
 
@@ -197,6 +191,31 @@ namespace EarthBackground.Tests
             public T Get(string? name) => CurrentValue;
 
             public IDisposable? OnChange(Action<T, string?> listener) => null;
+        }
+
+        private sealed class TestLocalizationService : ILocalizationService
+        {
+            public string this[string key] => key switch
+            {
+                "MainWindow_Title" => "EarthBackground",
+                "MainWindow_Header" => "EarthBackground",
+                "Btn_Start" => "Start",
+                "Btn_Stop" => "Stop",
+                "Btn_Settings" => "Settings",
+                "Btn_Exit" => "Exit",
+                "Status_WaitForRun" => "等待运行...",
+                "Status_Running" => "运行中",
+                "Status_Initializing" => "初始化中...",
+                "Status_Downloading" => "下载中...",
+                "Status_SettingWallpaper" => "设置壁纸...",
+                "Status_Complete" => "已完成",
+                _ => key
+            };
+
+            public string Format(string key, params object[] args)
+            {
+                return string.Format(this[key], args);
+            }
         }
     }
 }

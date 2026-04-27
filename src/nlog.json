@@ -2,17 +2,29 @@
     "NLog": {
         "throwConfigExceptions": true,
         "targets": {
-            "logfile": {
-                "type": "File",
-                "fileName": "logs/nlog-${shortdate}.log"
-            }
+          "logfile": {
+            "type": "File",
+            "fileName": "logs/nlog-${shortdate}.log",
+            "maxArchiveDays": 30
+          }
         },
-        "rules": [
-            {
-                "logger": "*",
-                "minLevel": "Info",
-                "writeTo": "logfile"
-            }
-        ]
+      "rules": [
+        {
+          "logger": "System.Net.Http.HttpClient.*",
+          "maxLevel": "Info",
+          "final": true
+        },
+        {
+          "logger": "System.Net.Http.HttpClient.*",
+          "minLevel": "Warning",
+          "writeTo": "logfile",
+          "final": true
+        },
+        {
+          "logger": "*",
+          "minLevel": "Info",
+          "writeTo": "logfile"
+        }
+      ]
     }
 }

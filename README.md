@@ -1,12 +1,12 @@
 # EarthBackground
 ![.NET Core Desktop](https://github.com/LGinC/EarthBackground/workflows/.NET%20Desktop%20Build/badge.svg)
 
-基于 `.NET 10` 和 `Avalonia` 的地球壁纸工具，支持静态壁纸和 Windows 动态壁纸。
+基于 `.NET 10` 和 `Avalonia` 的地球壁纸工具，支持静态壁纸和 Windows / macOS / Linux X11 动态壁纸。
 
 项目当前重点是：
 - 抓取卫星云图分块并拼接为完整图片
 - 复用已有 `frame_xxx.png`，避免重复下载和重复拼接
-- 在 Windows 上将 PNG 帧序列直接流式播放为动态壁纸
+- 在 Windows / macOS / Linux X11 上将 PNG 帧序列直接流式播放为动态壁纸
 - 提供本地配置、下载进度、错误通知和多语言 UI
 
 ## 当前功能
@@ -28,6 +28,15 @@
 - 静态壁纸：抓取最新一帧并设置为系统壁纸
 - 动态壁纸：抓取最近一段时间的多帧 PNG，循环播放为动态桌面
 
+### 平台支持
+
+| 平台 | 动态壁纸 | 实现方式 | 说明 |
+| --- | --- | --- | --- |
+| Windows | 支持 | `WorkerW` + Avalonia 播放窗口 | 窗口嵌入桌面图标层下方 |
+| macOS | 支持 | `NSWindow` desktop window level | 显示在壁纸之上、桌面图标之下；全屏 Space 遮挡是系统限制 |
+| Linux X11 | 支持 | xwinwrap-like X11 root window 模式 | 设置 EWMH desktop/below/sticky 状态并 reparent 到 root |
+| Linux Wayland | 暂不支持 | - | Avalonia native handle 不是 X11 时会明确报不支持 |
+
 ### 运行特性
 - 支持多显示器动态壁纸播放
 - 支持按帧缓存复用，已有 `frame_xxx.png` 时不再重复处理
@@ -43,14 +52,20 @@
 1. `WallpaperService` 周期性触发抓取
 2. `Captor` 获取最近时间戳列表
 3. 对缺失帧执行下载和拼接，已有帧直接复用
-4. `WindowsDynamicWallpaperSetter` 对帧路径排序
+4. 平台动态壁纸设置器对帧路径排序
 5. `PngSequencePlayer` 按需逐帧读取 PNG
-6. `WallpaperPlaybackWindow` 将帧内容绘制到嵌入 `WorkerW` 的 Avalonia 窗口
+6. `WallpaperPlaybackWindow` 将帧内容绘制到平台桌面窗口
 
 这样做的好处：
 - 避免 APNG 编码和再次解析带来的额外耗时
 - 降低播放前的峰值内存占用
 - 更适合“抓一批帧然后循环播放”的桌面壁纸场景
+
+### 平台窗口策略
+
+- Windows：查找 `Progman` / `WorkerW`，将 Avalonia 播放窗口设为子窗口并放在桌面图标层下方。
+- macOS：通过 native `NSWindow` 设置 `level = kCGDesktopWindowLevel - 1`，并启用 `canJoinAllSpaces | stationary | ignoresCycle`；窗口无边框、无阴影、鼠标穿透。
+- Linux X11：要求 `TopLevel.TryGetPlatformHandle()` 返回 `HandleDescriptor == "X11"`，然后用 `libX11` 设置 `_NET_WM_WINDOW_TYPE_DESKTOP`、`_NET_WM_STATE_BELOW/SKIP_TASKBAR/SKIP_PAGER/STICKY`，reparent 到 root 并 lower。
 
 ## 架构流程图
 
@@ -64,11 +79,41 @@ flowchart TD
     D --> G["形成按时间排序的帧序列"]
     F --> G
     G --> H{"DynamicWallpaper?"}
-    H -->|否| I["WindowsBackgroudSetter 设置静态壁纸"]
-    H -->|是| J["WindowsDynamicWallpaperSetter"]
-    J --> K["PngSequencePlayer 按需逐帧读取 PNG"]
-    K --> L["WallpaperPlaybackWindow 嵌入 WorkerW"]
-    L --> M["多显示器动态壁纸播放"]
+    H -->|否| I["IBackgroundSetter 设置静态壁纸"]
+    H -->|是| J["IDynamicWallpaperSetter"]
+    J --> K{"运行平台"}
+    K -->|Windows| L["WorkerW 桌面子窗口"]
+    K -->|macOS| M["NSWindow desktop level"]
+    K -->|Linux X11| N["X11 root window / desktop atoms"]
+    L --> O["PngSequencePlayer 按需逐帧读取 PNG"]
+    M --> O
+    N --> O
+    O --> P["WallpaperPlaybackWindow 绘制帧"]
+    P --> Q["多显示器动态壁纸播放"]
+```
+
+## 动态壁纸流程
+
+```mermaid
+sequenceDiagram
+    participant S as WallpaperService
+    participant C as Captor
+    participant P as PngSequencePlayer
+    participant D as Platform Setter
+    participant W as WallpaperPlaybackWindow
+
+    S->>C: 请求最近 RecentHours 的帧
+    C->>C: 复用已有 frame_xxx.png
+    C->>C: 下载并拼接缺失帧
+    C-->>S: 返回 PNG 帧序列
+    S->>D: SetDynamicBackgroundAsync(paths)
+    D->>P: 打开按需 PNG 播放器
+    D->>W: 为目标显示器创建播放窗口
+    W->>W: 配置平台桌面层级
+    loop 播放循环
+        W->>P: 渲染下一帧
+        P-->>W: 写入 WriteableBitmap
+    end
 ```
 
 ## 项目结构
@@ -77,8 +122,8 @@ flowchart TD
 
 - `Background`
   - 壁纸服务循环
-  - Windows 静态/动态壁纸设置
-  - WorkerW 嵌入和多显示器区域管理
+  - Windows / macOS / Linux 动态壁纸设置
+  - 平台显示器枚举和多显示器区域管理
 - `Captors`
   - 各卫星抓取器
   - 分块下载、缓存命中、图片拼接
@@ -94,6 +139,9 @@ flowchart TD
 - `Views`
   - Avalonia 窗口
   - 动态壁纸播放窗口
+- `Platforms`
+  - macOS `NSWindow` 原生配置
+  - Linux X11 原生窗口属性配置
 - `ViewModels`
   - 主界面逻辑
   - 设置界面逻辑
@@ -113,6 +161,32 @@ flowchart TD
 - 对每个时间戳检查是否已有 `frame_xxx.png`
 - 缺失帧才下载并拼接
 - 最终按时间顺序播放 PNG 帧序列
+- Windows 使用单个跨显示器窗口嵌入 `WorkerW`
+- macOS / Linux 按显示器创建独立窗口，避免跨屏窗口带来的 Mission Control / X11 桌面行为问题
+
+### 发布流程
+
+GitHub Actions 使用 `.github/workflows/Avalonia.yml`：
+
+```mermaid
+flowchart LR
+    A["push / pull_request / release"] --> B["build-test"]
+    B --> C["dotnet restore"]
+    C --> D["dotnet build Release"]
+    D --> E["dotnet test Release"]
+    E --> F{"master 或 release?"}
+    F -->|否| G["结束"]
+    F -->|是| H["publish matrix"]
+    H --> I["win-x64 / net10.0-windows"]
+    H --> J["linux-x64 / net10.0"]
+    H --> K["osx-x64 / net10.0"]
+    H --> L["osx-arm64 / net10.0"]
+    I --> M["zip artifact"]
+    J --> M
+    K --> M
+    L --> M
+    M --> N["release 时附加到 GitHub Release"]
+```
 
 ## 配置说明
 
@@ -210,6 +284,15 @@ dotnet run --project .\src\EarthBackground.csproj
 dotnet build .\src\EarthBackground.csproj
 ```
 
+### 发布示例
+
+```powershell
+dotnet publish .\src\EarthBackground.csproj --framework net10.0-windows --runtime win-x64 --configuration Release --self-contained true
+dotnet publish .\src\EarthBackground.csproj --framework net10.0 --runtime linux-x64 --configuration Release --self-contained true
+dotnet publish .\src\EarthBackground.csproj --framework net10.0 --runtime osx-x64 --configuration Release --self-contained true
+dotnet publish .\src\EarthBackground.csproj --framework net10.0 --runtime osx-arm64 --configuration Release --self-contained true
+```
+
 ### 后台服务模式
 
 ```powershell
@@ -231,6 +314,7 @@ dotnet run --project .\src\EarthBackground.csproj -- --service
 
 ## 说明
 
-- 动态壁纸当前主要面向 Windows
-- Linux / macOS 的静态壁纸设置接口已保留，但能力未像 Windows 动态壁纸那样完整
+- Windows 动态壁纸依赖桌面 `WorkerW` 行为，不同 Windows 版本会有兼容处理
+- macOS 全屏 Space 不支持 desktop window level 覆盖全屏应用，进入全屏应用时窗口会被系统遮挡
+- Linux 动态壁纸目前支持 X11；GNOME / KDE / 带桌面图标扩展的环境对图标层和点击行为可能不同，需要在目标桌面环境实测
 - 仓库中仍保留部分 APNG 相关代码，主要用于过渡和后续兼容实验，当前默认播放路径是 PNG 序列

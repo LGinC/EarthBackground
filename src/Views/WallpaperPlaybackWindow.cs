@@ -11,6 +11,8 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Threading;
 using EarthBackground.Imaging;
+using EarthBackground.Platforms.Linux;
+using EarthBackground.Platforms.MacOS;
 using Microsoft.Extensions.Logging;
 
 namespace EarthBackground.Views
@@ -27,11 +29,16 @@ namespace EarthBackground.Views
         private readonly int _windowW;
         private readonly int _windowH;
         private readonly int _loopPauseMilliseconds;
+        private readonly bool _useMacOSDesktopLevel;
+        private readonly bool _useX11DesktopWindow;
         private readonly List<Image> _frameImages = new();
         private readonly DispatcherTimer _timer;
         private readonly WriteableBitmap _bitmap;
+        private DispatcherTimer? _resumeTimer;
+        private IntPtr _nativeWindowHandle;
         private TaskCompletionSource<bool>? _openedTcs;
         private bool _started;
+        private bool _renderingPaused;
 
         internal WallpaperPlaybackWindow(
             ILogger<WallpaperPlaybackWindow> logger,
@@ -44,6 +51,8 @@ namespace EarthBackground.Views
             _framePlayer = framePlayer;
             _workerW = workerW;
             _loopPauseMilliseconds = Math.Max(loopPauseMilliseconds, 0);
+            _useMacOSDesktopLevel = RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
+            _useX11DesktopWindow = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
             _bitmap = new WriteableBitmap(
                 _framePlayer.PixelSize,
                 new Vector(96, 96),
@@ -71,10 +80,11 @@ namespace EarthBackground.Views
             ShowInTaskbar = false;
             CanResize = false;
             ShowActivated = false;
+            Topmost = false;
             Background = Brushes.Black;
             Width = _windowW;
             Height = _windowH;
-            Position = new PixelPoint(0, 0);
+            Position = _useMacOSDesktopLevel || _useX11DesktopWindow ? new PixelPoint(_windowX, _windowY) : new PixelPoint(0, 0);
 
             var canvas = new Canvas
             {
@@ -125,11 +135,30 @@ namespace EarthBackground.Views
             var hwnd = platformHandle?.Handle ?? IntPtr.Zero;
             if (hwnd == IntPtr.Zero)
             {
-                _openedTcs?.TrySetException(new InvalidOperationException("Avalonia 窗口未能获取 HWND"));
+                _openedTcs?.TrySetException(new InvalidOperationException("Avalonia 窗口未能获取原生窗口句柄"));
                 return;
             }
+            _nativeWindowHandle = hwnd;
 
-            EmbedIntoWallpaper(hwnd, _workerW, _windowX, _windowY, _windowW, _windowH);
+            if (_useMacOSDesktopLevel)
+            {
+                MacOSNativeWindow.ConfigureAsWallpaperWindow(hwnd);
+            }
+            else if (_useX11DesktopWindow)
+            {
+                if (!string.Equals(platformHandle?.HandleDescriptor, "X11", StringComparison.OrdinalIgnoreCase))
+                {
+                    _openedTcs?.TrySetException(new PlatformNotSupportedException(
+                        $"Linux dynamic wallpaper requires an X11 window handle, but Avalonia returned '{platformHandle?.HandleDescriptor ?? "<null>"}'."));
+                    return;
+                }
+
+                X11NativeWindow.ConfigureAsWallpaperWindow(hwnd, _windowX, _windowY, _windowW, _windowH);
+            }
+            else
+            {
+                EmbedIntoWallpaper(hwnd, _workerW, _windowX, _windowY, _windowW, _windowH);
+            }
 
             if (_framePlayer.FrameCount > 0)
             {
@@ -145,7 +174,7 @@ namespace EarthBackground.Views
             _started = true;
             _logger.LogInformation("Avalonia 壁纸窗口已加载 {Count} 帧", _framePlayer.FrameCount);
             _logger.LogInformation(
-                "Avalonia 壁纸窗口已嵌入 WorkerW: Window=0x{Window:X}, WorkerW=0x{WorkerW:X}, Bounds={X},{Y},{W},{H}",
+                "Avalonia 壁纸窗口已显示: Window=0x{Window:X}, WorkerW=0x{WorkerW:X}, Bounds={X},{Y},{W},{H}",
                 hwnd.ToInt64(),
                 _workerW.ToInt64(),
                 _windowX,
@@ -157,7 +186,7 @@ namespace EarthBackground.Views
 
         private void OnTick(object? sender, EventArgs e)
         {
-            if (_framePlayer.FrameCount == 0)
+            if (_renderingPaused || _framePlayer.FrameCount == 0)
             {
                 return;
             }
@@ -185,9 +214,66 @@ namespace EarthBackground.Views
         private void OnClosed(object? sender, EventArgs e)
         {
             _timer.Stop();
+            _resumeTimer?.Stop();
+            _resumeTimer = null;
             _bitmap.Dispose();
             _framePlayer.Dispose();
             _started = false;
+        }
+
+        public void PauseRenderingFor(TimeSpan pauseDuration)
+        {
+            if (pauseDuration <= TimeSpan.Zero || !_started)
+            {
+                return;
+            }
+
+            _renderingPaused = true;
+            _timer.Stop();
+
+            _resumeTimer ??= new DispatcherTimer();
+            _resumeTimer.Stop();
+            _resumeTimer.Interval = pauseDuration;
+            _resumeTimer.Tick -= OnResumeRenderingTick;
+            _resumeTimer.Tick += OnResumeRenderingTick;
+            _resumeTimer.Start();
+        }
+
+        public void SuspendRendering()
+        {
+            _renderingPaused = true;
+            _timer.Stop();
+            _resumeTimer?.Stop();
+        }
+
+        public void ResumeRendering()
+        {
+            if (!_started)
+            {
+                return;
+            }
+
+            _resumeTimer?.Stop();
+            _renderingPaused = false;
+            if (_framePlayer.FrameCount > 0)
+            {
+                _timer.Start();
+            }
+        }
+
+        public bool IsMacOSWindowVisible()
+        {
+            return !_useMacOSDesktopLevel || MacOSNativeWindow.IsVisible(_nativeWindowHandle);
+        }
+
+        private void OnResumeRenderingTick(object? sender, EventArgs e)
+        {
+            _resumeTimer?.Stop();
+            _renderingPaused = false;
+            if (_framePlayer.FrameCount > 0)
+            {
+                _timer.Start();
+            }
         }
 
         private void EmbedIntoWallpaper(IntPtr hwnd, IntPtr workerW, int screenX, int screenY, int screenW, int screenH)

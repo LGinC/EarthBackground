@@ -64,7 +64,7 @@ namespace EarthBackground.Tests
 
             var backgroundProvider = new Mock<IBackgroudSetProvider>();
             var logger = new Mock<ILogger<WallpaperService>>();
-            var dynamicLogger = new Mock<ILogger<WindowsDynamicWallpaperSetter>>();
+            var dynamicWallpaperSetter = new Mock<IDynamicWallpaperSetter>();
 
             var services = new ServiceCollection();
             _serviceProvider = services.BuildServiceProvider();
@@ -76,12 +76,6 @@ namespace EarthBackground.Tests
                     new WallpaperMonitor(@"\\?\DISPLAY#MONITOR2", "DISPLAY2 (2560x1440)", 1920, 0, 2560, 1440)
                 });
 
-            var dynamicWallpaperSetter = new WindowsDynamicWallpaperSetter(
-                dynamicLogger.Object,
-                _serviceProvider,
-                _captureOptionsMonitor,
-                _monitorProviderMock.Object);
-
             backgroundProvider
                 .Setup(x => x.GetSetter())
                 .Throws(new InvalidOperationException("Not used in SettingsWindowViewModel tests."));
@@ -91,7 +85,7 @@ namespace EarthBackground.Tests
                 logger.Object,
                 _captureOptionsMonitor,
                 backgroundProvider.Object,
-                dynamicWallpaperSetter);
+                dynamicWallpaperSetter.Object);
 
             _imageIdPath = NameConsts.ImageIdPath;
             if (File.Exists(_imageIdPath))

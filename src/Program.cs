@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia;
 using ReactiveUI.Avalonia;
@@ -110,9 +111,43 @@ namespace EarthBackground
             services.AddKeyedTransient<IOssDownloader, QiniuDownloader>(NameConsts.Qiqiuyun);
 
             services.AddTransient<IBackgroudSetProvider, BackgroudSetProvider>();
+            services.AddTransient<IBackgroundSetter, OSXBackgroudSetter>();
+            services.AddTransient<IBackgroundSetter, LinuxBackgroudSetter>();
+            services.AddSingleton<MacOSDynamicWallpaperSetter>();
+            services.AddSingleton<LinuxDynamicWallpaperSetter>();
+#if WINDOWS
             services.AddTransient<IBackgroundSetter, WindowsBackgroudSetter>();
-            services.AddSingleton<IWallpaperMonitorProvider, WindowsWallpaperMonitorProvider>();
             services.AddSingleton<WindowsDynamicWallpaperSetter>();
+#endif
+            services.AddSingleton<IDynamicWallpaperSetter>(provider =>
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    return provider.GetRequiredService<MacOSDynamicWallpaperSetter>();
+                }
+
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    return provider.GetRequiredService<LinuxDynamicWallpaperSetter>();
+                }
+
+#if WINDOWS
+                return provider.GetRequiredService<WindowsDynamicWallpaperSetter>();
+#else
+                throw new PlatformNotSupportedException("Dynamic wallpaper is not supported on this target framework.");
+#endif
+            });
+            services.AddSingleton<IWallpaperMonitorProvider>(provider =>
+            {
+#if WINDOWS
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    return ActivatorUtilities.CreateInstance<WindowsWallpaperMonitorProvider>(provider);
+                }
+#endif
+
+                return ActivatorUtilities.CreateInstance<AvaloniaWallpaperMonitorProvider>(provider);
+            });
 
             AddHttpClients(services, config);
 

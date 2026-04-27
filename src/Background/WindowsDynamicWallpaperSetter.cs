@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Threading;
@@ -15,7 +16,8 @@ using Microsoft.Extensions.Options;
 
 namespace EarthBackground.Background
 {
-    public class WindowsDynamicWallpaperSetter : IBackgroundSetter, IDisposable
+    [SupportedOSPlatform("windows")]
+    public class WindowsDynamicWallpaperSetter : IBackgroundSetter, IDynamicWallpaperSetter, IDisposable
     {
         public string Platform => nameof(OSPlatform.Windows);
 
@@ -303,22 +305,7 @@ namespace EarthBackground.Background
             IReadOnlyList<WallpaperMonitor> monitors,
             IReadOnlyList<string>? selectedMonitorIds)
         {
-            if (selectedMonitorIds == null || selectedMonitorIds.Count == 0)
-            {
-                return monitors;
-            }
-
-            var selectedIds = new HashSet<string>(selectedMonitorIds.Where(id => !string.IsNullOrWhiteSpace(id)), StringComparer.OrdinalIgnoreCase);
-            if (selectedIds.Count == 0)
-            {
-                return monitors;
-            }
-
-            var selectedMonitors = monitors
-                .Where(monitor => selectedIds.Contains(monitor.Id))
-                .ToArray();
-
-            return selectedMonitors.Length > 0 ? selectedMonitors : monitors;
+            return WallpaperMonitorSelection.SelectTargetMonitors(monitors, selectedMonitorIds);
         }
 
         private IReadOnlyList<WallpaperMonitor> GetTargetMonitors(

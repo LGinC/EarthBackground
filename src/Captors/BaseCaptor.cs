@@ -1,8 +1,10 @@
 using EarthBackground.Oss;
 using Microsoft.Extensions.Options;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -199,21 +201,19 @@ namespace EarthBackground.Captors
         protected string JoinImageFromDir(string sourceDir, string outputPath)
         {
             var size = 1 << (int)Options.Resolution;
-            using Bitmap bitmap = new Bitmap(BaseRate * size, BaseRate * size);
-            Bitmap[,] images = new Bitmap[size, size];
-            using (Graphics g = Graphics.FromImage(bitmap))
+            using var image = new Image<Rgba32>(BaseRate * size, BaseRate * size);
+            image.Mutate(context =>
             {
                 for (var i = 0; i < size; i++)
                 {
                     for (var j = 0; j < size; j++)
                     {
-                        images[i, j] = new Bitmap(Path.Combine(sourceDir, $"{i:000}_{j:000}.png"));
-                        g.DrawImage(images[i, j], BaseRate * j, BaseRate * i);
-                        images[i, j].Dispose();
+                        using var tile = Image.Load<Rgba32>(Path.Combine(sourceDir, $"{i:000}_{j:000}.png"));
+                        context.DrawImage(tile, new Point(BaseRate * j, BaseRate * i), 1f);
                     }
                 }
-                g.Save();
-            }
+            });
+
             if (File.Exists(outputPath))
             {
                 File.Delete(outputPath);
@@ -221,17 +221,13 @@ namespace EarthBackground.Captors
 
             if (Options.Zoom == 100)
             {
-                bitmap.Save(outputPath, System.Drawing.Imaging.ImageFormat.Png);
+                image.SaveAsPng(outputPath);
             }
             else
             {
-                var newSize = (int)(bitmap.Height * Options.Zoom * 1.0 / 100);
-                using var zoomBitmap = new Bitmap(newSize, newSize);
-                using var g2 = Graphics.FromImage(zoomBitmap);
-                g2.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                g2.DrawImage(bitmap, 0, 0, newSize, newSize);
-                g2.Save();
-                zoomBitmap.Save(outputPath, System.Drawing.Imaging.ImageFormat.Png);
+                var newSize = (int)(image.Height * Options.Zoom * 1.0 / 100);
+                using var zoomImage = image.Clone(context => context.Resize(newSize, newSize));
+                zoomImage.SaveAsPng(outputPath);
             }
 
             foreach (var f in Directory.GetFiles(sourceDir).Where(f => f.Contains("_")))

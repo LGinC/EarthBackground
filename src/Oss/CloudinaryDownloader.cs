@@ -82,9 +82,9 @@ namespace EarthBackground.Oss
 
             var reStr = await response.Content.ReadAsStringAsync(token);
             var json = JsonSerializer.Deserialize<CDNOperationResult>(reStr);
-            if (!string.IsNullOrEmpty(json?.error))
+            if (!string.IsNullOrEmpty(json?.Error))
             {
-                throw new InvalidOperationException(json.error);
+                throw new InvalidOperationException(json.Error);
             }
 
             _client.DefaultRequestHeaders.Remove("Authorization");

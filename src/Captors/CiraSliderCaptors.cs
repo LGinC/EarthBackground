@@ -33,26 +33,25 @@ namespace EarthBackground.Captors
             var latest = await Client.GetFromJsonAsync<LastestTimes>(
                 $"json/{JsonSatelliteName}/{Sector}/{Product}/latest_times.json",
                 cancellationToken: token);
-            if (latest == null) return Array.Empty<string>();
+            if (latest == null) return [];
 
-            var ordered = latest.timestamps_int
+            var ordered = latest.Timestamps
                 .Select(static t => (Raw: t, Time: ParseTimestamp(t.ToString())))
                 .OrderByDescending(static t => t.Time)
                 .ToArray();
 
             if (ordered.Length == 0)
             {
-                return Array.Empty<string>();
+                return [];
             }
 
             var newest = ordered[0].Time;
             var cutoff = newest.AddHours(-Math.Max(recentHours, 1));
 
-            return ordered
+            return [.. ordered
                 .Where(t => t.Time >= cutoff)
                 .OrderBy(t => t.Time)
-                .Select(t => t.Raw.ToString())
-                .ToArray();
+                .Select(t => t.Raw.ToString())];
         }
 
         private async Task SaveImageAsync(string imageId, string saveDir, CancellationToken token = default)
@@ -87,7 +86,7 @@ namespace EarthBackground.Captors
         {
             CreateDirectory();
             var imageIds = await GetImageIdsAsync(count, token);
-            if (imageIds.Length == 0) return Array.Empty<string>();
+            if (imageIds.Length == 0) return [];
 
             var latestId = imageIds[0];
             if (latestId == CurrentImageId && Directory.GetFiles(Options.SavePath, "frame_*.png").Length >= imageIds.Length)
@@ -233,18 +232,21 @@ namespace EarthBackground.Captors
 
     public class LastestTimes
     {
-        public long[] timestamps_int { get; set; } = Array.Empty<long>();
+        [JsonPropertyName("timestamps_int")]
+        public long[] Timestamps { get; set; } = [];
     }
 
     public class DateResult
     {
+        [JsonPropertyName("date")]
         [JsonConverter(typeof(DateConverter))]
-        public DateTime date { get; set; }
+        public DateTime Date { get; set; }
     }
 
     public class CDNOperationResult
     {
-        public string error { get; set; } = string.Empty;
+        [JsonPropertyName("error")]
+        public string Error { get; set; } = string.Empty;
     }
 
     public class DateConverter : JsonConverter<DateTime>
