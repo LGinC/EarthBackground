@@ -29,19 +29,22 @@ namespace EarthBackground.Tests
                 new TestOssProvider());
 
             var progressCount = 0;
+            var waitingFrameStarted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var waitingFrameCanceled = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => captor.BuildFramesAsync(
-                new[] { "fail", "wait" },
+                new[] { "wait", "fail" },
                 async (imageId, token) =>
                 {
                     if (imageId == "fail")
                     {
+                        await waitingFrameStarted.Task.WaitAsync(TestContext.Current.CancellationToken);
                         throw new InvalidOperationException("download failed");
                     }
 
                     try
                     {
+                        waitingFrameStarted.TrySetResult(true);
                         await Task.Delay(TimeSpan.FromMinutes(1), token);
                     }
                     catch (OperationCanceledException)
