@@ -65,7 +65,30 @@ namespace EarthBackground.Captors
         protected bool TryGetExistingFrameImagePath(string imageId, out string framePath)
         {
             framePath = GetFrameImagePath(imageId);
-            return File.Exists(framePath);
+            if (!File.Exists(framePath))
+            {
+                return false;
+            }
+
+            if (IsExpectedFrameImageSize(framePath))
+            {
+                return true;
+            }
+
+            File.Delete(framePath);
+            return false;
+        }
+
+        private bool IsExpectedFrameImageSize(string framePath)
+        {
+            var size = BaseRate * (1 << (int)Options.Resolution);
+            if (Options.Zoom != 100)
+            {
+                size = (int)(size * Options.Zoom * 1.0 / 100);
+            }
+
+            var metadata = Image.Identify(framePath);
+            return metadata != null && metadata.Width == size && metadata.Height == size;
         }
 
         protected async Task<IReadOnlyList<string>> BuildFrameSequenceAsync(

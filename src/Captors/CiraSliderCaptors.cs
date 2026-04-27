@@ -175,6 +175,7 @@ namespace EarthBackground.Captors
         public GoesCaptor(IOptionsSnapshot<CaptureOption> options, IHttpClientFactory factory, IOssProvider downloaderProvider)
             : base(options, factory, downloaderProvider)
         {
+            BaseRate = 678;
         }
     }
 
@@ -197,20 +198,6 @@ namespace EarthBackground.Captors
         protected override string ImagerySatelliteName => "meteosat-12";
 
         public MeteosatCaptor(IOptionsSnapshot<CaptureOption> options, IHttpClientFactory factory, IOssProvider downloaderProvider)
-            : base(options, factory, downloaderProvider)
-        {
-        }
-    }
-
-    public class JpssCaptor : CiraSliderCaptor
-    {
-        public override string ProviderName => NameConsts.Jpss;
-        protected override string JsonSatelliteName => "jpss";
-        protected override string ImagerySatelliteName => "jpss";
-        protected override string Sector => "northern_hemisphere";
-        protected override string Product => "cira_geocolor";
-
-        public JpssCaptor(IOptionsSnapshot<CaptureOption> options, IHttpClientFactory factory, IOssProvider downloaderProvider)
             : base(options, factory, downloaderProvider)
         {
         }

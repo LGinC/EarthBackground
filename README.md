@@ -16,7 +16,6 @@
 - `GOES` GOES-19
 - `GeoKompsat` Geo-KOMPSAT-2A
 - `Meteosat` Meteosat-12
-- `JPSS` JPSS / NOAA-21
 - `fy-4` 风云 4B
 
 ### 下载方式
@@ -249,7 +248,6 @@ flowchart LR
   - `GOES`
   - `GeoKompsat`
   - `Meteosat`
-  - `JPSS`
   - `fy-4`
 - `Resolution`
   - `0` = `688 x 688`

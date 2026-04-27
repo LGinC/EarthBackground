@@ -32,11 +32,6 @@
         public const string Meteosat = "Meteosat";
 
         /// <summary>
-        /// JPSS
-        /// </summary>
-        public const string Jpss = "JPSS";
-
-        /// <summary>
         /// 风云4
         /// </summary>
         public const string Fy4 = "fy-4";
@@ -49,7 +44,7 @@
         /// <summary>
         /// 抓取器名称列表
         /// </summary>
-        public static readonly string[] CaptorNames = [Himawari, Goes, GeoKompsat, Meteosat, Jpss, Fy4];
+        public static readonly string[] CaptorNames = [Himawari, Goes, GeoKompsat, Meteosat, Fy4];
 
         /// <summary>
         /// 下载器名称列表

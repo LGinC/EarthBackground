@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using EarthBackground.Captors;
 using EarthBackground.Oss;
 using Microsoft.Extensions.Options;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 using Xunit;
 
 namespace EarthBackground.Tests
@@ -107,6 +109,33 @@ namespace EarthBackground.Tests
             Assert.Equal(new[] { "20260427010000", "20260427030000" }, result);
         }
 
+        [Fact]
+        public void TryGetExistingFrameImagePath_ShouldDeleteFrameWithUnexpectedSize()
+        {
+            Directory.CreateDirectory(_tempDirectory);
+            using var captor = new TestCaptor(
+                new TestOptionsSnapshot<CaptureOption>(new CaptureOption
+                {
+                    SavePath = _tempDirectory,
+                    WallpaperFolder = _tempDirectory,
+                    Resolution = 0,
+                    Zoom = 100
+                }),
+                new TestHttpClientFactory(),
+                new TestOssProvider(),
+                baseRate: 678);
+
+            var framePath = Path.Combine(_tempDirectory, "frame_20260427040021.png");
+            using (var image = new Image<Rgba32>(688, 688))
+            {
+                image.SaveAsPng(framePath);
+            }
+
+            Assert.False(captor.TryGetExistingFrame("20260427040021", out var existingFramePath));
+            Assert.Equal(framePath, existingFramePath);
+            Assert.False(File.Exists(framePath));
+        }
+
         public void Dispose()
         {
             if (Directory.Exists(_tempDirectory))
@@ -125,11 +154,13 @@ namespace EarthBackground.Tests
                 IHttpClientFactory factory,
                 IOssProvider downloaderProvider,
                 TimeSpan? satelliteTimeZoneOffset = null,
-                DateTimeOffset? clientLocalNow = null)
+                DateTimeOffset? clientLocalNow = null,
+                int? baseRate = null)
                 : base(options, factory, downloaderProvider)
             {
                 _satelliteTimeZoneOffset = satelliteTimeZoneOffset ?? TimeSpan.Zero;
                 _clientLocalNow = clientLocalNow ?? DateTimeOffset.Now;
+                BaseRate = baseRate ?? BaseRate;
             }
 
             protected override TimeSpan SatelliteTimeZoneOffset => _satelliteTimeZoneOffset;
@@ -148,6 +179,11 @@ namespace EarthBackground.Tests
             public string[] FilterImageIds(IEnumerable<string> imageIds, int recentHours)
             {
                 return FilterImageIdsByClientLocalTime(imageIds, recentHours);
+            }
+
+            public bool TryGetExistingFrame(string imageId, out string framePath)
+            {
+                return TryGetExistingFrameImagePath(imageId, out framePath);
             }
 
             protected override int GetFrameProcessingParallelism() => 2;

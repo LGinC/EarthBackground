@@ -64,7 +64,14 @@ namespace EarthBackground.Tests
             yield return new object[] { CreateCiraCaptor(static (options, factory, provider) => new GoesCaptor(options, factory, provider)), "goes-19---full_disk/geocolor" };
             yield return new object[] { CreateCiraCaptor(static (options, factory, provider) => new GeoKompsatCaptor(options, factory, provider)), "gk2a---full_disk/geocolor" };
             yield return new object[] { CreateCiraCaptor(static (options, factory, provider) => new MeteosatCaptor(options, factory, provider)), "meteosat-12---full_disk/geocolor" };
-            yield return new object[] { CreateCiraCaptor(static (options, factory, provider) => new JpssCaptor(options, factory, provider)), "jpss---northern_hemisphere/cira_geocolor" };
+        }
+
+        [Fact]
+        public void GoesCaptor_ShouldUseCurrentCiraTileSize()
+        {
+            using var captor = CreateCiraCaptor(static (options, factory, provider) => new GoesCaptor(options, factory, provider));
+
+            Assert.Equal(678, GetBaseRate(captor));
         }
 
         public void Dispose()
@@ -108,6 +115,13 @@ namespace EarthBackground.Tests
             var task = method!.Invoke(captor, new object[] { imageId, saveDir, TestContext.Current.CancellationToken }) as Task;
             Assert.NotNull(task);
             await task!;
+        }
+
+        private static int GetBaseRate(BaseCaptor captor)
+        {
+            var property = typeof(BaseCaptor).GetProperty("BaseRate", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.NotNull(property);
+            return (int)property!.GetValue(captor)!;
         }
 
         private sealed class FailingDownloader : IOssDownloader
