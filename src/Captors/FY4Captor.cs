@@ -22,6 +22,7 @@ namespace EarthBackground.Captors
 
 
         public override string ProviderName => NameConsts.Fy4;
+        protected override TimeSpan SatelliteTimeZoneOffset => TimeSpan.FromHours(8);
 
         /// <summary>
         /// 根据返回时间戳获取最近一天的图片时间戳列表
@@ -44,24 +45,7 @@ namespace EarthBackground.Captors
             var ids = await re.Content.ReadFromJsonAsync<string[]>(cancellationToken: token);
             if (ids == null) return Array.Empty<string>();
 
-            var ordered = ids
-                .Select(static id => (Raw: id, Time: ParseTimestamp(id)))
-                .OrderByDescending(static t => t.Time)
-                .ToArray();
-
-            if (ordered.Length == 0)
-            {
-                return Array.Empty<string>();
-            }
-
-            var newest = ordered[0].Time;
-            var cutoff = newest.AddHours(-Math.Max(recentHours, 1));
-
-            return ordered
-                .Where(t => t.Time >= cutoff)
-                .OrderBy(t => t.Time)
-                .Select(t => t.Raw)
-                .ToArray();
+            return FilterImageIdsByClientLocalTime(ids, recentHours);
         }
 
         public override async Task<string> GetImagePath(CancellationToken token = default)
@@ -76,7 +60,7 @@ namespace EarthBackground.Captors
             var imageIds = await GetImageIdsAsync(count, token);
             if (imageIds.Length == 0) return Array.Empty<string>();
 
-            var latestId = imageIds[0];
+            var latestId = imageIds[^1];
             if (latestId == CurrentImageId && Directory.GetFiles(Options.SavePath, "frame_*.png").Length >= imageIds.Length)
             {
                 var existing = GetExistingFramePaths(imageIds);
@@ -165,11 +149,6 @@ namespace EarthBackground.Captors
         {
             Client.BaseAddress = new Uri("http://rsapp.nsmc.org.cn");
             BaseRate = 687;
-        }
-
-        private static DateTime ParseTimestamp(string value)
-        {
-            return DateTime.ParseExact(value, "yyyyMMddHHmmss", null);
         }
     }
 }

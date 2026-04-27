@@ -318,3 +318,8 @@ dotnet run --project .\src\EarthBackground.csproj -- --service
 - macOS 全屏 Space 不支持 desktop window level 覆盖全屏应用，进入全屏应用时窗口会被系统遮挡
 - Linux 动态壁纸目前支持 X11；GNOME / KDE / 带桌面图标扩展的环境对图标层和点击行为可能不同，需要在目标桌面环境实测
 - 仓库中仍保留部分 APNG 相关代码，主要用于过渡和后续兼容实验，当前默认播放路径是 PNG 序列
+
+## 路线图
+- [ ] 添加cli支持，方便接入AI
+- [ ] 添加linux macOS静态壁纸更新
+- [ ] 支持linux Wayland 动态壁纸更新

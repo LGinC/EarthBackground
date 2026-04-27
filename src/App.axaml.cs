@@ -75,22 +75,25 @@ namespace EarthBackground
                 };
 
                 desktop.MainWindow = mainWindow;
+                desktop.ShutdownMode = Avalonia.Controls.ShutdownMode.OnExplicitShutdown;
 
                 // 注入主窗口访问器，供 SettingsCommand 获取 owner
                 _mainWindowViewModel.SetMainWindowAccessor(() => desktop.MainWindow);
 
-                // Start wallpaper service
-                _ = Task.Run(() => wallpaperService.StartAsync(CancellationToken.None));
-                wallpaperService.Start();
+                mainWindow.Show();
+
+                Dispatcher.UIThread.Post(() =>
+                {
+                    _ = Task.Run(() => wallpaperService.StartAsync(CancellationToken.None));
+                    wallpaperService.StartWallpaperUpdates();
+                }, DispatcherPriority.Background);
 
                 // 注册应用退出事件，确保资源释放
                 desktop.Exit += (_, _) =>
                 {
-                    wallpaperService.Stop();
+                    wallpaperService.StopWallpaperUpdates();
                     _mainWindowViewModel?.Dispose();
                 };
-
-                desktop.ShutdownMode = Avalonia.Controls.ShutdownMode.OnExplicitShutdown;
             }
 
             base.OnFrameworkInitializationCompleted();

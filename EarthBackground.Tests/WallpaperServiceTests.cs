@@ -52,27 +52,27 @@ namespace EarthBackground.Tests
         }
 
         [Fact]
-        public void Start_ShouldSetStatusToRunning()
+        public void StartWallpaperUpdates_ShouldSetStatusToRunning()
         {
             var service = CreateService();
             string? status = null;
             service.StatusChanged += s => status = s;
 
-            service.Start();
+            service.StartWallpaperUpdates();
 
             Assert.True(service.IsRunning);
             Assert.Equal("Running", status);
         }
 
         [Fact]
-        public void Stop_ShouldSetStatusToStopped_AndStopDynamicWallpaper()
+        public void StopWallpaperUpdates_ShouldSetStatusToStopped_AndStopDynamicWallpaper()
         {
             var service = CreateService();
             string? status = null;
             service.StatusChanged += s => status = s;
-            service.Start();
+            service.StartWallpaperUpdates();
 
-            service.Stop();
+            service.StopWallpaperUpdates();
 
             Assert.False(service.IsRunning);
             Assert.Equal("Stopped", status);
@@ -268,7 +268,7 @@ namespace EarthBackground.Tests
         }
 
         [Fact]
-        public async Task StopThenStart_ShouldWakeWaitingLoop_AndRunNextCyclePromptly()
+        public async Task StopThenStartWallpaperUpdates_ShouldWakeWaitingLoop_AndRunNextCyclePromptly()
         {
             _optionsMonitor.CurrentValue = new CaptureOption
             {
@@ -301,7 +301,7 @@ namespace EarthBackground.Tests
             await service.StartAsync(TestContext.Current.CancellationToken);
             try
             {
-                service.Start();
+                service.StartWallpaperUpdates();
 
                 await WaitUntilAsync(
                     () => Volatile.Read(ref cycleCount) >= 1,
@@ -310,8 +310,8 @@ namespace EarthBackground.Tests
 
                 await Task.Delay(100, TestContext.Current.CancellationToken);
 
-                service.Stop();
-                service.Start();
+                service.StopWallpaperUpdates();
+                service.StartWallpaperUpdates();
 
                 await secondCycleCompleted.Task.WaitAsync(TimeSpan.FromSeconds(2), TestContext.Current.CancellationToken);
             }

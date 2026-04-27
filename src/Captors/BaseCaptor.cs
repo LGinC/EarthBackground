@@ -5,6 +5,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -20,6 +21,8 @@ namespace EarthBackground.Captors
         protected int BaseRate { get; set; } = 688;
         public IOssDownloader Downloader { get; set; } = null!;
         public virtual string ProviderName { get; } = string.Empty;
+        protected virtual TimeSpan SatelliteTimeZoneOffset => TimeSpan.Zero;
+        protected virtual DateTimeOffset ClientLocalNow => DateTimeOffset.Now;
 
         protected string CurrentImageId { get; set; } = string.Empty;
         public virtual Task<string> GetImagePath(CancellationToken token = default)
@@ -118,6 +121,38 @@ namespace EarthBackground.Captors
             return Math.Clamp(Environment.ProcessorCount / 4, 2, 4);
         }
 
+        protected string[] FilterImageIdsByClientLocalTime(IEnumerable<string> imageIds, int recentHours)
+        {
+            var ordered = imageIds
+                .Select(id => (Raw: id, Time: ParseSatelliteTimestamp(id)))
+                .OrderByDescending(static t => t.Time)
+                .ToArray();
+
+            if (ordered.Length == 0)
+            {
+                return Array.Empty<string>();
+            }
+
+            var cutoff = ClientLocalNow.AddHours(-Math.Max(recentHours, 1));
+
+            return ordered
+                .Where(t => t.Time >= cutoff)
+                .OrderBy(t => t.Time)
+                .Select(t => t.Raw)
+                .ToArray();
+        }
+
+        protected DateTimeOffset ParseSatelliteTimestamp(string value)
+        {
+            var timestamp = DateTime.ParseExact(
+                value,
+                "yyyyMMddHHmmss",
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.None);
+
+            return new DateTimeOffset(DateTime.SpecifyKind(timestamp, DateTimeKind.Unspecified), SatelliteTimeZoneOffset);
+        }
+
         protected void CleanupFramesOlderThan(string minImageId)
         {
             if (string.IsNullOrWhiteSpace(minImageId) || !Directory.Exists(Options.SavePath))
@@ -177,7 +212,7 @@ namespace EarthBackground.Captors
             return DateTime.TryParseExact(
                 imageId,
                 "yyyyMMddHHmmss",
-                null,
+                CultureInfo.InvariantCulture,
                 System.Globalization.DateTimeStyles.None,
                 out timestamp);
         }

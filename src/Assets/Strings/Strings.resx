@@ -47,6 +47,7 @@
   <data name="Btn_Exit" xml:space="preserve"><value>✕ Exit</value></data>
   <data name="Notify_ServiceStarted" xml:space="preserve"><value>Wallpaper service started</value></data>
   <data name="Notify_DownloadFailed" xml:space="preserve"><value>Download failed: {0}</value></data>
+  <data name="Notify_HiddenToTray" xml:space="preserve"><value>EarthBackground is still running in the system tray. Use Exit to close the app.</value></data>
   <data name="TrayMenu_ShowWindow" xml:space="preserve"><value>Show Window</value></data>
   <data name="TrayMenu_Exit" xml:space="preserve"><value>Exit</value></data>
   <data name="AppTitle" xml:space="preserve"><value>EarthBackground</value></data>

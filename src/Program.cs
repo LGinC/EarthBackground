@@ -56,7 +56,7 @@ namespace EarthBackground
             var host = CreateHostBuilder().Build();
 
             var wallpaperService = host.Services.GetRequiredService<WallpaperService>();
-            wallpaperService.Start();
+            wallpaperService.StartWallpaperUpdates();
 
             Console.WriteLine("EarthBackground 后台服务已启动...");
             Console.WriteLine("按 Ctrl+C 退出");

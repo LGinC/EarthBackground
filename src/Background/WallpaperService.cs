@@ -31,9 +31,7 @@ namespace EarthBackground.Background
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            // Default to running if configured, or wait for manual start?
-            // Original app started on button click.
-            // We will wait for Start command.
+            // Wait until wallpaper updates are explicitly enabled.
             while (!stoppingToken.IsCancellationRequested)
             {
                 if (IsRunning)
@@ -89,7 +87,7 @@ namespace EarthBackground.Background
             _triggerTcs?.TrySetResult(true);
         }
 
-        public void Start()
+        public void StartWallpaperUpdates()
         {
             _customCancellationTokenSource = new CancellationTokenSource();
             IsRunning = true;
@@ -97,7 +95,7 @@ namespace EarthBackground.Background
             StatusChanged?.Invoke("Running");
         }
 
-        public void Stop()
+        public void StopWallpaperUpdates()
         {
             _customCancellationTokenSource?.Cancel();
             IsRunning = false;

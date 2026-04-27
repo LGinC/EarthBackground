@@ -71,6 +71,7 @@ namespace EarthBackground.Tests
             Assert.False(string.IsNullOrWhiteSpace(viewModel.HeaderTitle));
             Assert.False(string.IsNullOrWhiteSpace(viewModel.BtnStart));
             Assert.False(string.IsNullOrWhiteSpace(viewModel.BtnStop));
+            Assert.False(string.IsNullOrWhiteSpace(viewModel.NotifyHiddenToTray));
             Assert.Equal("等待运行...", viewModel.StatusText);
             Assert.False(viewModel.IsRunning);
             Assert.True(viewModel.CanStart);
@@ -82,7 +83,7 @@ namespace EarthBackground.Tests
         {
             var viewModel = CreateViewModel();
 
-            _wallpaperService.Start();
+            _wallpaperService.StartWallpaperUpdates();
             InvokePrivate(viewModel, "OnStatusChanged", "Initializing...");
             await FlushUiAsync();
             Assert.Equal("初始化中...", viewModel.StatusText);
@@ -94,7 +95,7 @@ namespace EarthBackground.Tests
             await FlushUiAsync();
             Assert.Equal("下载中...", viewModel.StatusText);
 
-            _wallpaperService.Stop();
+            _wallpaperService.StopWallpaperUpdates();
             InvokePrivate(viewModel, "OnStatusChanged", "Stopped");
             await FlushUiAsync();
             Assert.Equal("等待运行...", viewModel.StatusText);
@@ -142,7 +143,7 @@ namespace EarthBackground.Tests
         public async Task OnExit_ShouldStopServiceAndRequestShutdown()
         {
             var viewModel = CreateViewModel();
-            _wallpaperService.Start();
+            _wallpaperService.StartWallpaperUpdates();
 
             InvokePrivate(viewModel, "OnExit");
             await FlushUiAsync();
@@ -175,7 +176,7 @@ namespace EarthBackground.Tests
 
         public void Dispose()
         {
-            _wallpaperService.Stop();
+            _wallpaperService.StopWallpaperUpdates();
             _serviceProvider.Dispose();
         }
 
@@ -203,6 +204,7 @@ namespace EarthBackground.Tests
                 "Btn_Stop" => "Stop",
                 "Btn_Settings" => "Settings",
                 "Btn_Exit" => "Exit",
+                "Notify_HiddenToTray" => "EarthBackground 仍在系统托盘运行。如需关闭程序，请点击“退出”。",
                 "Status_WaitForRun" => "等待运行...",
                 "Status_Running" => "运行中",
                 "Status_Initializing" => "初始化中...",

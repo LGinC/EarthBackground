@@ -83,6 +83,7 @@ namespace EarthBackground.ViewModels
         public string BtnStop => _loc["Btn_Stop"];
         public string BtnSettings => _loc["Btn_Settings"];
         public string BtnExit => _loc["Btn_Exit"];
+        public string NotifyHiddenToTray => _loc["Notify_HiddenToTray"];
 
         public ReactiveCommand<Unit, Unit> StartCommand { get; }
         public ReactiveCommand<Unit, Unit> StopCommand { get; }
@@ -221,7 +222,7 @@ namespace EarthBackground.ViewModels
             try
             {
                 _logger.LogInformation("用户点击开始按钮");
-                _wallpaperService.Start();
+                _wallpaperService.StartWallpaperUpdates();
                 IsRunning = true;
                 ProgressValue = 0;
                 ProgressText = string.Empty;
@@ -242,7 +243,7 @@ namespace EarthBackground.ViewModels
             try
             {
                 _logger.LogInformation("用户点击停止按钮");
-                _wallpaperService.Stop();
+                _wallpaperService.StopWallpaperUpdates();
                 IsRunning = false;
             }
             catch (Exception ex)
@@ -290,9 +291,17 @@ namespace EarthBackground.ViewModels
 
         private void OnExit()
         {
-            _wallpaperService.Stop();
+            _wallpaperService.StopWallpaperUpdates();
             Dispose();
-            Dispatcher.UIThread.Post(() => _lifetime.Shutdown());
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (_lifetime.MainWindow is Views.MainWindow mainWindow)
+                {
+                    mainWindow.AllowClose = true;
+                }
+
+                _lifetime.Shutdown();
+            });
         }
 
         private void StartEarthRotation()

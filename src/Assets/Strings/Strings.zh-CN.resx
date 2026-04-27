@@ -47,6 +47,7 @@
   <data name="Btn_Exit" xml:space="preserve"><value>✕ 退出</value></data>
   <data name="Notify_ServiceStarted" xml:space="preserve"><value>壁纸服务已启动</value></data>
   <data name="Notify_DownloadFailed" xml:space="preserve"><value>下载失败: {0}</value></data>
+  <data name="Notify_HiddenToTray" xml:space="preserve"><value>EarthBackground 仍在系统托盘运行。如需关闭程序，请点击“退出”。</value></data>
   <data name="TrayMenu_ShowWindow" xml:space="preserve"><value>显示主窗口</value></data>
   <data name="TrayMenu_Exit" xml:space="preserve"><value>退出</value></data>
   <data name="AppTitle" xml:space="preserve"><value>地球背景</value></data>

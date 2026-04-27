@@ -35,23 +35,9 @@ namespace EarthBackground.Captors
                 cancellationToken: token);
             if (latest == null) return [];
 
-            var ordered = latest.Timestamps
-                .Select(static t => (Raw: t, Time: ParseTimestamp(t.ToString())))
-                .OrderByDescending(static t => t.Time)
-                .ToArray();
-
-            if (ordered.Length == 0)
-            {
-                return [];
-            }
-
-            var newest = ordered[0].Time;
-            var cutoff = newest.AddHours(-Math.Max(recentHours, 1));
-
-            return [.. ordered
-                .Where(t => t.Time >= cutoff)
-                .OrderBy(t => t.Time)
-                .Select(t => t.Raw.ToString())];
+            return FilterImageIdsByClientLocalTime(
+                latest.Timestamps.Select(static t => t.ToString()),
+                recentHours);
         }
 
         private async Task SaveImageAsync(string imageId, string saveDir, CancellationToken token = default)
@@ -88,7 +74,7 @@ namespace EarthBackground.Captors
             var imageIds = await GetImageIdsAsync(count, token);
             if (imageIds.Length == 0) return [];
 
-            var latestId = imageIds[0];
+            var latestId = imageIds[^1];
             if (latestId == CurrentImageId && Directory.GetFiles(Options.SavePath, "frame_*.png").Length >= imageIds.Length)
             {
                 var existing = GetExistingFramePaths(imageIds);

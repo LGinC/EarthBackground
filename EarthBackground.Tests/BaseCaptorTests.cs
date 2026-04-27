@@ -60,6 +60,50 @@ namespace EarthBackground.Tests
             await waitingFrameCanceled.Task.WaitAsync(TimeSpan.FromSeconds(2), TestContext.Current.CancellationToken);
         }
 
+        [Fact]
+        public void FilterImageIdsByClientLocalTime_ShouldUseSatelliteTimeZoneOffset()
+        {
+            Directory.CreateDirectory(_tempDirectory);
+            using var captor = new TestCaptor(
+                new TestOptionsSnapshot<CaptureOption>(new CaptureOption
+                {
+                    SavePath = _tempDirectory,
+                    WallpaperFolder = _tempDirectory
+                }),
+                new TestHttpClientFactory(),
+                new TestOssProvider(),
+                TimeSpan.FromHours(8),
+                new DateTimeOffset(2026, 4, 27, 12, 0, 0, TimeSpan.FromHours(8)));
+
+            var result = captor.FilterImageIds(
+                new[] { "20260427110000", "20260427090000", "20260427070000" },
+                3);
+
+            Assert.Equal(new[] { "20260427090000", "20260427110000" }, result);
+        }
+
+        [Fact]
+        public void FilterImageIdsByClientLocalTime_ShouldConvertUtcSatelliteTimeToClientLocalTime()
+        {
+            Directory.CreateDirectory(_tempDirectory);
+            using var captor = new TestCaptor(
+                new TestOptionsSnapshot<CaptureOption>(new CaptureOption
+                {
+                    SavePath = _tempDirectory,
+                    WallpaperFolder = _tempDirectory
+                }),
+                new TestHttpClientFactory(),
+                new TestOssProvider(),
+                TimeSpan.Zero,
+                new DateTimeOffset(2026, 4, 27, 12, 0, 0, TimeSpan.FromHours(8)));
+
+            var result = captor.FilterImageIds(
+                new[] { "20260427030000", "20260427010000", "20260427000000" },
+                3);
+
+            Assert.Equal(new[] { "20260427010000", "20260427030000" }, result);
+        }
+
         public void Dispose()
         {
             if (Directory.Exists(_tempDirectory))
@@ -70,13 +114,24 @@ namespace EarthBackground.Tests
 
         private sealed class TestCaptor : BaseCaptor
         {
+            private readonly TimeSpan _satelliteTimeZoneOffset;
+            private readonly DateTimeOffset _clientLocalNow;
+
             public TestCaptor(
                 IOptionsSnapshot<CaptureOption> options,
                 IHttpClientFactory factory,
-                IOssProvider downloaderProvider)
+                IOssProvider downloaderProvider,
+                TimeSpan? satelliteTimeZoneOffset = null,
+                DateTimeOffset? clientLocalNow = null)
                 : base(options, factory, downloaderProvider)
             {
+                _satelliteTimeZoneOffset = satelliteTimeZoneOffset ?? TimeSpan.Zero;
+                _clientLocalNow = clientLocalNow ?? DateTimeOffset.Now;
             }
+
+            protected override TimeSpan SatelliteTimeZoneOffset => _satelliteTimeZoneOffset;
+
+            protected override DateTimeOffset ClientLocalNow => _clientLocalNow;
 
             public Task<IReadOnlyList<string>> BuildFramesAsync(
                 IReadOnlyList<string> imageIds,
@@ -85,6 +140,11 @@ namespace EarthBackground.Tests
                 CancellationToken token)
             {
                 return BuildFrameSequenceAsync(imageIds, frameFactory, onFrameComplete, token);
+            }
+
+            public string[] FilterImageIds(IEnumerable<string> imageIds, int recentHours)
+            {
+                return FilterImageIdsByClientLocalTime(imageIds, recentHours);
             }
 
             protected override int GetFrameProcessingParallelism() => 2;
