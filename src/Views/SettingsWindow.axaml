@@ -46,7 +46,7 @@
                     <CheckBox Content="{Binding Label_SetWallpaper}" IsChecked="{Binding SetWallpaper}" Foreground="#2C3E50" />
                     <CheckBox Content="{Binding Label_SaveWallpaper}" IsChecked="{Binding SaveWallpaper}" Foreground="#2C3E50" />
 
-                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
                         <!-- Satellite -->
                         <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding Label_Satellite}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4" />
                         <ComboBox Grid.Row="0" Grid.Column="1"
@@ -72,16 +72,26 @@
                                        HorizontalAlignment="Stretch" Margin="0,0,0,4" />
 
                         <!-- Zoom -->
-                        <TextBlock Grid.Row="3" Grid.Column="0" Text="{Binding Label_Zoom}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4" />
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="{Binding Label_FrameInterval}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4"
+                                   IsVisible="{Binding DynamicWallpaper}" />
                         <NumericUpDown Grid.Row="3" Grid.Column="1"
+                                       Value="{Binding FrameIntervalMinutes}"
+                                       Minimum="10" Maximum="{Binding FrameIntervalMaximum}"
+                                       Increment="10"
+                                       HorizontalAlignment="Stretch" Margin="0,0,0,4"
+                                       IsVisible="{Binding DynamicWallpaper}" />
+
+                        <!-- Zoom -->
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="{Binding Label_Zoom}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4" />
+                        <NumericUpDown Grid.Row="4" Grid.Column="1"
                                        Value="{Binding Zoom}"
                                        Minimum="1" Maximum="200"
                                        HorizontalAlignment="Stretch" Margin="0,0,0,4" />
 
                         <!-- Recent Hours -->
-                        <TextBlock Grid.Row="4" Grid.Column="0" Text="{Binding Label_RecentHours}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4"
+                        <TextBlock Grid.Row="5" Grid.Column="0" Text="{Binding Label_RecentHours}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4"
                                    IsVisible="{Binding DynamicWallpaper}" />
-                        <NumericUpDown Grid.Row="4" Grid.Column="1"
+                        <NumericUpDown Grid.Row="5" Grid.Column="1"
                                        Value="{Binding RecentHours}"
                                        Minimum="1" Maximum="168"
                                        Increment="1"
@@ -89,9 +99,9 @@
                                        IsVisible="{Binding DynamicWallpaper}" />
 
                         <!-- Loop Pause -->
-                        <TextBlock Grid.Row="5" Grid.Column="0" Text="{Binding Label_LoopPauseMilliseconds}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4"
+                        <TextBlock Grid.Row="6" Grid.Column="0" Text="{Binding Label_LoopPauseMilliseconds}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4"
                                    IsVisible="{Binding DynamicWallpaper}" />
-                        <NumericUpDown Grid.Row="5" Grid.Column="1"
+                        <NumericUpDown Grid.Row="6" Grid.Column="1"
                                        Value="{Binding LoopPauseMilliseconds}"
                                        Minimum="0" Maximum="10000"
                                        Increment="500"
@@ -99,16 +109,16 @@
                                        IsVisible="{Binding DynamicWallpaper}" />
 
                         <!-- Dynamic wallpaper monitors -->
-                        <TextBlock Grid.Row="6" Grid.Column="0" Text="{Binding Label_DynamicWallpaperMonitors}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4"
+                        <TextBlock Grid.Row="7" Grid.Column="0" Text="{Binding Label_DynamicWallpaperMonitors}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4"
                                    IsVisible="{Binding DynamicWallpaper}" />
-                        <CheckBox Grid.Row="6" Grid.Column="1"
+                        <CheckBox Grid.Row="7" Grid.Column="1"
                                   Content="{Binding Label_AllDynamicWallpaperMonitors}"
                                   IsChecked="{Binding AllDynamicWallpaperMonitors}"
                                   Foreground="#2C3E50"
                                   Margin="0,0,0,4"
                                   IsVisible="{Binding DynamicWallpaper}" />
 
-                        <ItemsControl Grid.Row="7" Grid.Column="1"
+                        <ItemsControl Grid.Row="8" Grid.Column="1"
                                       ItemsSource="{Binding DynamicWallpaperMonitors}"
                                       IsVisible="{Binding DynamicWallpaperMonitorListVisible}"
                                       Margin="0,0,0,4">

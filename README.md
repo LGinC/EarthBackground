@@ -64,7 +64,7 @@
 
 - Windows：查找 `Progman` / `WorkerW`，将 Avalonia 播放窗口设为子窗口并放在桌面图标层下方。
 - macOS：通过 native `NSWindow` 设置 `level = kCGDesktopWindowLevel - 1`，并启用 `canJoinAllSpaces | stationary | ignoresCycle`；窗口无边框、无阴影、鼠标穿透。
-- Linux X11：要求 `TopLevel.TryGetPlatformHandle()` 返回 `HandleDescriptor == "X11"`，然后用 `libX11` 设置 `_NET_WM_WINDOW_TYPE_DESKTOP`、`_NET_WM_STATE_BELOW/SKIP_TASKBAR/SKIP_PAGER/STICKY`，reparent 到 root 并 lower。
+- Linux X11：要求 `TopLevel.TryGetPlatformHandle()` 返回 `HandleDescriptor == "X11"` 或 `"XID"`，然后用 `libX11` 设置 `_NET_WM_WINDOW_TYPE_DESKTOP`、`_NET_WM_STATE_BELOW/SKIP_TASKBAR/SKIP_PAGER/STICKY`；若存在 `xfdesktop` 等已有桌面窗口，则将播放窗口堆叠到其上方，否则退回 root window 并 lower。
 
 ## 架构流程图
 
@@ -194,7 +194,8 @@ flowchart LR
 - `CaptureOptions`
   - 抓取器
   - 分辨率
-  - 抓取间隔
+  - 更新间隔
+  - 帧间隔
   - 缩放比例
   - 是否动态壁纸
   - 最近时长
@@ -224,6 +225,7 @@ flowchart LR
     "Resolution": 2,
     "Zoom": 80,
     "Interval": 20,
+    "FrameIntervalMinutes": 10,
     "DynamicWallpaper": true,
     "FrameIntervalMs": 500,
     "RecentHours": 24,
@@ -261,6 +263,10 @@ flowchart LR
   - `Qiniuyun`
 - `DynamicWallpaper`
   - `true` 时使用最近一段时间的 PNG 帧序列播放动态壁纸
+- `Interval`
+  - 更新间隔，单位分钟
+- `FrameIntervalMinutes`
+  - 抓取帧间隔，单位分钟，最小 10，最大 360，且不超过 `RecentHours` 对应的分钟数
 - `FrameIntervalMs`
   - 每帧播放间隔，单位毫秒
 - `RecentHours`

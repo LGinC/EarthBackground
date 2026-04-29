@@ -66,7 +66,8 @@
   <data name="Settings_SaveWallpaper" xml:space="preserve"><value>Save wallpaper copy</value></data>
   <data name="Settings_Satellite" xml:space="preserve"><value>Satellite</value></data>
   <data name="Settings_Resolution" xml:space="preserve"><value>Resolution</value></data>
-  <data name="Settings_Interval" xml:space="preserve"><value>Interval</value></data>
+  <data name="Settings_Interval" xml:space="preserve"><value>Update interval (min)</value></data>
+  <data name="Settings_FrameInterval" xml:space="preserve"><value>Frame interval (min)</value></data>
   <data name="Settings_IntervalUnit" xml:space="preserve"><value>min</value></data>
   <data name="Settings_Zoom" xml:space="preserve"><value>Zoom</value></data>
   <data name="Settings_ZoomUnit" xml:space="preserve"><value>%</value></data>

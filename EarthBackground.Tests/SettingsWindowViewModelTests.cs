@@ -40,6 +40,7 @@ namespace EarthBackground.Tests
                 Resolution = Resolution.r_2752,
                 Zoom = 80,
                 Interval = 20,
+                FrameIntervalMinutes = 10,
                 DynamicWallpaper = true,
                 FrameIntervalMs = 500,
                 RecentHours = 24,
@@ -234,6 +235,7 @@ namespace EarthBackground.Tests
             viewModel.SelectedResolution = new NameValue<Resolution>("1376*1376", Resolution.r_1376);
             viewModel.SelectedDownloader = new NameValue<string>("Cloudinary", NameConsts.Cloudinary);
             viewModel.Interval = 15;
+            viewModel.FrameIntervalMinutes = 30;
             viewModel.Zoom = 90;
             viewModel.RecentHours = 12;
             viewModel.LoopPauseMilliseconds = 1500;
@@ -255,6 +257,7 @@ namespace EarthBackground.Tests
             Assert.Equal(NameConsts.Himawari, savedCapture!.Captor);
             Assert.Equal(Resolution.r_1376, savedCapture.Resolution);
             Assert.Equal(15, savedCapture.Interval);
+            Assert.Equal(30, savedCapture.FrameIntervalMinutes);
             Assert.Equal(90, savedCapture.Zoom);
             Assert.Equal(12, savedCapture.RecentHours);
             Assert.Equal(1500, savedCapture.LoopPauseMilliseconds);
@@ -273,6 +276,25 @@ namespace EarthBackground.Tests
             Assert.Equal("http://cdn.example.com", savedOss.Domain);
 
             Assert.False(File.Exists(_imageIdPath));
+        }
+
+        [Fact]
+        public async Task Save_ShouldClampFrameIntervalMinutes_ToAllowedRangeAndRecentHours()
+        {
+            var viewModel = CreateViewModel();
+            CaptureOption? savedCapture = null;
+            _configureSaverMock
+                .Setup(x => x.SaveAsync(It.IsAny<CaptureOption>(), It.IsAny<OssOption>()))
+                .Callback<CaptureOption, OssOption>((capture, _) => savedCapture = capture)
+                .Returns(Task.CompletedTask);
+
+            viewModel.RecentHours = 1;
+            viewModel.FrameIntervalMinutes = 400;
+
+            await InvokeOnSaveAsync(viewModel);
+
+            Assert.NotNull(savedCapture);
+            Assert.Equal(60, savedCapture!.FrameIntervalMinutes);
         }
 
         [Fact]

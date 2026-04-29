@@ -66,7 +66,8 @@
   <data name="Settings_SaveWallpaper" xml:space="preserve"><value>另存为壁纸</value></data>
   <data name="Settings_Satellite" xml:space="preserve"><value>卫星</value></data>
   <data name="Settings_Resolution" xml:space="preserve"><value>分辨率</value></data>
-  <data name="Settings_Interval" xml:space="preserve"><value>间隔</value></data>
+  <data name="Settings_Interval" xml:space="preserve"><value>更新间隔(分钟)</value></data>
+  <data name="Settings_FrameInterval" xml:space="preserve"><value>帧间隔(分钟)</value></data>
   <data name="Settings_IntervalUnit" xml:space="preserve"><value>分钟</value></data>
   <data name="Settings_Zoom" xml:space="preserve"><value>缩放</value></data>
   <data name="Settings_ZoomUnit" xml:space="preserve"><value>%</value></data>

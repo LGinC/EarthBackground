@@ -148,7 +148,7 @@ namespace EarthBackground.Captors
         {
             var ordered = imageIds
                 .Select(id => (Raw: id, Time: ParseSatelliteTimestamp(id)))
-                .OrderByDescending(static t => t.Time)
+                .OrderBy(static t => t.Time)
                 .ToArray();
 
             if (ordered.Length == 0)
@@ -156,13 +156,50 @@ namespace EarthBackground.Captors
                 return Array.Empty<string>();
             }
 
-            var cutoff = ClientLocalNow.AddHours(-Math.Max(recentHours, 1));
+            var cutoff = ordered[^1].Time.AddHours(-Math.Max(recentHours, 1));
 
             return ordered
                 .Where(t => t.Time >= cutoff)
-                .OrderBy(t => t.Time)
                 .Select(t => t.Raw)
                 .ToArray();
+        }
+
+        protected string[] ExpandAndFilterImageIdsByRecentAvailableTime(IEnumerable<string> imageIds, int recentHours)
+        {
+            var ordered = imageIds
+                .Select(id => (Raw: id, Time: ParseSatelliteTimestamp(id)))
+                .OrderBy(static t => t.Time)
+                .ToArray();
+
+            if (ordered.Length == 0)
+            {
+                return [];
+            }
+
+            var cutoff = ordered[^1].Time.AddHours(-Math.Max(recentHours, 1));
+            var interval = TimeSpan.FromMinutes(NormalizeFrameIntervalMinutes(Options.FrameIntervalMinutes, recentHours));
+            if (interval <= TimeSpan.Zero)
+            {
+                return ordered
+                    .Where(t => t.Time >= cutoff)
+                    .Select(t => t.Raw)
+                    .ToArray();
+            }
+
+            var known = ordered
+                .GroupBy(static t => t.Time)
+                .ToDictionary(static g => g.Key, static g => g.First().Raw);
+            var result = new List<string>();
+
+            for (var timestamp = ordered[^1].Time; timestamp >= cutoff; timestamp = timestamp.Subtract(interval))
+            {
+                result.Add(known.TryGetValue(timestamp, out var raw)
+                    ? raw
+                    : FormatSatelliteTimestamp(timestamp));
+            }
+
+            result.Reverse();
+            return result.ToArray();
         }
 
         protected DateTimeOffset ParseSatelliteTimestamp(string value)
@@ -176,6 +213,18 @@ namespace EarthBackground.Captors
             return new DateTimeOffset(DateTime.SpecifyKind(timestamp, DateTimeKind.Unspecified), SatelliteTimeZoneOffset);
         }
 
+        protected string FormatSatelliteTimestamp(DateTimeOffset value)
+        {
+            return value.ToOffset(SatelliteTimeZoneOffset).ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture);
+        }
+
+        protected static int NormalizeFrameIntervalMinutes(int value, int recentHours)
+        {
+            var maximum = Math.Min(360, Math.Max(1, recentHours) * 60);
+            return Math.Clamp(value, 10, maximum);
+        }
+
+        
         protected void CleanupFramesOlderThan(string minImageId)
         {
             if (string.IsNullOrWhiteSpace(minImageId) || !Directory.Exists(Options.SavePath))

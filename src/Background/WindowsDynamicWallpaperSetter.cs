@@ -25,7 +25,9 @@ namespace EarthBackground.Background
         private readonly IServiceProvider _serviceProvider;
         private readonly IOptionsMonitor<CaptureOption> _captureOptions;
         private readonly IWallpaperMonitorProvider _monitorProvider;
-        private readonly List<WallpaperPlaybackWindow> _playbackWindows = new();
+        private readonly IWindowsWallpaperOcclusionDetector _occlusionDetector;
+        private readonly List<PlaybackSession> _playbackSessions = new();
+        private readonly DispatcherTimer _occlusionTimer;
         private string[]? _currentFramePaths;
         private string[]? _currentMonitorIds;
         private int _currentFrameIntervalMs;
@@ -35,12 +37,19 @@ namespace EarthBackground.Background
             ILogger<WindowsDynamicWallpaperSetter> logger,
             IServiceProvider serviceProvider,
             IOptionsMonitor<CaptureOption> captureOptions,
-            IWallpaperMonitorProvider monitorProvider)
+            IWallpaperMonitorProvider monitorProvider,
+            IWindowsWallpaperOcclusionDetector occlusionDetector)
         {
             _logger = logger;
             _serviceProvider = serviceProvider;
             _captureOptions = captureOptions;
             _monitorProvider = monitorProvider;
+            _occlusionDetector = occlusionDetector;
+            _occlusionTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(1)
+            };
+            _occlusionTimer.Tick += OnOcclusionTimerTick;
         }
 
         public Task SetBackgroundAsync(string filePath, CancellationToken token = default)
@@ -85,14 +94,9 @@ namespace EarthBackground.Background
                 GetWindowClassName(progman));
 
             onProgress?.Invoke(1, 2);
-            var openStopwatch = Stopwatch.StartNew();
-            var framePlayer = await Task.Run(() => PngSequencePlayer.Open(orderedFilePaths, frameIntervalMs), token);
-            openStopwatch.Stop();
-            token.ThrowIfCancellationRequested();
-            _logger.LogInformation("PNG 序列已建立流式播放上下文: {Count} 帧，耗时 {ElapsedMs}ms", framePlayer.FrameCount, openStopwatch.ElapsedMilliseconds);
-
+            var frameCount = 0;
             var showStopwatch = Stopwatch.StartNew();
-            WallpaperPlaybackWindow? newWindow = null;
+            var newSessions = new List<PlaybackSession>(monitors.Count);
             try
             {
                 token.ThrowIfCancellationRequested();
@@ -100,27 +104,40 @@ namespace EarthBackground.Background
                 {
                     token.ThrowIfCancellationRequested();
                     var logger = _serviceProvider.GetRequiredService<ILogger<WallpaperPlaybackWindow>>();
-                    var displayRegions = new List<WallpaperPlaybackWindow.DisplayRegion>(monitors.Count);
                     foreach (var monitor in monitors)
                     {
-                        displayRegions.Add(new WallpaperPlaybackWindow.DisplayRegion(monitor.X, monitor.Y, monitor.Width, monitor.Height));
+                        var framePlayer = await Task.Run(() => PngSequencePlayer.Open(orderedFilePaths, frameIntervalMs), token);
+                        if (frameCount == 0)
+                        {
+                            frameCount = framePlayer.FrameCount;
+                        }
+
+                        var displayRegions = new[]
+                        {
+                            new WallpaperPlaybackWindow.DisplayRegion(monitor.X, monitor.Y, monitor.Width, monitor.Height)
+                        };
+
+                        var window = new WallpaperPlaybackWindow(
+                            logger,
+                            framePlayer,
+                            _workerW,
+                            displayRegions,
+                            _captureOptions.CurrentValue.LoopPauseMilliseconds);
+                        newSessions.Add(new PlaybackSession(monitor, window));
+                        await window.ShowEmbeddedAsync();
                     }
 
-                    newWindow = new WallpaperPlaybackWindow(
-                        logger,
-                        framePlayer,
-                        _workerW,
-                        displayRegions,
-                        _captureOptions.CurrentValue.LoopPauseMilliseconds);
-                    await newWindow.ShowEmbeddedAsync();
-
-                    var oldWindows = _playbackWindows.ToArray();
-                    _playbackWindows.Clear();
-                    _playbackWindows.Add(newWindow);
-                    foreach (var window in oldWindows)
+                    var oldSessions = _playbackSessions.ToArray();
+                    _occlusionTimer.Stop();
+                    _playbackSessions.Clear();
+                    _playbackSessions.AddRange(newSessions);
+                    foreach (var session in oldSessions)
                     {
-                        window.Close();
+                        session.Window.Close();
                     }
+
+                    OnOcclusionTimerTick(this, EventArgs.Empty);
+                    _occlusionTimer.Start();
                 });
 
                 _currentFramePaths = orderedFilePaths.ToArray();
@@ -129,13 +146,9 @@ namespace EarthBackground.Background
             }
             catch
             {
-                if (newWindow != null)
+                foreach (var session in newSessions)
                 {
-                    Dispatcher.UIThread.Post(newWindow.Close);
-                }
-                else
-                {
-                    framePlayer.Dispose();
+                    Dispatcher.UIThread.Post(session.Window.Close);
                 }
 
                 throw;
@@ -144,10 +157,9 @@ namespace EarthBackground.Background
             onProgress?.Invoke(2, 2);
 
             _logger.LogInformation(
-                "动态壁纸已启动，共 {Count} 帧，显示器数={MonitorCount}，播放源=PNG 序列，耗时: 建立={OpenMs}ms, 展示={ShowMs}ms",
-                framePlayer.FrameCount,
+                "动态壁纸已启动，共 {Count} 帧，显示器数={MonitorCount}，播放源=PNG 序列，耗时: 展示={ShowMs}ms",
+                frameCount,
                 monitors.Count,
-                openStopwatch.ElapsedMilliseconds,
                 showStopwatch.ElapsedMilliseconds);
         }
 
@@ -155,12 +167,13 @@ namespace EarthBackground.Background
         {
             Dispatcher.UIThread.Post(() =>
             {
-                foreach (var window in _playbackWindows)
+                _occlusionTimer.Stop();
+                foreach (var session in _playbackSessions)
                 {
-                    window.Close();
+                    session.Window.Close();
                 }
 
-                _playbackWindows.Clear();
+                _playbackSessions.Clear();
             });
 
             _currentFramePaths = null;
@@ -175,7 +188,7 @@ namespace EarthBackground.Background
             int frameIntervalMs,
             IReadOnlyList<string> orderedMonitorIds)
         {
-            if (_playbackWindows.Count == 0 || _currentFramePaths == null || _currentMonitorIds == null)
+            if (_playbackSessions.Count == 0 || _currentFramePaths == null || _currentMonitorIds == null)
             {
                 return false;
             }
@@ -267,6 +280,35 @@ namespace EarthBackground.Background
         public void Dispose()
         {
             StopDynamicBackground();
+            _occlusionTimer.Tick -= OnOcclusionTimerTick;
+        }
+
+        private void OnOcclusionTimerTick(object? sender, EventArgs e)
+        {
+            if (_playbackSessions.Count == 0)
+            {
+                _occlusionTimer.Stop();
+                return;
+            }
+
+            var excludedWindowHandles = _playbackSessions
+                .Select(static session => session.Window.NativeWindowHandle)
+                .Where(static handle => handle != IntPtr.Zero)
+                .ToHashSet();
+            var monitors = _playbackSessions.Select(static session => session.Monitor).ToArray();
+            var occludedMonitorIds = _occlusionDetector.GetOccludedMonitorIds(monitors, excludedWindowHandles);
+
+            foreach (var session in _playbackSessions)
+            {
+                if (occludedMonitorIds.Contains(session.Monitor.Id))
+                {
+                    session.Window.SuspendRendering();
+                }
+                else
+                {
+                    session.Window.ResumeRendering();
+                }
+            }
         }
 
         private string GetWindowClassName(IntPtr hwnd)
@@ -340,5 +382,7 @@ namespace EarthBackground.Background
                 .OrderBy(static id => id, StringComparer.OrdinalIgnoreCase)
                 .ToArray();
         }
+
+        private sealed record PlaybackSession(WallpaperMonitor Monitor, WallpaperPlaybackWindow Window);
     }
 }

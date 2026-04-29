@@ -59,11 +59,14 @@ namespace EarthBackground.Tests
             var textBlocks = window.GetLogicalDescendants().OfType<TextBlock>().ToList();
 
             var recentHoursLabel = textBlocks.FirstOrDefault(x => string.Equals(x.Text, viewModel.Label_RecentHours, StringComparison.Ordinal));
+            var frameIntervalLabel = textBlocks.FirstOrDefault(x => string.Equals(x.Text, viewModel.Label_FrameInterval, StringComparison.Ordinal));
             var loopPauseLabel = textBlocks.FirstOrDefault(x => string.Equals(x.Text, viewModel.Label_LoopPauseMilliseconds, StringComparison.Ordinal));
 
             Assert.NotNull(recentHoursLabel);
+            Assert.NotNull(frameIntervalLabel);
             Assert.NotNull(loopPauseLabel);
             Assert.True(recentHoursLabel!.IsVisible);
+            Assert.True(frameIntervalLabel!.IsVisible);
             Assert.True(loopPauseLabel!.IsVisible);
         }
 
@@ -129,7 +132,8 @@ namespace EarthBackground.Tests
                 Label_SaveWallpaper = "Save wallpaper copy",
                 Label_Satellite = "Satellite",
                 Label_Resolution = "Resolution",
-                Label_Interval = "Interval",
+                Label_Interval = "Update interval (min)",
+                Label_FrameInterval = "Frame interval (min)",
                 Label_Zoom = "Zoom",
                 Label_RecentHours = "Recent hours",
                 Label_LoopPauseMilliseconds = "Loop pause (ms)",
@@ -178,6 +182,7 @@ namespace EarthBackground.Tests
             public string Label_Satellite { get; init; } = string.Empty;
             public string Label_Resolution { get; init; } = string.Empty;
             public string Label_Interval { get; init; } = string.Empty;
+            public string Label_FrameInterval { get; init; } = string.Empty;
             public string Label_Zoom { get; init; } = string.Empty;
             public string Label_RecentHours { get; init; } = string.Empty;
             public string Label_LoopPauseMilliseconds { get; init; } = string.Empty;
@@ -208,6 +213,8 @@ namespace EarthBackground.Tests
             public object? SelectedDownloader { get; init; }
             public object? SelectedZone { get; init; }
             public int Interval { get; init; } = 20;
+            public int FrameIntervalMinutes { get; init; } = 10;
+            public int FrameIntervalMaximum { get; init; } = 360;
             public int Zoom { get; init; } = 100;
             public int RecentHours { get; init; } = 24;
             public int LoopPauseMilliseconds { get; init; } = 3000;

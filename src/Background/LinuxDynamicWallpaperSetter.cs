@@ -23,7 +23,7 @@ namespace EarthBackground.Background
         private readonly IServiceProvider _serviceProvider;
         private readonly IOptionsMonitor<CaptureOption> _captureOptions;
         private readonly IWallpaperMonitorProvider _monitorProvider;
-        private readonly List<WallpaperPlaybackWindow> _playbackWindows = new();
+        private readonly List<WallpaperPlaybackWindow> _playbackWindows = [];
         private string[]? _currentFramePaths;
         private string[]? _currentMonitorIds;
         private int _currentFrameIntervalMs;

@@ -29,6 +29,7 @@ namespace EarthBackground.ViewModels
         private NameValue<string>? _selectedCaptor;
         private NameValue<Resolution>? _selectedResolution;
         private int _interval;
+        private int _frameIntervalMinutes;
         private int _zoom;
         private int _recentHours;
         private int _loopPauseMilliseconds;
@@ -85,6 +86,12 @@ namespace EarthBackground.ViewModels
             set => this.RaiseAndSetIfChanged(ref _interval, value);
         }
 
+        public int FrameIntervalMinutes
+        {
+            get => _frameIntervalMinutes;
+            set => this.RaiseAndSetIfChanged(ref _frameIntervalMinutes, NormalizeFrameIntervalMinutes(value, RecentHours));
+        }
+
         public int Zoom
         {
             get => _zoom;
@@ -94,8 +101,15 @@ namespace EarthBackground.ViewModels
         public int RecentHours
         {
             get => _recentHours;
-            set => this.RaiseAndSetIfChanged(ref _recentHours, value);
+            set
+            {
+                this.RaiseAndSetIfChanged(ref _recentHours, value);
+                this.RaisePropertyChanged(nameof(FrameIntervalMaximum));
+                FrameIntervalMinutes = _frameIntervalMinutes;
+            }
         }
+
+        public int FrameIntervalMaximum => Math.Min(360, Math.Max(1, RecentHours) * 60);
 
         public int LoopPauseMilliseconds
         {
@@ -267,6 +281,7 @@ namespace EarthBackground.ViewModels
         public string Label_Satellite => _loc["Settings_Satellite"];
         public string Label_Resolution => _loc["Settings_Resolution"];
         public string Label_Interval => _loc["Settings_Interval"];
+        public string Label_FrameInterval => _loc["Settings_FrameInterval"];
         public string Label_IntervalUnit => _loc["Settings_IntervalUnit"];
         public string Label_Zoom => _loc["Settings_Zoom"];
         public string Label_ZoomUnit => _loc["Settings_ZoomUnit"];
@@ -325,6 +340,7 @@ namespace EarthBackground.ViewModels
             Interval = _capture.Interval;
             Zoom = _capture.Zoom;
             RecentHours = _capture.RecentHours;
+            FrameIntervalMinutes = _capture.FrameIntervalMinutes;
             LoopPauseMilliseconds = _capture.LoopPauseMilliseconds;
             ChooseSavePathEnabled = _capture.SaveWallpaper;
             InitializeDynamicWallpaperMonitors();
@@ -441,6 +457,7 @@ namespace EarthBackground.ViewModels
 
             _capture.Captor = SelectedCaptor?.Value ?? string.Empty;
             _capture.Interval = Interval;
+            _capture.FrameIntervalMinutes = NormalizeFrameIntervalMinutes(FrameIntervalMinutes, RecentHours);
             _capture.Resolution = SelectedResolution?.Value ?? Resolution.r_1376;
             _capture.DynamicWallpaper = DynamicWallpaper;
             _capture.SaveWallpaper = SaveWallpaper;
@@ -543,6 +560,12 @@ namespace EarthBackground.ViewModels
 
             File.SetAttributes(dirPath, FileAttributes.Normal);
             Directory.Delete(dirPath, recursive: false);
+        }
+
+        private static int NormalizeFrameIntervalMinutes(int value, int recentHours)
+        {
+            var maximum = Math.Min(360, Math.Max(1, recentHours) * 60);
+            return Math.Clamp(value, 10, maximum);
         }
     }
 }

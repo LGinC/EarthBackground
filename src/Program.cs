@@ -116,6 +116,7 @@ namespace EarthBackground
             services.AddSingleton<LinuxDynamicWallpaperSetter>();
 #if WINDOWS
             services.AddTransient<IBackgroundSetter, WindowsBackgroudSetter>();
+            services.AddSingleton<IWindowsWallpaperOcclusionDetector, WindowsWallpaperOcclusionDetector>();
             services.AddSingleton<WindowsDynamicWallpaperSetter>();
 #endif
             services.AddSingleton<IDynamicWallpaperSetter>(provider =>

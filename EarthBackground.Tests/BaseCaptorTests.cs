@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,7 +26,8 @@ namespace EarthBackground.Tests
                 new TestOptionsSnapshot<CaptureOption>(new CaptureOption
                 {
                     SavePath = _tempDirectory,
-                    WallpaperFolder = _tempDirectory
+                    WallpaperFolder = _tempDirectory,
+                    FrameIntervalMinutes = 10
                 }),
                 new TestHttpClientFactory(),
                 new TestOssProvider());
@@ -66,14 +68,15 @@ namespace EarthBackground.Tests
         }
 
         [Fact]
-        public void FilterImageIdsByClientLocalTime_ShouldUseSatelliteTimeZoneOffset()
+        public void FilterImageIdsByClientLocalTime_ShouldUseLatestAvailableFrameAsWindowEnd()
         {
             Directory.CreateDirectory(_tempDirectory);
             using var captor = new TestCaptor(
                 new TestOptionsSnapshot<CaptureOption>(new CaptureOption
                 {
                     SavePath = _tempDirectory,
-                    WallpaperFolder = _tempDirectory
+                    WallpaperFolder = _tempDirectory,
+                    FrameIntervalMinutes = 10
                 }),
                 new TestHttpClientFactory(),
                 new TestOssProvider(),
@@ -106,7 +109,36 @@ namespace EarthBackground.Tests
                 new[] { "20260427030000", "20260427010000", "20260427000000" },
                 3);
 
-            Assert.Equal(new[] { "20260427010000", "20260427030000" }, result);
+            Assert.Equal(new[] { "20260427000000", "20260427010000", "20260427030000" }, result);
+        }
+
+        [Fact]
+        public void ExpandAndFilterImageIdsByRecentAvailableTime_ShouldBackfillLimitedLatestTimestampLists()
+        {
+            Directory.CreateDirectory(_tempDirectory);
+            using var captor = new TestCaptor(
+                new TestOptionsSnapshot<CaptureOption>(new CaptureOption
+                {
+                    SavePath = _tempDirectory,
+                    WallpaperFolder = _tempDirectory,
+                    FrameIntervalMinutes = 10
+                }),
+                new TestHttpClientFactory(),
+                new TestOssProvider(),
+                TimeSpan.Zero,
+                new DateTimeOffset(2026, 4, 29, 14, 0, 0, TimeSpan.FromHours(8)));
+
+            var latest = new DateTime(2026, 4, 29, 5, 30, 0);
+            var limitedLatestTimes = Enumerable
+                .Range(0, 100)
+                .Select(i => latest.AddMinutes(-10 * i).ToString("yyyyMMddHHmmss"))
+                .ToArray();
+
+            var result = captor.ExpandAndFilterImageIds(limitedLatestTimes, 24);
+
+            Assert.Equal(145, result.Length);
+            Assert.Equal("20260428053000", result[0]);
+            Assert.Equal("20260429053000", result[^1]);
         }
 
         [Fact]
@@ -179,6 +211,11 @@ namespace EarthBackground.Tests
             public string[] FilterImageIds(IEnumerable<string> imageIds, int recentHours)
             {
                 return FilterImageIdsByClientLocalTime(imageIds, recentHours);
+            }
+
+            public string[] ExpandAndFilterImageIds(IEnumerable<string> imageIds, int recentHours)
+            {
+                return ExpandAndFilterImageIdsByRecentAvailableTime(imageIds, recentHours);
             }
 
             public bool TryGetExistingFrame(string imageId, out string framePath)

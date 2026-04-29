@@ -40,6 +40,8 @@ namespace EarthBackground.Views
         private bool _started;
         private bool _renderingPaused;
 
+        public IntPtr NativeWindowHandle => _nativeWindowHandle;
+
         internal WallpaperPlaybackWindow(
             ILogger<WallpaperPlaybackWindow> logger,
             IWallpaperFramePlayer framePlayer,
@@ -146,10 +148,10 @@ namespace EarthBackground.Views
             }
             else if (_useX11DesktopWindow)
             {
-                if (!string.Equals(platformHandle?.HandleDescriptor, "X11", StringComparison.OrdinalIgnoreCase))
+                if (!IsX11WindowHandleDescriptor(platformHandle?.HandleDescriptor))
                 {
                     _openedTcs?.TrySetException(new PlatformNotSupportedException(
-                        $"Linux dynamic wallpaper requires an X11 window handle, but Avalonia returned '{platformHandle?.HandleDescriptor ?? "<null>"}'."));
+                        $"Linux dynamic wallpaper requires an X11/XID window handle, but Avalonia returned '{platformHandle?.HandleDescriptor ?? "<null>"}'."));
                     return;
                 }
 
@@ -293,6 +295,10 @@ namespace EarthBackground.Views
             var virtualScreenY = GetSystemMetrics(SM_YVIRTUALSCREEN);
             return new PixelPoint(screenX - virtualScreenX, screenY - virtualScreenY);
         }
+
+        internal static bool IsX11WindowHandleDescriptor(string? handleDescriptor)
+            => string.Equals(handleDescriptor, "X11", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(handleDescriptor, "XID", StringComparison.OrdinalIgnoreCase);
 
         private const int GWL_STYLE = -16;
         private const int SM_XVIRTUALSCREEN = 76;

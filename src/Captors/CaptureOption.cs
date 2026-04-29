@@ -54,6 +54,11 @@ namespace EarthBackground
         public int Interval { get; set; } = 20;
 
         /// <summary>
+        /// 动态壁纸抓取帧间隔 单位min 默认10
+        /// </summary>
+        public int FrameIntervalMinutes { get; set; } = 10;
+
+        /// <summary>
         /// 是否启用动态壁纸（图片序列循环播放）
         /// </summary>
         public bool DynamicWallpaper { get; set; } = true;

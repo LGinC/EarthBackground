@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -29,7 +30,7 @@ namespace EarthBackground.Captors
         /// </summary>
         private async Task<string[]> GetImageIdsAsync(int recentHours = 24, CancellationToken token = default)
         {
-            // duration 取足够大一些，再根据时间戳筛选最近 N 小时
+            var frameIntervalMinutes = NormalizeFrameIntervalMinutes(Options.FrameIntervalMinutes, recentHours);
             var content = new FormUrlEncodedContent(new Dictionary<string, string>
             {
                 {"start", ""},
@@ -37,8 +38,8 @@ namespace EarthBackground.Captors
                 {"sat", NameConsts.Fy4CurrentSatellite},
                 {"obsType", "full_disk"},
                 {"interval", "1"},
-                {"duration", "200"},
-                {"intervalCell", "10"},
+                {"duration", Math.Max(recentHours, 1)},
+                {"intervalCell", frameIntervalMinutes},
                 {"queryProduct", "NatureColor_NoLit"}
             });
             var re = await Client.PostAsync("/swapQuery/public/DataQuery/playList", content, token);
