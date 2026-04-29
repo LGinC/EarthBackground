@@ -38,8 +38,8 @@ namespace EarthBackground.Captors
                 {"sat", NameConsts.Fy4CurrentSatellite},
                 {"obsType", "full_disk"},
                 {"interval", "1"},
-                {"duration", Math.Max(recentHours, 1)},
-                {"intervalCell", frameIntervalMinutes},
+                {"duration", Math.Max(recentHours, 1).ToString(CultureInfo.InvariantCulture)},
+                {"intervalCell", frameIntervalMinutes.ToString(CultureInfo.InvariantCulture)},
                 {"queryProduct", "NatureColor_NoLit"}
             });
             var re = await Client.PostAsync("/swapQuery/public/DataQuery/playList", content, token);
