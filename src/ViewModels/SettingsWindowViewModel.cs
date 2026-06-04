@@ -494,8 +494,7 @@ namespace EarthBackground.ViewModels
                 }
             }
 
-            if (File.Exists(NameConsts.ImageIdPath))
-                File.Delete(NameConsts.ImageIdPath);
+            TryDeleteImageId();
 
             _wallpaperService.TriggerUpdate();
 
@@ -561,6 +560,28 @@ namespace EarthBackground.ViewModels
             File.SetAttributes(dirPath, FileAttributes.Normal);
             Directory.Delete(dirPath, recursive: false);
         }
+
+        private static void TryDeleteImageId()
+        {
+            var imageIdPath = NameConsts.ImageIdPath;
+            if (!File.Exists(imageIdPath))
+            {
+                return;
+            }
+
+            try
+            {
+                File.SetAttributes(imageIdPath, FileAttributes.Normal);
+                File.Delete(imageIdPath);
+            }
+            catch (IOException)
+            {
+            }
+            catch (UnauthorizedAccessException)
+            {
+            }
+        }
+
 
         private static int NormalizeFrameIntervalMinutes(int value, int recentHours)
         {

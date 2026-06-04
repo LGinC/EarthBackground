@@ -279,6 +279,23 @@ namespace EarthBackground.Tests
         }
 
         [Fact]
+        public async Task Save_ShouldNotFail_WhenImageIdFileIsLockedForRead()
+        {
+            var viewModel = CreateViewModel();
+            File.WriteAllText(_imageIdPath, "old-image-id");
+            _configureSaverMock
+                .Setup(x => x.SaveAsync(It.IsAny<CaptureOption>(), It.IsAny<OssOption>()))
+                .Returns(Task.CompletedTask);
+
+            using var stream = new FileStream(_imageIdPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+
+            var exception = await Record.ExceptionAsync(() => InvokeOnSaveAsync(viewModel));
+
+            Assert.Null(exception);
+            Assert.True(File.Exists(_imageIdPath));
+        }
+
+        [Fact]
         public async Task Save_ShouldClampFrameIntervalMinutes_ToAllowedRangeAndRecentHours()
         {
             var viewModel = CreateViewModel();
