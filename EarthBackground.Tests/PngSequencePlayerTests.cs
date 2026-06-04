@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using Avalonia.Headless.XUnit;
 using Avalonia.Media.Imaging;
 using EarthBackground.Imaging;
 using SixLabors.ImageSharp;
@@ -12,7 +13,7 @@ namespace EarthBackground.Tests
     {
         private readonly string _tempDirectory = Path.Combine(Path.GetTempPath(), "EarthBackground.Tests", Guid.NewGuid().ToString("N"));
 
-        [Fact]
+        [AvaloniaFact]
         public void Open_ShouldSkipFramesWithDifferentDimensions()
         {
             Directory.CreateDirectory(_tempDirectory);
