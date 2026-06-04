@@ -18,10 +18,20 @@ namespace EarthBackground.Background
 
         public IReadOnlyList<WallpaperMonitor> GetMonitors()
         {
+            var fallback = GetMonitorsFromEnumDisplayMonitors();
+
             try
             {
-                var monitors = GetMonitorsFromDesktopWallpaper();
-                if (monitors.Count > 0)
+                var desktopWallpaperMonitors = GetMonitorsFromDesktopWallpaper();
+                var monitors = SelectBestMonitors(desktopWallpaperMonitors, fallback);
+                if (!ReferenceEquals(monitors, desktopWallpaperMonitors))
+                {
+                    _logger.LogWarning(
+                        "IDesktopWallpaper 返回的显示器数量少于 EnumDisplayMonitors，回退到 EnumDisplayMonitors。IDesktopWallpaper={DesktopWallpaperMonitors}; EnumDisplayMonitors={FallbackMonitors}",
+                        string.Join("; ", desktopWallpaperMonitors),
+                        string.Join("; ", fallback));
+                }
+                else
                 {
                     _logger.LogInformation("通过 IDesktopWallpaper 检测到显示器: {Monitors}", string.Join("; ", monitors));
                     return monitors;
@@ -32,7 +42,6 @@ namespace EarthBackground.Background
                 _logger.LogWarning(ex, "IDesktopWallpaper 显示器枚举失败，回退到 EnumDisplayMonitors");
             }
 
-            var fallback = GetMonitorsFromEnumDisplayMonitors();
             _logger.LogInformation("通过 EnumDisplayMonitors 检测到显示器: {Monitors}", string.Join("; ", fallback));
             return fallback;
         }
@@ -111,6 +120,20 @@ namespace EarthBackground.Background
             }
 
             return monitors;
+        }
+
+        internal static IReadOnlyList<WallpaperMonitor> SelectBestMonitors(
+            IReadOnlyList<WallpaperMonitor> desktopWallpaperMonitors,
+            IReadOnlyList<WallpaperMonitor> fallbackMonitors)
+        {
+            if (desktopWallpaperMonitors.Count == 0)
+            {
+                return fallbackMonitors;
+            }
+
+            return desktopWallpaperMonitors.Count >= fallbackMonitors.Count
+                ? desktopWallpaperMonitors
+                : fallbackMonitors;
         }
 
         private static List<DisplayDeviceInfo> GetActiveDisplayDevices()

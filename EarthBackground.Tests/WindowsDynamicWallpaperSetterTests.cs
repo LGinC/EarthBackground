@@ -42,6 +42,27 @@ namespace EarthBackground.Tests
         }
 
         [Fact]
+        public void SelectBestMonitors_ShouldFallbackToEnumDisplayMonitors_WhenDesktopWallpaperMissesScreens()
+        {
+            var desktopWallpaperMonitors = new[]
+            {
+                new WallpaperMonitor(@"\\?\DISPLAY#MONITOR2", "DISPLAY2 (2560x1440)", 0, 0, 2560, 1440)
+            };
+
+            var selected = WindowsWallpaperMonitorProvider.SelectBestMonitors(desktopWallpaperMonitors, Monitors);
+
+            Assert.Equal(Monitors, selected);
+        }
+
+        [Fact]
+        public void SelectBestMonitors_ShouldUseDesktopWallpaperMonitors_WhenCountsMatch()
+        {
+            var selected = WindowsWallpaperMonitorProvider.SelectBestMonitors(Monitors, new[] { Monitors[0] });
+
+            Assert.Equal(Monitors, selected);
+        }
+
+        [Fact]
         public void GetEarthRegion_ShouldUseCenteredHalfWidthAndEightyPercentHeight()
         {
             var region = WindowsWallpaperOcclusionDetector.GetEarthRegion(Monitors[0]);
