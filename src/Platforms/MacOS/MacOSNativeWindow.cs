@@ -5,12 +5,12 @@ namespace EarthBackground.Platforms.MacOS
 {
     internal static class MacOSNativeWindow
     {
-        private const long DesktopWallpaperWindowLevel = -2147483623;
         private const ulong BorderlessStyleMask = 0;
         private const ulong CanJoinAllSpaces = 1UL << 0;
         private const ulong Stationary = 1UL << 4;
         private const ulong IgnoresCycle = 1UL << 6;
         private const ulong WallpaperCollectionBehavior = CanJoinAllSpaces | Stationary | IgnoresCycle;
+        private const int DesktopWindowLevelKey = 2;
 
         public static void ConfigureAsWallpaperWindow(IntPtr nsWindow)
         {
@@ -23,21 +23,22 @@ namespace EarthBackground.Platforms.MacOS
             ObjC.Send(nsWindow, "setHasShadow:", false);
             ObjC.Send(nsWindow, "setIgnoresMouseEvents:", true);
             ObjC.Send(nsWindow, "setCollectionBehavior:", WallpaperCollectionBehavior);
-            ObjC.Send(nsWindow, "setLevel:", DesktopWallpaperWindowLevel);
-            ObjC.Send(nsWindow, "orderBack:", IntPtr.Zero);
+            ObjC.Send(nsWindow, "setLevel:", GetDesktopWindowLevel());
+            ObjC.Send(nsWindow, "orderFront:", IntPtr.Zero);
         }
 
         public static bool IsVisible(IntPtr nsWindow)
         {
-            if (nsWindow == IntPtr.Zero)
-            {
-                return true;
-            }
-
-            const ulong visible = 1;
-            var occlusionState = ObjC.SendUInt64(nsWindow, "occlusionState");
-            return (occlusionState & visible) != 0;
+            return nsWindow != IntPtr.Zero;
         }
+
+        private static long GetDesktopWindowLevel()
+        {
+            return CGWindowLevelForKey(DesktopWindowLevelKey);
+        }
+
+        [DllImport("/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics")]
+        private static extern int CGWindowLevelForKey(int key);
 
         private static class ObjC
         {
@@ -61,11 +62,6 @@ namespace EarthBackground.Platforms.MacOS
                 objc_msgSend_intptr(receiver, sel_registerName(selector), value);
             }
 
-            public static ulong SendUInt64(IntPtr receiver, string selector)
-            {
-                return objc_msgSend_return_uint64(receiver, sel_registerName(selector));
-            }
-
             [DllImport("/usr/lib/libobjc.A.dylib")]
             private static extern IntPtr sel_registerName(string name);
 
@@ -81,8 +77,6 @@ namespace EarthBackground.Platforms.MacOS
             [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
             private static extern void objc_msgSend_intptr(IntPtr receiver, IntPtr selector, IntPtr value);
 
-            [DllImport("/usr/lib/libobjc.A.dylib", EntryPoint = "objc_msgSend")]
-            private static extern ulong objc_msgSend_return_uint64(IntPtr receiver, IntPtr selector);
         }
     }
 }

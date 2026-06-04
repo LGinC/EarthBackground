@@ -25,6 +25,7 @@ namespace EarthBackground.Background
         private readonly IWallpaperMonitorProvider _monitorProvider;
         private readonly List<WallpaperPlaybackWindow> _playbackWindows = [];
         private string[]? _currentFramePaths;
+        private string[]? _currentFrameSignatures;
         private string[]? _currentMonitorIds;
         private int _currentFrameIntervalMs;
 
@@ -53,6 +54,7 @@ namespace EarthBackground.Background
 
             token.ThrowIfCancellationRequested();
             var orderedFilePaths = OrderFramePaths(filePaths);
+            var frameSignatures = GetFrameSignatures(orderedFilePaths);
             var monitors = WallpaperMonitorSelection.SelectTargetMonitors(
                 _monitorProvider.GetMonitors(),
                 _captureOptions.CurrentValue.DynamicWallpaperMonitorIds);
@@ -66,7 +68,7 @@ namespace EarthBackground.Background
             }
             var targetMonitorIds = OrderMonitorIds(monitors.Select(monitor => monitor.Id));
 
-            if (IsSamePlaybackRequest(orderedFilePaths, frameIntervalMs, targetMonitorIds))
+            if (IsSamePlaybackRequest(orderedFilePaths, frameSignatures, frameIntervalMs, targetMonitorIds))
             {
                 onProgress?.Invoke(2, 2);
                 _logger.LogInformation("Linux 动态壁纸帧集合和目标显示器未变化，跳过重建，共 {Count} 帧", orderedFilePaths.Count);
@@ -110,6 +112,7 @@ namespace EarthBackground.Background
                 });
 
                 _currentFramePaths = orderedFilePaths.ToArray();
+                _currentFrameSignatures = frameSignatures;
                 _currentMonitorIds = targetMonitorIds.ToArray();
                 _currentFrameIntervalMs = frameIntervalMs;
             }
@@ -145,6 +148,7 @@ namespace EarthBackground.Background
             });
 
             _currentFramePaths = null;
+            _currentFrameSignatures = null;
             _currentMonitorIds = null;
             _currentFrameIntervalMs = 0;
             _logger.LogInformation("Linux 动态壁纸已停止");
@@ -152,16 +156,18 @@ namespace EarthBackground.Background
 
         private bool IsSamePlaybackRequest(
             IReadOnlyList<string> orderedFilePaths,
+            IReadOnlyList<string> frameSignatures,
             int frameIntervalMs,
             IReadOnlyList<string> orderedMonitorIds)
         {
-            if (_playbackWindows.Count == 0 || _currentFramePaths == null || _currentMonitorIds == null)
+            if (_playbackWindows.Count == 0 || _currentFramePaths == null || _currentFrameSignatures == null || _currentMonitorIds == null)
             {
                 return false;
             }
 
             if (_currentFrameIntervalMs != frameIntervalMs ||
                 _currentFramePaths.Length != orderedFilePaths.Count ||
+                _currentFrameSignatures.Length != frameSignatures.Count ||
                 _currentMonitorIds.Length != orderedMonitorIds.Count)
             {
                 return false;
@@ -170,6 +176,11 @@ namespace EarthBackground.Background
             for (int i = 0; i < orderedFilePaths.Count; i++)
             {
                 if (!string.Equals(_currentFramePaths[i], orderedFilePaths[i], StringComparison.OrdinalIgnoreCase))
+                {
+                    return false;
+                }
+
+                if (!string.Equals(_currentFrameSignatures[i], frameSignatures[i], StringComparison.Ordinal))
                 {
                     return false;
                 }
@@ -204,6 +215,25 @@ namespace EarthBackground.Background
                 .Where(static id => !string.IsNullOrWhiteSpace(id))
                 .OrderBy(static id => id, StringComparer.OrdinalIgnoreCase)
                 .ToArray();
+        }
+
+        private static string[] GetFrameSignatures(IReadOnlyList<string> orderedFilePaths)
+        {
+            var signatures = new string[orderedFilePaths.Count];
+            for (int i = 0; i < orderedFilePaths.Count; i++)
+            {
+                signatures[i] = GetFrameSignature(orderedFilePaths[i]);
+            }
+
+            return signatures;
+        }
+
+        private static string GetFrameSignature(string filePath)
+        {
+            var info = new FileInfo(filePath);
+            return info.Exists
+                ? $"{info.Length}:{info.LastWriteTimeUtc.Ticks}"
+                : "missing";
         }
     }
 }

@@ -453,6 +453,8 @@ namespace EarthBackground.ViewModels
         private async Task OnSave()
         {
             var oldCaptor = _capture.Captor;
+            var oldResolution = _capture.Resolution;
+            var oldZoom = _capture.Zoom;
             var oldSavePath = AppPaths.ResolveInAppDirectory(_capture.SavePath);
 
             _capture.Captor = SelectedCaptor?.Value ?? string.Empty;
@@ -485,7 +487,9 @@ namespace EarthBackground.ViewModels
 
             await _configureSaver.SaveAsync(_capture, _oss);
 
-            if (!string.Equals(oldCaptor, _capture.Captor, StringComparison.Ordinal))
+            var contentSettingsChanged = oldResolution != _capture.Resolution || oldZoom != _capture.Zoom;
+
+            if (!string.Equals(oldCaptor, _capture.Captor, StringComparison.Ordinal) || contentSettingsChanged)
             {
                 ClearImageCache(oldSavePath);
                 if (!string.Equals(oldSavePath, _capture.SavePath, StringComparison.OrdinalIgnoreCase))
