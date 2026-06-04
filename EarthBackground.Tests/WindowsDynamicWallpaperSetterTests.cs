@@ -63,6 +63,22 @@ namespace EarthBackground.Tests
         }
 
         [Fact]
+        public void SelectTargetMonitors_ShouldFallbackToAllMonitors_WhenStoredIdsNoLongerMatchCurrentMonitorIds()
+        {
+            var currentMonitors = new[]
+            {
+                new WallpaperMonitor("NSScreen1:0,0,1920,1080", "Screen1 (1920x1080)", 0, 0, 1920, 1080),
+                new WallpaperMonitor("NSScreen2:1920,0,2560,1440", "Screen2 (2560x1440)", 1920, 0, 2560, 1440)
+            };
+
+            var selected = WallpaperMonitorSelection.SelectTargetMonitors(
+                currentMonitors,
+                new[] { "NSScreen1:2560,0,1920,1080" });
+
+            Assert.Equal(currentMonitors, selected);
+        }
+
+        [Fact]
         public void GetEarthRegion_ShouldUseCenteredHalfWidthAndEightyPercentHeight()
         {
             var region = WindowsWallpaperOcclusionDetector.GetEarthRegion(Monitors[0]);

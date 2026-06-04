@@ -56,6 +56,14 @@ namespace EarthBackground.Background
             var monitors = WallpaperMonitorSelection.SelectTargetMonitors(
                 _monitorProvider.GetMonitors(),
                 _captureOptions.CurrentValue.DynamicWallpaperMonitorIds);
+
+            if (LinuxDynamicWallpaperEnvironment.ShouldBlockDynamicWallpaper(
+                monitors,
+                LinuxDynamicWallpaperEnvironment.ReadCurrentSession()))
+            {
+                throw new PlatformNotSupportedException(
+                    "Linux 动态壁纸不支持在 WSL 远程桌面/xrdp 会话中启用，这会导致桌面会话失去响应。");
+            }
             var targetMonitorIds = OrderMonitorIds(monitors.Select(monitor => monitor.Id));
 
             if (IsSamePlaybackRequest(orderedFilePaths, frameIntervalMs, targetMonitorIds))

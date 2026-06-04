@@ -146,6 +146,11 @@ namespace EarthBackground
                 }
 #endif
 
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    return ActivatorUtilities.CreateInstance<LinuxWallpaperMonitorProvider>(provider);
+                }
+
                 return ActivatorUtilities.CreateInstance<AvaloniaWallpaperMonitorProvider>(provider);
             });
 
