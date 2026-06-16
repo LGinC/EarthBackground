@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -35,27 +36,32 @@ namespace EarthBackground.Imaging
             ConfigureFrame(animation.Frames.RootFrame, delayMs, isDeltaFrame: false);
             _logger.LogInformation("APNG frame {Index}: full frame {Width}x{Height}", 0, animation.Width, animation.Height);
 
-            Image<Rgba32> previousFrame = animation.Clone();
+            // Store previous frame pixels as a raw byte array (using ArrayPool) instead of a full Image object
+            var pixelCount = animation.Width * animation.Height;
+            var previousPixels = ArrayPool<Rgba32>.Shared.Rent(pixelCount);
             try
             {
+                // Copy first frame pixels as the initial "previous" state
+                animation.CopyPixelDataTo(previousPixels);
+
                 for (int i = 1; i < framePaths.Count; i++)
                 {
                     token.ThrowIfCancellationRequested();
                     using var originalFrame = Image.Load<Rgba32>(framePaths[i]);
                     using var encodedFrame = originalFrame.Clone();
-                    var ratio = ApplyUnchangedPixelTransparency(previousFrame, encodedFrame, token);
+                    var ratio = ApplyUnchangedPixelTransparency(previousPixels, encodedFrame, token);
                     _logger.LogInformation("APNG frame {Index}: unchanged-pixel filter ratio={Ratio:P2}", i, ratio);
 
                     ConfigureFrame(encodedFrame.Frames.RootFrame, delayMs, isDeltaFrame: true);
                     animation.Frames.AddFrame(encodedFrame.Frames.RootFrame);
 
-                    previousFrame.Dispose();
-                    previousFrame = originalFrame.Clone();
+                    // Update previous pixels from the original (unmodified) frame
+                    originalFrame.CopyPixelDataTo(previousPixels);
                 }
             }
             finally
             {
-                previousFrame.Dispose();
+                ArrayPool<Rgba32>.Shared.Return(previousPixels);
             }
 
             token.ThrowIfCancellationRequested();
@@ -93,9 +99,13 @@ namespace EarthBackground.Imaging
             frameMeta.DisposalMethod = PngDisposalMethod.DoNotDispose;
         }
 
-        private static double ApplyUnchangedPixelTransparency(Image<Rgba32> previousFrame, Image<Rgba32> currentFrame, CancellationToken token)
+        /// <summary>
+        /// Compares current frame pixels against previous frame pixels stored in a raw array.
+        /// Sets unchanged pixels to transparent to create delta frames for smaller APNG output.
+        /// </summary>
+        private static double ApplyUnchangedPixelTransparency(Rgba32[] previousPixels, Image<Rgba32> currentFrame, CancellationToken token)
         {
-            if (previousFrame.Width != currentFrame.Width || previousFrame.Height != currentFrame.Height)
+            if (previousPixels.Length < currentFrame.Width * currentFrame.Height)
             {
                 return 1d;
             }
@@ -103,23 +113,21 @@ namespace EarthBackground.Imaging
             long unchangedPixelCount = 0;
             long totalPixelCount = (long)currentFrame.Width * currentFrame.Height;
 
-            previousFrame.ProcessPixelRows(currentFrame, (previousAccessor, currentAccessor) =>
+            currentFrame.ProcessPixelRows(accessor =>
             {
-                for (int y = 0; y < currentAccessor.Height; y++)
+                for (int y = 0; y < accessor.Height; y++)
                 {
                     token.ThrowIfCancellationRequested();
-                    Span<Rgba32> previousRow = previousAccessor.GetRowSpan(y);
-                    Span<Rgba32> currentRow = currentAccessor.GetRowSpan(y);
+                    Span<Rgba32> currentRow = accessor.GetRowSpan(y);
+                    int rowOffset = y * currentFrame.Width;
 
                     for (int x = 0; x < currentRow.Length; x++)
                     {
-                        if (!previousRow[x].Equals(currentRow[x]))
+                        if (previousPixels[rowOffset + x].Equals(currentRow[x]))
                         {
-                            continue;
+                            currentRow[x] = default;
+                            unchangedPixelCount++;
                         }
-
-                        currentRow[x] = default;
-                        unchangedPixelCount++;
                     }
                 }
             });

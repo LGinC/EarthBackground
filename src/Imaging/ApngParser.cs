@@ -1,11 +1,11 @@
 using System;
+using System.Buffers;
 using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Media.Imaging;
-using Avalonia.Platform;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -25,27 +25,29 @@ namespace EarthBackground.Imaging
         private static readonly byte[] PngSignature = new byte[] { 137, 80, 78, 71, 13, 10, 26, 10 };
         private static readonly byte[] IendChunk = ApngChunkCodec.CreateChunkBytes("IEND", ReadOnlySpan<byte>.Empty);
 
-        private readonly List<byte[]> _sharedChunks;
+        private readonly string _filePath;
         private readonly List<ApngFrameDescriptor> _frames;
-        private readonly byte[] _compositedPixels;
+        private readonly List<byte[]> _sharedChunks;
         private readonly int _canvasWidth;
         private readonly int _canvasHeight;
-        private readonly FileStream _fileStream;
+        private readonly byte[] _compositedPixels; // ArrayPool-rented, returned on Dispose
         private int _currentFrameIndex = -1;
+        private bool _disposed;
 
         private ApngStreamPlayer(
             string filePath,
             int canvasWidth,
             int canvasHeight,
+            List<ApngFrameDescriptor> frames,
             List<byte[]> sharedChunks,
-            List<ApngFrameDescriptor> frames)
+            byte[] compositedPixels)
         {
+            _filePath = filePath;
             _canvasWidth = canvasWidth;
             _canvasHeight = canvasHeight;
-            _sharedChunks = sharedChunks;
             _frames = frames;
-            _compositedPixels = new byte[checked(canvasWidth * canvasHeight * 4)];
-            _fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.SequentialScan);
+            _sharedChunks = sharedChunks;
+            _compositedPixels = compositedPixels;
         }
 
         public int FrameCount => _frames.Count;
@@ -54,22 +56,26 @@ namespace EarthBackground.Imaging
 
         public FrameRenderResult RenderNextFrame(WriteableBitmap bitmap)
         {
-            if (_frames.Count == 0)
+            if (_frames.Count == 0 || _disposed)
             {
                 return new FrameRenderResult(100, true, 0);
             }
 
             _currentFrameIndex = (_currentFrameIndex + 1) % _frames.Count;
-            if (_currentFrameIndex == 0)
+            var frame = _frames[_currentFrameIndex];
+
+            // For first frame or APNG_NONE dispose, clear the compositing buffer
+            if (_currentFrameIndex == 0 || frame.DisposeOp == 0)
             {
-                Array.Clear(_compositedPixels, 0, _compositedPixels.Length);
+                Array.Clear(_compositedPixels, 0, _canvasWidth * _canvasHeight * 4);
             }
 
-            var frame = _frames[_currentFrameIndex];
-            using var frameStream = new FramePngReadStream(_fileStream, frame, _sharedChunks);
-            using var frameImage = SixLabors.ImageSharp.Image.Load<Rgba32>(frameStream);
-            ComposeFrame(frameImage, frame);
-            CopyPixelsToBitmap(bitmap);
+            using var fileStream = new FileStream(_filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.SequentialScan);
+            using var frameStream = new FramePngReadStream(fileStream, frame, _sharedChunks);
+            using var frameImage = Image.Load<Rgba32>(frameStream);
+
+            ComposeFrame(frameImage, frame, _compositedPixels, _canvasWidth);
+            CopyBufferToBitmap(_compositedPixels, bitmap);
 
             return new FrameRenderResult(frame.DelayMilliseconds, _currentFrameIndex == _frames.Count - 1, _currentFrameIndex);
         }
@@ -160,15 +166,23 @@ namespace EarthBackground.Imaging
                 throw new InvalidDataException("APNG 未包含任何帧。");
             }
 
+            var canvasWidth = ApngChunkCodec.ReadInt32BigEndian(ihdrData, 0);
+            var canvasHeight = ApngChunkCodec.ReadInt32BigEndian(ihdrData, 4);
+
+            // Rent compositing buffer from ArrayPool instead of permanent allocation
+            var pixelSize = canvasWidth * canvasHeight * 4;
+            var compositedPixels = ArrayPool<byte>.Shared.Rent(pixelSize);
+
             return new ApngStreamPlayer(
                 filePath,
-                ApngChunkCodec.ReadInt32BigEndian(ihdrData, 0),
-                ApngChunkCodec.ReadInt32BigEndian(ihdrData, 4),
+                canvasWidth,
+                canvasHeight,
+                frames,
                 sharedChunks,
-                frames);
+                compositedPixels);
         }
 
-        private void ComposeFrame(SixLabors.ImageSharp.Image<Rgba32> frameImage, ApngFrameDescriptor frame)
+        private static void ComposeFrame(Image<Rgba32> frameImage, ApngFrameDescriptor frame, byte[] compositedPixels, int canvasWidth)
         {
             if (frame.DisposeOp != 0)
             {
@@ -179,7 +193,7 @@ namespace EarthBackground.Imaging
             {
                 for (int y = 0; y < accessor.Height; y++)
                 {
-                    var targetRow = (frame.YOffset + y) * _canvasWidth * 4 + (frame.XOffset * 4);
+                    var targetRow = (frame.YOffset + y) * canvasWidth * 4 + (frame.XOffset * 4);
                     var row = accessor.GetRowSpan(y);
                     for (int x = 0; x < row.Length; x++)
                     {
@@ -188,20 +202,20 @@ namespace EarthBackground.Imaging
 
                         if (frame.BlendOp == 0)
                         {
-                            _compositedPixels[targetIndex] = source.R;
-                            _compositedPixels[targetIndex + 1] = source.G;
-                            _compositedPixels[targetIndex + 2] = source.B;
-                            _compositedPixels[targetIndex + 3] = source.A;
+                            compositedPixels[targetIndex] = source.R;
+                            compositedPixels[targetIndex + 1] = source.G;
+                            compositedPixels[targetIndex + 2] = source.B;
+                            compositedPixels[targetIndex + 3] = source.A;
                             continue;
                         }
 
-                        AlphaBlendOver(targetIndex, source);
+                        AlphaBlendOver(compositedPixels, targetIndex, source);
                     }
                 }
             });
         }
 
-        private void AlphaBlendOver(int targetIndex, Rgba32 source)
+        private static void AlphaBlendOver(byte[] compositedPixels, int targetIndex, Rgba32 source)
         {
             if (source.A == 0)
             {
@@ -210,17 +224,17 @@ namespace EarthBackground.Imaging
 
             if (source.A == byte.MaxValue)
             {
-                _compositedPixels[targetIndex] = source.R;
-                _compositedPixels[targetIndex + 1] = source.G;
-                _compositedPixels[targetIndex + 2] = source.B;
-                _compositedPixels[targetIndex + 3] = source.A;
+                compositedPixels[targetIndex] = source.R;
+                compositedPixels[targetIndex + 1] = source.G;
+                compositedPixels[targetIndex + 2] = source.B;
+                compositedPixels[targetIndex + 3] = source.A;
                 return;
             }
 
-            var dstR = _compositedPixels[targetIndex];
-            var dstG = _compositedPixels[targetIndex + 1];
-            var dstB = _compositedPixels[targetIndex + 2];
-            var dstA = _compositedPixels[targetIndex + 3];
+            var dstR = compositedPixels[targetIndex];
+            var dstG = compositedPixels[targetIndex + 1];
+            var dstB = compositedPixels[targetIndex + 2];
+            var dstA = compositedPixels[targetIndex + 3];
 
             var srcA = source.A;
             var invSrcA = 255 - srcA;
@@ -228,17 +242,17 @@ namespace EarthBackground.Imaging
 
             if (outA == 0)
             {
-                _compositedPixels[targetIndex] = 0;
-                _compositedPixels[targetIndex + 1] = 0;
-                _compositedPixels[targetIndex + 2] = 0;
-                _compositedPixels[targetIndex + 3] = 0;
+                compositedPixels[targetIndex] = 0;
+                compositedPixels[targetIndex + 1] = 0;
+                compositedPixels[targetIndex + 2] = 0;
+                compositedPixels[targetIndex + 3] = 0;
                 return;
             }
 
-            _compositedPixels[targetIndex] = BlendChannel(source.R, srcA, dstR, dstA, invSrcA, outA);
-            _compositedPixels[targetIndex + 1] = BlendChannel(source.G, srcA, dstG, dstA, invSrcA, outA);
-            _compositedPixels[targetIndex + 2] = BlendChannel(source.B, srcA, dstB, dstA, invSrcA, outA);
-            _compositedPixels[targetIndex + 3] = (byte)outA;
+            compositedPixels[targetIndex] = BlendChannel(source.R, srcA, dstR, dstA, invSrcA, outA);
+            compositedPixels[targetIndex + 1] = BlendChannel(source.G, srcA, dstG, dstA, invSrcA, outA);
+            compositedPixels[targetIndex + 2] = BlendChannel(source.B, srcA, dstB, dstA, invSrcA, outA);
+            compositedPixels[targetIndex + 3] = (byte)outA;
         }
 
         private static byte BlendChannel(byte src, int srcA, byte dst, byte dstA, int invSrcA, int outA)
@@ -248,14 +262,14 @@ namespace EarthBackground.Imaging
             return (byte)((srcTerm + dstTerm + (outA * 127)) / (outA * 255));
         }
 
-        private void CopyPixelsToBitmap(WriteableBitmap bitmap)
+        private void CopyBufferToBitmap(byte[] source, WriteableBitmap bitmap)
         {
             using var framebuffer = bitmap.Lock();
             var sourceRowBytes = _canvasWidth * 4;
             for (int y = 0; y < _canvasHeight; y++)
             {
                 Marshal.Copy(
-                    _compositedPixels,
+                    source,
                     y * sourceRowBytes,
                     framebuffer.Address + (y * framebuffer.RowBytes),
                     sourceRowBytes);
@@ -264,7 +278,13 @@ namespace EarthBackground.Imaging
 
         public void Dispose()
         {
-            _fileStream.Dispose();
+            if (_disposed) return;
+            _disposed = true;
+
+            if (_compositedPixels != null)
+            {
+                ArrayPool<byte>.Shared.Return(_compositedPixels);
+            }
         }
 
         private static bool TryReadChunk(Stream stream, out PngChunkReadResult chunk)

@@ -16,6 +16,7 @@ using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
 using Polly;
 using Polly.Extensions.Http;
+using SixLabors.ImageSharp.Memory;
 
 namespace EarthBackground
 {
@@ -27,9 +28,10 @@ namespace EarthBackground
         public static AppBuilder BuildAvaloniaApp()
             => AppBuilder.Configure<App>()
                 .UsePlatformDetect()
-                .UseReactiveUI(_ => { })
-                .WithInterFont()
-                .LogToTrace();
+                //.UseReactiveUI(_ => { })
+                //.WithInterFont()
+                //.LogToTrace()
+            ;
 
         [STAThread]
         static async Task<int> Main(string[] args)
@@ -86,6 +88,13 @@ namespace EarthBackground
 
         static void ConfigureServicesInternal(IServiceCollection services, bool isBackgroundService)
         {
+            // Configure ImageSharp to use pooled memory allocation with a size limit for better GC behavior with large images
+            SixLabors.ImageSharp.Configuration.Default.MemoryAllocator =
+                SixLabors.ImageSharp.Memory.MemoryAllocator.Create(new SixLabors.ImageSharp.Memory.MemoryAllocatorOptions
+                {
+                    MaximumPoolSizeMegabytes = 512
+                });
+
             var config = new ConfigurationBuilder()
                 .AddJsonFile(AppPaths.AppSettingsPath, optional: true, reloadOnChange: true)
                 .Build();

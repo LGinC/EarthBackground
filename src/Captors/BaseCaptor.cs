@@ -332,9 +332,10 @@ namespace EarthBackground.Captors
             }
             else
             {
+                // Resize in-place instead of cloning to avoid doubling memory
                 var newSize = (int)(image.Height * Options.Zoom * 1.0 / 100);
-                using var zoomImage = image.Clone(context => context.Resize(newSize, newSize));
-                zoomImage.SaveAsPng(outputPath);
+                image.Mutate(context => context.Resize(newSize, newSize));
+                image.SaveAsPng(outputPath);
             }
 
             foreach (var f in Directory.GetFiles(sourceDir).Where(f => f.Contains("_")))
