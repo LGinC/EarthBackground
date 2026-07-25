@@ -1,0 +1,24 @@
+name: earthbackground
+arch: amd64
+platform: linux
+version: ${VERSION}
+section: utils
+priority: optional
+maintainer: liguo
+homepage: https://github.com/LGinC/EarthBackground
+license: MIT
+description: |
+  Satellite earth wallpaper application built with .NET and Avalonia.
+contents:
+  - src: ./publish/linux-x64/
+    dst: /opt/earthbackground
+  - src: ./packaging/linux/earthbackground.desktop
+    dst: /usr/share/applications/earthbackground.desktop
+  - src: ./src/Assets/earth.ico
+    dst: /usr/share/pixmaps/earthbackground.ico
+  - src: ./packaging/linux/earthbackground
+    dst: /usr/bin/earthbackground
+    file_info:
+      mode: 0755
+scripts:
+  postinstall: ./packaging/linux/postinstall.sh

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=EarthBackground
+Comment=Satellite earth wallpaper application
+Exec=/usr/bin/earthbackground
+Icon=earthbackground
+Terminal=false
+Type=Application
+Categories=Graphics;Utility;
+StartupNotify=true

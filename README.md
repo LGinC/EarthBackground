@@ -163,29 +163,10 @@ sequenceDiagram
 - Windows 使用单个跨显示器窗口嵌入 `WorkerW`
 - macOS / Linux 按显示器创建独立窗口，避免跨屏窗口带来的 Mission Control / X11 桌面行为问题
 
-### 发布流程
+### 发布
 
-GitHub Actions 使用 `.github/workflows/Avalonia.yml`：
-
-```mermaid
-flowchart LR
-    A["push / pull_request / release"] --> B["build-test"]
-    B --> C["dotnet restore"]
-    C --> D["dotnet build Release"]
-    D --> E["dotnet test Release"]
-    E --> F{"master 或 release?"}
-    F -->|否| G["结束"]
-    F -->|是| H["publish matrix"]
-    H --> I["win-x64 / net10.0-windows"]
-    H --> J["linux-x64 / net10.0"]
-    H --> K["osx-x64 / net10.0"]
-    H --> L["osx-arm64 / net10.0"]
-    I --> M["zip artifact"]
-    J --> M
-    K --> M
-    L --> M
-    M --> N["release 时附加到 GitHub Release"]
-```
+- 发布流程、渠道说明、维护者手册、安装示例已移至 [`Release.md`](./Release.md)。
+- 日常开发和功能说明仍保留在本文件中。
 
 ## 配置说明
 
