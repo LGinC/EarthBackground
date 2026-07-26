@@ -209,6 +209,10 @@ jobs:
       RELEASE_REPOSITORY: ${{ github.repository }}
       RELEASE_SHA: ${{ github.sha }}
       PAGES_BRANCH: gh-pages
+      # secrets cannot be referenced in if:; map them to env first
+      PACKAGE_FEED_GPG_PRIVATE_KEY: ${{ secrets.PACKAGE_FEED_GPG_PRIVATE_KEY }}
+      PACKAGE_FEED_GPG_PASSPHRASE: ${{ secrets.PACKAGE_FEED_GPG_PASSPHRASE }}
+      PACKAGE_FEED_GPG_KEY_ID: ${{ secrets.PACKAGE_FEED_GPG_KEY_ID }}
 
     outputs:
       version: ${{ steps.meta.outputs.version }}
@@ -456,7 +460,7 @@ jobs:
         bash -lc 'createrepo_c dist/packages/yum'
 
     - name: Import feed signing key
-      if: secrets.PACKAGE_FEED_GPG_PRIVATE_KEY != '' && secrets.PACKAGE_FEED_GPG_PASSPHRASE != ''
+      if: env.PACKAGE_FEED_GPG_PRIVATE_KEY != '' && env.PACKAGE_FEED_GPG_PASSPHRASE != ''
       env:
         PACKAGE_FEED_GPG_PRIVATE_KEY: ${{ secrets.PACKAGE_FEED_GPG_PRIVATE_KEY }}
       run: |
@@ -464,7 +468,7 @@ jobs:
         [System.IO.File]::WriteAllText($keyPath, $env:PACKAGE_FEED_GPG_PRIVATE_KEY)
         bash -lc "gpg --batch --import '$keyPath'"
     - name: Export feed signing public key
-      if: secrets.PACKAGE_FEED_GPG_PRIVATE_KEY != '' && secrets.PACKAGE_FEED_GPG_PASSPHRASE != ''
+      if: env.PACKAGE_FEED_GPG_PRIVATE_KEY != '' && env.PACKAGE_FEED_GPG_PASSPHRASE != ''
       env:
         PACKAGE_FEED_GPG_KEY_ID: ${{ secrets.PACKAGE_FEED_GPG_KEY_ID }}
       run: |
@@ -476,7 +480,7 @@ jobs:
 
     - name: Sign apt and yum repository metadata
       id: feed_signing
-      if: secrets.PACKAGE_FEED_GPG_PRIVATE_KEY != '' && secrets.PACKAGE_FEED_GPG_PASSPHRASE != ''
+      if: env.PACKAGE_FEED_GPG_PRIVATE_KEY != '' && env.PACKAGE_FEED_GPG_PASSPHRASE != ''
       env:
         PACKAGE_FEED_GPG_PASSPHRASE: ${{ secrets.PACKAGE_FEED_GPG_PASSPHRASE }}
         PACKAGE_FEED_GPG_KEY_ID: ${{ secrets.PACKAGE_FEED_GPG_KEY_ID }}
@@ -567,27 +571,38 @@ jobs:
 
   publish-homebrew-official-pr:
     needs: package
-    if: github.event_name == 'release' && secrets.HOMEBREW_CASK_PAT != '' && vars.HOMEBREW_CASK_FORK_REPOSITORY != ''
+    if: github.event_name == 'release' && vars.HOMEBREW_CASK_FORK_REPOSITORY != ''
     runs-on: ubuntu-latest
+    env:
+      HOMEBREW_CASK_PAT: ${{ secrets.HOMEBREW_CASK_PAT }}
 
     steps:
+    - name: Require Homebrew PAT
+      if: env.HOMEBREW_CASK_PAT == ''
+      run: |
+        Write-Host 'HOMEBREW_CASK_PAT is not configured; skipping official Homebrew PR job steps.'
+        "official_pr_status=skipped_no_pat" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
     - name: Checkout fork of homebrew-cask
+      if: env.HOMEBREW_CASK_PAT != ''
       uses: actions/checkout@v4
       with:
         repository: ${{ vars.HOMEBREW_CASK_FORK_REPOSITORY }}
-        token: ${{ secrets.HOMEBREW_CASK_PAT }}
+        token: ${{ env.HOMEBREW_CASK_PAT }}
         path: homebrew-cask-fork
         fetch-depth: 0
 
     - name: Download official cask candidate artifacts
+      if: env.HOMEBREW_CASK_PAT != ''
       uses: actions/download-artifact@v4
       with:
         name: EarthBackground-packages-${{ github.sha }}
         path: package-artifacts
 
     - name: Create or update Homebrew cask PR branch
+      if: env.HOMEBREW_CASK_PAT != ''
       env:
-        GH_TOKEN: ${{ secrets.HOMEBREW_CASK_PAT }}
+        GH_TOKEN: ${{ env.HOMEBREW_CASK_PAT }}
         FORK_REPOSITORY: ${{ vars.HOMEBREW_CASK_FORK_REPOSITORY }}
       run: |
         $forkParts = $env:FORK_REPOSITORY.Split('/')
@@ -664,22 +679,26 @@ jobs:
         path: official-pr-result/homebrew-official-pr-result.json
   publish-winget:
     needs: package
-    if: github.event_name == 'release' && secrets.WINGET_PAT != ''
+    if: github.event_name == 'release'
     runs-on: ubuntu-latest
+    env:
+      WINGET_PAT: ${{ secrets.WINGET_PAT }}
 
     steps:
     - name: Checkout generated manifest
+      if: env.WINGET_PAT != ''
       uses: actions/download-artifact@v4
       with:
         name: EarthBackground-packages-${{ github.sha }}
         path: package-artifacts
 
     - name: Submit winget manifest
+      if: env.WINGET_PAT != ''
       uses: vedantmgoyal9/winget-releaser@v2
       with:
         identifier: LGinC.EarthBackground
         version: ${{ needs.package.outputs.version }}
         installers-regex: 'EarthBackground-.*-win-x64\.zip$'
-        token: ${{ secrets.WINGET_PAT }}
+        token: ${{ env.WINGET_PAT }}
         fork-user: ${{ github.repository_owner }}
         manifest-dir: package-artifacts/dist/winget/LGinC.EarthBackground/${{ needs.package.outputs.version }}
