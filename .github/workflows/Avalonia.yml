@@ -68,9 +68,10 @@ jobs:
     env:
       Project_Path: src/EarthBackground.csproj
       Publish_Dir: publish/${{ matrix.runtime }}
-      App_Bundle_Dir: publish/${{ matrix.runtime }}/EarthBackground.app
-      Mac_Dmg_Path: publish/${{ matrix.runtime }}/EarthBackground-${{ github.ref_name }}-${{ matrix.runtime }}.dmg
-      Mac_Notarize_Zip_Path: publish/${{ matrix.runtime }}/EarthBackground-${{ github.ref_name }}-${{ matrix.runtime }}-notarize.zip
+      # Must stay outside Publish_Dir: build-macos-app.sh copies publish into the .app
+      App_Bundle_Dir: publish-app/${{ matrix.runtime }}/EarthBackground.app
+      Mac_Dmg_Path: publish-app/${{ matrix.runtime }}/EarthBackground-${{ github.ref_name }}-${{ matrix.runtime }}.dmg
+      Mac_Notarize_Zip_Path: publish-app/${{ matrix.runtime }}/EarthBackground-${{ github.ref_name }}-${{ matrix.runtime }}-notarize.zip
 
     steps:
     - name: Checkout
