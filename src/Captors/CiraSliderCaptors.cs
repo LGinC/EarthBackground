@@ -30,9 +30,7 @@ namespace EarthBackground.Captors
 
         private async Task<string[]> GetImageIdsAsync(int recentHours = 24, CancellationToken token = default)
         {
-            var latest = await Client.GetFromJsonAsync<LastestTimes>(
-                $"json/{JsonSatelliteName}/{Sector}/{Product}/latest_times_5760.json",
-                cancellationToken: token);
+            var latest = await Client.GetFromJsonAsync($"json/{JsonSatelliteName}/{Sector}/{Product}/latest_times_5760.json", global::EarthBackground.AppJsonSerializerContext.Default.LastestTimes, token);
             if (latest == null) return [];
 
             return ExpandAndFilterImageIdsByRecentAvailableTime(

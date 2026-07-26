@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -81,7 +81,7 @@ namespace EarthBackground.Oss
             }
 
             var reStr = await response.Content.ReadAsStringAsync(token);
-            var json = JsonSerializer.Deserialize<CDNOperationResult>(reStr);
+            var json = JsonSerializer.Deserialize(reStr, global::EarthBackground.AppJsonSerializerContext.Default.CDNOperationResult);
             if (!string.IsNullOrEmpty(json?.Error))
             {
                 throw new InvalidOperationException(json.Error);

@@ -15,9 +15,11 @@ namespace EarthBackground
             RegistryKey? runKey = null;
             try
             {
-                string path = System.Reflection.Assembly.GetExecutingAssembly().Location;
-                // For single-file publish, use process path
-                path = System.Environment.ProcessPath ?? path;
+                string? path = Environment.ProcessPath;
+                if (string.IsNullOrWhiteSpace(path))
+                {
+                    return false;
+                }
 
                 runKey = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run", true);
                 if (enabled)

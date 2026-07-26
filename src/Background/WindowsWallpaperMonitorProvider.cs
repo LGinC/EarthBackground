@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.Marshalling;
 using System.Runtime.Versioning;
 using Microsoft.Extensions.Logging;
 
 namespace EarthBackground.Background
 {
     [SupportedOSPlatform("windows")]
-    public sealed class WindowsWallpaperMonitorProvider : IWallpaperMonitorProvider
+    public sealed partial class WindowsWallpaperMonitorProvider : IWallpaperMonitorProvider
     {
         private readonly ILogger<WindowsWallpaperMonitorProvider> _logger;
 
@@ -48,47 +49,65 @@ namespace EarthBackground.Background
 
         private static List<WallpaperMonitor> GetMonitorsFromDesktopWallpaper()
         {
-            var desktopWallpaperType = Type.GetTypeFromCLSID(new Guid("C2CF3110-460E-4fc1-B9D0-8A1C0C9CC4BD"), throwOnError: true)!;
-            var desktopWallpaper = (IDesktopWallpaper)Activator.CreateInstance(desktopWallpaperType)!;
-            try
+            var desktopWallpaper = CreateDesktopWallpaper();
+            var displayDevices = GetActiveDisplayDevices();
+            desktopWallpaper.GetMonitorDevicePathCount(out var count);
+            var monitors = new List<WallpaperMonitor>((int)count);
+
+            for (uint i = 0; i < count; i++)
             {
-                var displayDevices = GetActiveDisplayDevices();
-                desktopWallpaper.GetMonitorDevicePathCount(out var count);
-                var monitors = new List<WallpaperMonitor>((int)count);
-
-                for (uint i = 0; i < count; i++)
+                desktopWallpaper.GetMonitorDevicePathAt(i, out var monitorIdPtr);
+                var monitorId = PtrToStringAndFree(monitorIdPtr);
+                if (string.IsNullOrWhiteSpace(monitorId))
                 {
-                    desktopWallpaper.GetMonitorDevicePathAt(i, out var monitorIdPtr);
-                    var monitorId = PtrToStringAndFree(monitorIdPtr);
-                    if (string.IsNullOrWhiteSpace(monitorId))
-                    {
-                        continue;
-                    }
-
-                    desktopWallpaper.GetMonitorRECT(monitorId, out var rect);
-                    var displayDevice = FindDisplayDevice(displayDevices, rect);
-                    var displayName = displayDevice != null
-                        ? $"{displayDevice.Value.Name} ({rect.Width}x{rect.Height})"
-                        : $"DISPLAY{i + 1} ({rect.Width}x{rect.Height})";
-                    monitors.Add(new WallpaperMonitor(
-                        monitorId,
-                        displayName,
-                        rect.Left,
-                        rect.Top,
-                        rect.Width,
-                        rect.Height));
+                    continue;
                 }
 
-                return monitors;
+                desktopWallpaper.GetMonitorRECT(monitorId, out var rect);
+                var displayDevice = FindDisplayDevice(displayDevices, rect);
+                var displayName = displayDevice != null
+                    ? $"{displayDevice.Value.Name} ({rect.Width}x{rect.Height})"
+                    : $"DISPLAY{i + 1} ({rect.Width}x{rect.Height})";
+                monitors.Add(new WallpaperMonitor(
+                    monitorId,
+                    displayName,
+                    rect.Left,
+                    rect.Top,
+                    rect.Width,
+                    rect.Height));
+            }
+
+            return monitors;
+        }
+
+        private static IDesktopWallpaper CreateDesktopWallpaper()
+        {
+            var classId = new Guid("C2CF3110-460E-4FC1-B9D0-8A1C0C9CC4BD");
+            var interfaceId = new Guid("B92B56A9-8B55-4E14-9A89-0199BBB6F93B");
+            var result = CoCreateInstance(in classId, IntPtr.Zero, 0x17, in interfaceId, out var instance);
+            Marshal.ThrowExceptionForHR(result);
+
+            try
+            {
+                return (IDesktopWallpaper)DesktopWallpaperComWrappers.GetOrCreateObjectForComInstance(
+                    instance,
+                    CreateObjectFlags.UniqueInstance);
             }
             finally
             {
-                if (Marshal.IsComObject(desktopWallpaper))
-                {
-                    Marshal.FinalReleaseComObject(desktopWallpaper);
-                }
+                Marshal.Release(instance);
             }
         }
+
+        private static readonly StrategyBasedComWrappers DesktopWallpaperComWrappers = new();
+
+        [LibraryImport("ole32.dll")]
+        private static partial int CoCreateInstance(
+            in Guid classId,
+            IntPtr outer,
+            uint classContext,
+            in Guid interfaceId,
+            out IntPtr instance);
 
         private static List<WallpaperMonitor> GetMonitorsFromEnumDisplayMonitors()
         {
@@ -223,7 +242,7 @@ namespace EarthBackground.Background
         private readonly record struct DisplayDeviceInfo(string DeviceName, string Name, int X, int Y, int Width, int Height);
 
         [StructLayout(LayoutKind.Sequential)]
-        private struct RECT
+        internal struct RECT
         {
             public int Left;
             public int Top;
@@ -315,10 +334,10 @@ namespace EarthBackground.Background
             }
         }
 
-        [ComImport]
+        [GeneratedComInterface]
         [Guid("B92B56A9-8B55-4E14-9A89-0199BBB6F93B")]
         [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-        private interface IDesktopWallpaper
+        internal partial interface IDesktopWallpaper
         {
             void SetWallpaper([MarshalAs(UnmanagedType.LPWStr)] string? monitorId, [MarshalAs(UnmanagedType.LPWStr)] string wallpaper);
             void GetWallpaper([MarshalAs(UnmanagedType.LPWStr)] string? monitorId, out IntPtr wallpaper);
@@ -335,7 +354,7 @@ namespace EarthBackground.Background
             void GetSlideshowOptions(out uint options, out uint slideshowTick);
             void AdvanceSlideshow([MarshalAs(UnmanagedType.LPWStr)] string? monitorId, int direction);
             void GetStatus(out uint state);
-            void Enable(bool enable);
+            void Enable([MarshalAs(UnmanagedType.Bool)] bool enable);
         }
     }
 }

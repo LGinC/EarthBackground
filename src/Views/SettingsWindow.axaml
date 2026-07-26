@@ -1,10 +1,11 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:EarthBackground.ViewModels"
+        xmlns:loc="using:EarthBackground.Localization"
         x:Class="EarthBackground.Views.SettingsWindow"
         x:DataType="vm:SettingsWindowViewModel"
-        x:CompileBindings="False"
-        Title="{Binding WindowTitle}"
+        x:CompileBindings="True"
+        Title="{loc:Localize Settings_WindowTitle}"
         Width="760" Height="680"
         MinWidth="760" MinHeight="620"
         CanResize="True"
@@ -16,7 +17,7 @@
         <!-- Header -->
         <Panel Grid.Row="0" Background="#3498DB">
             <TextBlock
-                Text="{Binding HeaderTitle}"
+                Text="{loc:Localize Settings_Header}"
                 FontFamily="Segoe UI"
                 FontSize="18"
                 FontWeight="Bold"
@@ -39,16 +40,16 @@
                               HorizontalScrollBarVisibility="Disabled">
                 <StackPanel Spacing="10"
                             Margin="0,0,16,0">
-                    <TextBlock Text="{Binding Label_CaptureSection}" FontWeight="Bold" FontSize="13" Foreground="#2C3E50" />
+                    <TextBlock Text="{loc:Localize Settings_CaptureSection}" FontWeight="Bold" FontSize="13" Foreground="#2C3E50" />
 
-                    <CheckBox Content="{Binding Label_AutoStart}" IsChecked="{Binding AutoStart}" Foreground="#2C3E50" />
-                    <CheckBox Content="{Binding Label_DynamicWallpaper}" IsChecked="{Binding DynamicWallpaper}" Foreground="#2C3E50" />
-                    <CheckBox Content="{Binding Label_SetWallpaper}" IsChecked="{Binding SetWallpaper}" Foreground="#2C3E50" />
-                    <CheckBox Content="{Binding Label_SaveWallpaper}" IsChecked="{Binding SaveWallpaper}" Foreground="#2C3E50" />
+                    <CheckBox Content="{loc:Localize Settings_AutoStart}" IsChecked="{Binding AutoStart}" Foreground="#2C3E50" />
+                    <CheckBox Content="{loc:Localize Settings_DynamicWallpaper}" IsChecked="{Binding DynamicWallpaper}" Foreground="#2C3E50" />
+                    <CheckBox Content="{loc:Localize Settings_SetWallpaper}" IsChecked="{Binding SetWallpaper}" Foreground="#2C3E50" />
+                    <CheckBox Content="{loc:Localize Settings_SaveWallpaper}" IsChecked="{Binding SaveWallpaper}" Foreground="#2C3E50" />
 
                     <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
                         <!-- Satellite -->
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding Label_Satellite}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4" />
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="{loc:Localize Settings_Satellite}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4" />
                         <ComboBox Grid.Row="0" Grid.Column="1"
                                   ItemsSource="{Binding Captors}"
                                   SelectedItem="{Binding SelectedCaptor}"
@@ -56,7 +57,7 @@
                                   HorizontalAlignment="Stretch" Margin="0,0,0,4" />
 
                         <!-- Resolution -->
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding Label_Resolution}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4" />
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="{loc:Localize Settings_Resolution}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4" />
                         <ComboBox Grid.Row="1" Grid.Column="1"
                                   ItemsSource="{Binding Resolutions}"
                                   SelectedItem="{Binding SelectedResolution}"
@@ -64,7 +65,7 @@
                                   HorizontalAlignment="Stretch" Margin="0,0,0,4" />
 
                         <!-- Interval -->
-                        <TextBlock Grid.Row="2" Grid.Column="0" Text="{Binding Label_Interval}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4" />
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="{loc:Localize Settings_Interval}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4" />
                         <NumericUpDown Grid.Row="2" Grid.Column="1"
                                        Value="{Binding Interval}"
                                        Minimum="1" Maximum="1440"
@@ -72,7 +73,7 @@
                                        HorizontalAlignment="Stretch" Margin="0,0,0,4" />
 
                         <!-- Zoom -->
-                        <TextBlock Grid.Row="3" Grid.Column="0" Text="{Binding Label_FrameInterval}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4"
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="{loc:Localize Settings_FrameInterval}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4"
                                    IsVisible="{Binding DynamicWallpaper}" />
                         <NumericUpDown Grid.Row="3" Grid.Column="1"
                                        Value="{Binding FrameIntervalMinutes}"
@@ -82,14 +83,14 @@
                                        IsVisible="{Binding DynamicWallpaper}" />
 
                         <!-- Zoom -->
-                        <TextBlock Grid.Row="4" Grid.Column="0" Text="{Binding Label_Zoom}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4" />
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="{loc:Localize Settings_Zoom}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4" />
                         <NumericUpDown Grid.Row="4" Grid.Column="1"
                                        Value="{Binding Zoom}"
                                        Minimum="1" Maximum="200"
                                        HorizontalAlignment="Stretch" Margin="0,0,0,4" />
 
                         <!-- Recent Hours -->
-                        <TextBlock Grid.Row="5" Grid.Column="0" Text="{Binding Label_RecentHours}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4"
+                        <TextBlock Grid.Row="5" Grid.Column="0" Text="{loc:Localize Settings_RecentHours}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4"
                                    IsVisible="{Binding DynamicWallpaper}" />
                         <NumericUpDown Grid.Row="5" Grid.Column="1"
                                        Value="{Binding RecentHours}"
@@ -99,7 +100,7 @@
                                        IsVisible="{Binding DynamicWallpaper}" />
 
                         <!-- Loop Pause -->
-                        <TextBlock Grid.Row="6" Grid.Column="0" Text="{Binding Label_LoopPauseMilliseconds}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4"
+                        <TextBlock Grid.Row="6" Grid.Column="0" Text="{loc:Localize Settings_LoopPauseMilliseconds}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4"
                                    IsVisible="{Binding DynamicWallpaper}" />
                         <NumericUpDown Grid.Row="6" Grid.Column="1"
                                        Value="{Binding LoopPauseMilliseconds}"
@@ -109,10 +110,10 @@
                                        IsVisible="{Binding DynamicWallpaper}" />
 
                         <!-- Dynamic wallpaper monitors -->
-                        <TextBlock Grid.Row="7" Grid.Column="0" Text="{Binding Label_DynamicWallpaperMonitors}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4"
+                        <TextBlock Grid.Row="7" Grid.Column="0" Text="{loc:Localize Settings_DynamicWallpaperMonitors}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4"
                                    IsVisible="{Binding DynamicWallpaper}" />
                         <CheckBox Grid.Row="7" Grid.Column="1"
-                                  Content="{Binding Label_AllDynamicWallpaperMonitors}"
+                                  Content="{loc:Localize Settings_AllDynamicWallpaperMonitors}"
                                   IsChecked="{Binding AllDynamicWallpaperMonitors}"
                                   Foreground="#2C3E50"
                                   Margin="0,0,0,4"
@@ -135,9 +136,9 @@
 
                     <!-- Save Path -->
                     <StackPanel Spacing="4">
-                        <TextBlock Text="{Binding Label_SavePath}" Foreground="#2C3E50" />
+                        <TextBlock Text="{loc:Localize Settings_SavePath}" Foreground="#2C3E50" />
                         <TextBlock Text="{Binding SavePath}" Foreground="#7F8C8D" TextWrapping="Wrap" FontSize="10" />
-                        <Button Content="{Binding Label_ChoosePath}"
+                        <Button Content="{loc:Localize Settings_ChoosePath}"
                                 Command="{Binding ChooseSavePathCommand}"
                                 IsEnabled="{Binding ChooseSavePathEnabled}"
                                 Background="#3498DB"
@@ -165,11 +166,11 @@
                               HorizontalScrollBarVisibility="Disabled">
                 <StackPanel Spacing="10"
                             Margin="0,0,16,0">
-                    <TextBlock Text="{Binding Label_DownloadSection}" FontWeight="Bold" FontSize="13" Foreground="#2C3E50" />
+                    <TextBlock Text="{loc:Localize Settings_DownloadSection}" FontWeight="Bold" FontSize="13" Foreground="#2C3E50" />
 
                     <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto">
                         <!-- Downloader -->
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding Label_Downloader}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4" />
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="{loc:Localize Settings_Downloader}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4" />
                         <ComboBox Grid.Row="0" Grid.Column="1"
                                   ItemsSource="{Binding Downloaders}"
                                   SelectedItem="{Binding SelectedDownloader}"
@@ -177,21 +178,21 @@
                                   HorizontalAlignment="Stretch" Margin="0,0,0,4" />
 
                         <!-- Username -->
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding Label_Username}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4" />
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="{loc:Localize Settings_Username}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4" />
                         <TextBox Grid.Row="1" Grid.Column="1"
                                  Text="{Binding Username}"
                                  IsEnabled="{Binding UsernameEnabled}"
                                  HorizontalAlignment="Stretch" Margin="0,0,0,4" />
 
                         <!-- API Key -->
-                        <TextBlock Grid.Row="2" Grid.Column="0" Text="{Binding Label_ApiKey}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4" />
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="{loc:Localize Settings_ApiKey}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4" />
                         <TextBox Grid.Row="2" Grid.Column="1"
                                  Text="{Binding ApiKey}"
                                  IsEnabled="{Binding ApiKeyEnabled}"
                                  HorizontalAlignment="Stretch" Margin="0,0,0,4" />
 
                         <!-- API Secret -->
-                        <TextBlock Grid.Row="3" Grid.Column="0" Text="{Binding Label_ApiSecret}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4" />
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="{loc:Localize Settings_ApiSecret}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4" />
                         <TextBox Grid.Row="3" Grid.Column="1"
                                  Text="{Binding ApiSecret}"
                                  IsEnabled="{Binding ApiSecretEnabled}"
@@ -199,21 +200,21 @@
                                  HorizontalAlignment="Stretch" Margin="0,0,0,4" />
 
                         <!-- Domain -->
-                        <TextBlock Grid.Row="4" Grid.Column="0" Text="{Binding Label_Domain}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4" />
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="{loc:Localize Settings_Domain}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4" />
                         <TextBox Grid.Row="4" Grid.Column="1"
                                  Text="{Binding Domain}"
                                  IsEnabled="{Binding DomainEnabled}"
                                  HorizontalAlignment="Stretch" Margin="0,0,0,4" />
 
                         <!-- Bucket -->
-                        <TextBlock Grid.Row="5" Grid.Column="0" Text="{Binding Label_Bucket}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4" />
+                        <TextBlock Grid.Row="5" Grid.Column="0" Text="{loc:Localize Settings_Bucket}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4" />
                         <TextBox Grid.Row="5" Grid.Column="1"
                                  Text="{Binding Bucket}"
                                  IsEnabled="{Binding BucketEnabled}"
                                  HorizontalAlignment="Stretch" Margin="0,0,0,4" />
 
                         <!-- Zone -->
-                        <TextBlock Grid.Row="6" Grid.Column="0" Text="{Binding Label_Zone}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4" />
+                        <TextBlock Grid.Row="6" Grid.Column="0" Text="{loc:Localize Settings_Zone}" VerticalAlignment="Center" Foreground="#2C3E50" Margin="0,0,8,4" />
                         <ComboBox Grid.Row="6" Grid.Column="1"
                                   ItemsSource="{Binding Zones}"
                                   SelectedItem="{Binding SelectedZone}"
@@ -223,7 +224,7 @@
                     </Grid>
 
                     <!-- Save Button -->
-                    <Button Content="{Binding Label_Save}"
+                    <Button Content="{loc:Localize Settings_Save}"
                             Command="{Binding SaveCommand}"
                             Background="#2ECC71"
                             Foreground="White"
@@ -239,3 +240,4 @@
     </Grid>
 
 </Window>
+

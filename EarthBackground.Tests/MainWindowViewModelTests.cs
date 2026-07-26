@@ -204,20 +204,23 @@ namespace EarthBackground.Tests
                 "Btn_Stop" => "Stop",
                 "Btn_Settings" => "Settings",
                 "Btn_Exit" => "Exit",
-                "Notify_HiddenToTray" => "EarthBackground 仍在系统托盘运行。如需关闭程序，请点击“退出”。",
-                "Status_WaitForRun" => "等待运行...",
-                "Status_Running" => "运行中",
-                "Status_Initializing" => "初始化中...",
-                "Status_Downloading" => "下载中...",
-                "Status_SettingWallpaper" => "设置壁纸...",
-                "Status_Complete" => "已完成",
+                "Notify_HiddenToTray" => "EarthBackground still running in tray.",
+                "Status_WaitForRun" => "Wait for run",
+                "Status_Running" => "Running",
+                "Status_Initializing" => "Initializing...",
+                "Status_Downloading" => "Downloading...",
+                "Status_SettingWallpaper" => "Setting Wallpaper...",
+                "Status_Complete" => "Complete",
                 _ => key
             };
 
-            public string Format(string key, params object[] args)
-            {
-                return string.Format(this[key], args);
-            }
+            public string Format(string key, params object[] args) => string.Format(this[key], args);
+
+            public string CurrentLanguage => "en-US";
+
+            public event Action<string>? LanguageChanged;
+
+            public void SetLanguage(string language) => LanguageChanged?.Invoke(language);
         }
     }
 }

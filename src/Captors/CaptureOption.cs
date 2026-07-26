@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace EarthBackground
@@ -125,7 +125,7 @@ namespace EarthBackground
         public static Dictionary<string, Resolution> GetAllResolution()
         {
             Dictionary<string, Resolution> result = new Dictionary<string, Resolution>();
-            foreach (Resolution item in Enum.GetValues(typeof(Resolution)))
+            foreach (Resolution item in Enum.GetValues<Resolution>())
             {
                 result.Add(item.GetName(), item);
             }

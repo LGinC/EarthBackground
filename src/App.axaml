@@ -1,6 +1,7 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:EarthBackground.ViewModels"
+             xmlns:loc="using:EarthBackground.Localization"
              x:Class="EarthBackground.App"
              x:DataType="vm:MainWindowViewModel"
              RequestedThemeVariant="Light">
@@ -15,10 +16,10 @@
                       ToolTipText="EarthBackground">
                 <TrayIcon.Menu>
                     <NativeMenu>
-                        <NativeMenuItem Header="显示主窗口"
+                        <NativeMenuItem Header="{loc:Localize TrayMenu_ShowWindow}"
                                         Command="{Binding ShowMainWindowCommand}" />
                         <NativeMenuItemSeparator />
-                        <NativeMenuItem Header="退出"
+                        <NativeMenuItem Header="{loc:Localize TrayMenu_Exit}"
                                         Command="{Binding ExitCommand}" />
                     </NativeMenu>
                 </TrayIcon.Menu>

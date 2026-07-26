@@ -76,14 +76,56 @@ namespace EarthBackground.ViewModels
         public bool CanStart => !IsRunning;
         public bool CanStop => IsRunning;
 
-        // Localized button labels
-        public string WindowTitle => _loc["MainWindow_Title"];
-        public string HeaderTitle => _loc["MainWindow_Header"];
-        public string BtnStart => _loc["Btn_Start"];
-        public string BtnStop => _loc["Btn_Stop"];
-        public string BtnSettings => _loc["Btn_Settings"];
-        public string BtnExit => _loc["Btn_Exit"];
-        public string NotifyHiddenToTray => _loc["Notify_HiddenToTray"];
+        // Localized labels (refreshed on LanguageChanged for C# consumers; XAML uses {loc:Localize})
+        private string _windowTitle = string.Empty;
+        private string _headerTitle = string.Empty;
+        private string _btnStart = string.Empty;
+        private string _btnStop = string.Empty;
+        private string _btnSettings = string.Empty;
+        private string _btnExit = string.Empty;
+        private string _notifyHiddenToTray = string.Empty;
+
+        public string WindowTitle
+        {
+            get => _windowTitle;
+            private set => this.RaiseAndSetIfChanged(ref _windowTitle, value);
+        }
+
+        public string HeaderTitle
+        {
+            get => _headerTitle;
+            private set => this.RaiseAndSetIfChanged(ref _headerTitle, value);
+        }
+
+        public string BtnStart
+        {
+            get => _btnStart;
+            private set => this.RaiseAndSetIfChanged(ref _btnStart, value);
+        }
+
+        public string BtnStop
+        {
+            get => _btnStop;
+            private set => this.RaiseAndSetIfChanged(ref _btnStop, value);
+        }
+
+        public string BtnSettings
+        {
+            get => _btnSettings;
+            private set => this.RaiseAndSetIfChanged(ref _btnSettings, value);
+        }
+
+        public string BtnExit
+        {
+            get => _btnExit;
+            private set => this.RaiseAndSetIfChanged(ref _btnExit, value);
+        }
+
+        public string NotifyHiddenToTray
+        {
+            get => _notifyHiddenToTray;
+            private set => this.RaiseAndSetIfChanged(ref _notifyHiddenToTray, value);
+        }
 
         public ReactiveCommand<Unit, Unit> StartCommand { get; }
         public ReactiveCommand<Unit, Unit> StopCommand { get; }
@@ -105,7 +147,9 @@ namespace EarthBackground.ViewModels
             _wallpaperService = wallpaperService;
             _loc = loc;
             _lifetime = lifetime;
+            ApplyStaticLocalizedLabels();
             _statusText = _loc["Status_WaitForRun"];
+            _loc.LanguageChanged += OnLanguageChanged;
 
             StartCommand = ReactiveCommand.Create(OnStart, outputScheduler: AvaloniaScheduler.Instance);
             StopCommand = ReactiveCommand.Create(OnStop, outputScheduler: AvaloniaScheduler.Instance);
@@ -329,8 +373,28 @@ namespace EarthBackground.ViewModels
             });
         }
 
+        
+        private void OnLanguageChanged(string _)
+        {
+            ApplyStaticLocalizedLabels();
+            // Re-map current status text if it was a known key-backed value.
+            if (!IsRunning)
+                StatusText = _loc["Status_WaitForRun"];
+        }
+
+        private void ApplyStaticLocalizedLabels()
+        {
+            WindowTitle = _loc["MainWindow_Title"];
+            HeaderTitle = _loc["MainWindow_Header"];
+            BtnStart = _loc["Btn_Start"];
+            BtnStop = _loc["Btn_Stop"];
+            BtnSettings = _loc["Btn_Settings"];
+            BtnExit = _loc["Btn_Exit"];
+            NotifyHiddenToTray = _loc["Notify_HiddenToTray"];
+        }
         public void Dispose()
         {
+            try { _loc.LanguageChanged -= OnLanguageChanged; } catch { }
             if (_disposed) return;
             _disposed = true;
 
@@ -339,3 +403,5 @@ namespace EarthBackground.ViewModels
         }
     }
 }
+
+

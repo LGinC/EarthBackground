@@ -110,6 +110,9 @@ jobs:
 
     - name: Create Release Archive
       run: |
+        Get-ChildItem -Path $env:Publish_Dir -Recurse -Include *.pdb,*.dbg,*.dwarf | Remove-Item -Force -ErrorAction SilentlyContinue
+        Get-ChildItem -Path $env:Publish_Dir -Directory -Filter images | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+        Get-ChildItem -Path $env:Publish_Dir -Directory -Filter logs | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
         $archiveName = "EarthBackground-${{ github.ref_name }}-${{ matrix.runtime }}.zip"
         if (Test-Path $archiveName) { Remove-Item $archiveName -Force }
         if ("${{ runner.os }}" -eq "macOS") {

@@ -1,4 +1,6 @@
+using System;
 using Avalonia.Controls;
+using EarthBackground.Localization;
 using EarthBackground.ViewModels;
 
 namespace EarthBackground.Views
@@ -21,7 +23,7 @@ namespace EarthBackground.Views
                 Controls.ModernNotification.Show(
                     DataContext is MainWindowViewModel viewModel
                         ? viewModel.NotifyHiddenToTray
-                        : "EarthBackground is still running in the system tray.",
+                        : LocalizedStrings.Instance["Notify_HiddenToTray"],
                     Controls.ModernNotification.NotificationType.Info);
                 return;
             }

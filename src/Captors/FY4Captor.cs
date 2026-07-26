@@ -8,6 +8,7 @@ using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using EarthBackground.Oss;
+using EarthBackground;
 using Microsoft.Extensions.Options;
 
 namespace EarthBackground.Captors
@@ -43,7 +44,7 @@ namespace EarthBackground.Captors
                 {"queryProduct", "NatureColor_NoLit"}
             });
             var re = await Client.PostAsync("/swapQuery/public/DataQuery/playList", content, token);
-            var ids = await re.Content.ReadFromJsonAsync<string[]>(cancellationToken: token);
+            var ids = await re.Content.ReadFromJsonAsync(global::EarthBackground.AppJsonSerializerContext.Default.StringArray, token);
             if (ids == null) return Array.Empty<string>();
 
             return FilterImageIdsByClientLocalTime(ids, recentHours);

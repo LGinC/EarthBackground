@@ -7,6 +7,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using EarthBackground.Background;
+using EarthBackground.Localization;
 using EarthBackground.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -55,6 +56,9 @@ namespace EarthBackground
 
             _serviceProvider = Program.ConfigureServices();
 
+            var localization = _serviceProvider.GetRequiredService<ILocalizationService>();
+            LocalizedStrings.Instance.Attach(localization);
+
             var wallpaperService = _serviceProvider.GetRequiredService<WallpaperService>();
 
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
@@ -63,7 +67,7 @@ namespace EarthBackground
                     _serviceProvider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<MainWindowViewModel>>(),
                     _serviceProvider,
                     wallpaperService,
-                    _serviceProvider.GetRequiredService<Localization.ILocalizationService>(),
+                    localization,
                     desktop);
 
                 // Set DataContext for TrayIcon commands

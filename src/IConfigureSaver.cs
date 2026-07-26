@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 using EarthBackground.Oss;
@@ -16,7 +16,7 @@ namespace EarthBackground
         {
             string filePath = AppPaths.AppSettingsPath;
             var settings = File.Exists(filePath)
-                ? JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(filePath))
+                ? JsonSerializer.Deserialize(File.ReadAllText(filePath), AppJsonSerializerContext.Default.AppSettings)
                 : null;
 
             if (option == null && ossOption == null)
@@ -36,7 +36,7 @@ namespace EarthBackground
                 settings.OssOptions = ossOption;
             }
 
-            return File.WriteAllTextAsync(filePath, JsonSerializer.Serialize(settings));
+            return File.WriteAllTextAsync(filePath, JsonSerializer.Serialize(settings, AppJsonSerializerContext.Default.AppSettings));
         }
     }
 }

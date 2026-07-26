@@ -322,7 +322,7 @@ namespace EarthBackground.ViewModels
             SelectedCaptor = Captors.FirstOrDefault(c => c.Value == _capture.Captor) ?? Captors.FirstOrDefault();
 
             // Initialize resolutions
-            foreach (Resolution res in Enum.GetValues(typeof(Resolution)))
+            foreach (Resolution res in Enum.GetValues<Resolution>())
                 Resolutions.Add(new NameValue<Resolution>(res.GetName(), res));
 
             SelectedResolution = Resolutions.FirstOrDefault(r => r.Value == _capture.Resolution) ?? Resolutions.FirstOrDefault();

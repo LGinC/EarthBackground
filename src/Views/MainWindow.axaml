@@ -3,10 +3,11 @@
         xmlns:vm="using:EarthBackground.ViewModels"
         xmlns:controls="using:EarthBackground.Controls"
         xmlns:converters="using:EarthBackground.Converters"
+        xmlns:loc="using:EarthBackground.Localization"
         x:Class="EarthBackground.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        x:CompileBindings="False"
-        Title="{Binding WindowTitle}"
+        x:CompileBindings="True"
+        Title="{loc:Localize MainWindow_Title}"
         Width="480" Height="300"
         CanResize="False"
         WindowStartupLocation="CenterScreen"
@@ -56,7 +57,8 @@
                 HorizontalAlignment="Left"
                 VerticalAlignment="Top" />
             <TextBlock
-                Text="{Binding HeaderTitle}"
+                x:Name="HeaderTitleText"
+                Text="{loc:Localize MainWindow_Header}"
                 FontFamily="Segoe UI"
                 FontSize="18"
                 FontWeight="Bold"
@@ -78,6 +80,7 @@
                         Margin="0,0,0,10">
                     <StackPanel Spacing="8">
                         <TextBlock
+                            x:Name="StatusTextBlock"
                             Text="{Binding StatusText}"
                             FontFamily="Segoe UI"
                             FontSize="12"
@@ -90,6 +93,7 @@
                             Foreground="#2ECC71"
                             Background="#ECF0F1" />
                         <TextBlock
+                            x:Name="ProgressTextBlock"
                             Text="{Binding ProgressText}"
                             FontFamily="Segoe UI"
                             FontSize="9"
@@ -113,7 +117,8 @@
                             Background="#2ECC71"
                             Foreground="#FFFFFF">
                             <TextBlock
-                                Text="{Binding BtnStart, Converter={StaticResource ButtonLabelConverter}}"
+                                x:Name="BtnStartText"
+                                Text="{loc:Localize Btn_Start, Converter={StaticResource ButtonLabelConverter}}"
                                 Width="{Binding Bounds.Width, RelativeSource={RelativeSource AncestorType=Button}, Converter={StaticResource ButtonTextWidthConverter}}" />
                         </Button>
                         <Button
@@ -123,7 +128,8 @@
                             IsEnabled="{Binding CanStop}"
                             Background="#E74C3C">
                             <TextBlock
-                                Text="{Binding BtnStop, Converter={StaticResource ButtonLabelConverter}}"
+                                x:Name="BtnStopText"
+                                Text="{loc:Localize Btn_Stop, Converter={StaticResource ButtonLabelConverter}}"
                                 Width="{Binding Bounds.Width, RelativeSource={RelativeSource AncestorType=Button}, Converter={StaticResource ButtonTextWidthConverter}}" />
                         </Button>
                         <Button
@@ -132,7 +138,8 @@
                             Command="{Binding SettingsCommand}"
                             Background="#3498DB">
                             <TextBlock
-                                Text="{Binding BtnSettings, Converter={StaticResource ButtonLabelConverter}}"
+                                x:Name="BtnSettingsText"
+                                Text="{loc:Localize Btn_Settings, Converter={StaticResource ButtonLabelConverter}}"
                                 Width="{Binding Bounds.Width, RelativeSource={RelativeSource AncestorType=Button}, Converter={StaticResource ButtonTextWidthConverter}}" />
                         </Button>
                         <Button
@@ -141,7 +148,8 @@
                             Command="{Binding ExitCommand}"
                             Background="#95A5A6">
                             <TextBlock
-                                Text="{Binding BtnExit, Converter={StaticResource ButtonLabelConverter}}"
+                                x:Name="BtnExitText"
+                                Text="{loc:Localize Btn_Exit, Converter={StaticResource ButtonLabelConverter}}"
                                 Width="{Binding Bounds.Width, RelativeSource={RelativeSource AncestorType=Button}, Converter={StaticResource ButtonTextWidthConverter}}" />
                         </Button>
                     </Grid>
