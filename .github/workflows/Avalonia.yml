@@ -151,7 +151,14 @@ jobs:
         $archiveName = "EarthBackground-${{ github.ref_name }}-${{ matrix.runtime }}.zip"
         if (Test-Path $archiveName) { Remove-Item $archiveName -Force }
         if ("${{ runner.os }}" -eq "macOS") {
-          bash -lc 'ditto -c -k --sequesterRsrc --keepParent "${{ env.App_Bundle_Dir }}" "$archiveName"'
+          if (-not (Test-Path -LiteralPath $env:App_Bundle_Dir)) {
+            throw "macOS app bundle not found: $($env:App_Bundle_Dir)"
+          }
+          # Call ditto from pwsh so $archiveName is not lost inside bash single quotes.
+          & ditto -c -k --sequesterRsrc --keepParent $env:App_Bundle_Dir $archiveName
+          if (-not (Test-Path -LiteralPath $archiveName)) {
+            throw "Failed to create macOS archive: $archiveName"
+          }
         }
         else {
           Compress-Archive -Path "$env:Publish_Dir/*" -DestinationPath $archiveName
