@@ -83,10 +83,21 @@ jobs:
       with:
         dotnet-version: '10.0.x'
 
-    - name: Restore dependencies
-      run: dotnet restore $env:Project_Path -r ${{ matrix.runtime }}
+    - name: Install Native AOT prerequisites
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y clang zlib1g-dev
 
-    - name: Publish Avalonia app
+    - name: Restore Native AOT dependencies
+      run: |
+        dotnet restore $env:Project_Path `
+          -r ${{ matrix.runtime }} `
+          -p:TargetFramework=${{ matrix.framework }} `
+          -p:PublishAot=true `
+          -p:PublishReadyToRun=false
+
+    - name: Publish Avalonia Native AOT app
       run: |
         dotnet publish $env:Project_Path `
           --framework ${{ matrix.framework }} `
@@ -94,9 +105,32 @@ jobs:
           --runtime ${{ matrix.runtime }} `
           --output $env:Publish_Dir `
           --self-contained true `
+          --no-restore `
+          -p:PublishAot=true `
+          -p:PublishReadyToRun=false `
           -p:UseAppHost=true `
-          -p:PublishReadyToRun=true `
           -p:PublishSingleFile=false
+
+    - name: Verify Native AOT output
+      run: |
+        $executableName = if ("${{ runner.os }}" -eq "Windows") { "EarthBackground.exe" } else { "EarthBackground" }
+        $executablePath = Join-Path $env:Publish_Dir $executableName
+        if (-not (Test-Path -LiteralPath $executablePath -PathType Leaf)) {
+          throw "Native AOT executable was not produced: $executablePath"
+        }
+
+        $managedRuntimeFiles = @(
+          "coreclr.dll", "hostfxr.dll", "hostpolicy.dll",
+          "libcoreclr.so", "libhostfxr.so", "libhostpolicy.so",
+          "libcoreclr.dylib", "libhostfxr.dylib", "libhostpolicy.dylib"
+        )
+        $unexpectedFiles = Get-ChildItem -LiteralPath $env:Publish_Dir -Recurse -File |
+          Where-Object { $managedRuntimeFiles -contains $_.Name } |
+          Select-Object -ExpandProperty FullName
+        if ($unexpectedFiles) {
+          throw "Managed .NET runtime files found in Native AOT output: $($unexpectedFiles -join ', ')"
+        }
+
     - name: Build macOS app bundle
       if: runner.os == 'macOS'
       run: |

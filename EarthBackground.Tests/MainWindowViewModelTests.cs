@@ -72,7 +72,7 @@ namespace EarthBackground.Tests
             Assert.False(string.IsNullOrWhiteSpace(viewModel.BtnStart));
             Assert.False(string.IsNullOrWhiteSpace(viewModel.BtnStop));
             Assert.False(string.IsNullOrWhiteSpace(viewModel.NotifyHiddenToTray));
-            Assert.Equal("等待运行...", viewModel.StatusText);
+            Assert.Equal("Wait for run", viewModel.StatusText);
             Assert.False(viewModel.IsRunning);
             Assert.True(viewModel.CanStart);
             Assert.False(viewModel.CanStop);
@@ -86,19 +86,19 @@ namespace EarthBackground.Tests
             _wallpaperService.StartWallpaperUpdates();
             InvokePrivate(viewModel, "OnStatusChanged", "Initializing...");
             await FlushUiAsync();
-            Assert.Equal("初始化中...", viewModel.StatusText);
+            Assert.Equal("Initializing...", viewModel.StatusText);
             Assert.True(viewModel.IsRunning);
             Assert.False(viewModel.CanStart);
             Assert.True(viewModel.CanStop);
 
             InvokePrivate(viewModel, "OnStatusChanged", "Downloading...");
             await FlushUiAsync();
-            Assert.Equal("下载中...", viewModel.StatusText);
+            Assert.Equal("Downloading...", viewModel.StatusText);
 
             _wallpaperService.StopWallpaperUpdates();
             InvokePrivate(viewModel, "OnStatusChanged", "Stopped");
             await FlushUiAsync();
-            Assert.Equal("等待运行...", viewModel.StatusText);
+            Assert.Equal("Wait for run", viewModel.StatusText);
             Assert.False(viewModel.IsRunning);
             Assert.True(viewModel.CanStart);
             Assert.False(viewModel.CanStop);

@@ -1,4 +1,5 @@
 using System.Globalization;
+using Avalonia.Headless.XUnit;
 using EarthBackground.Localization;
 using Xunit;
 
@@ -24,7 +25,7 @@ public class LiveLocalizationTests
         Assert.Equal("🌍 Earth Background", loc["MainWindow_Header"]);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void LocalizedStrings_Attach_ShouldRefreshEntriesOnLanguageChange()
     {
         var loc = new ResourceLocalizationService(CultureInfo.GetCultureInfo("en-US"));

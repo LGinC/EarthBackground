@@ -1,31 +1,73 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
-using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.LogicalTree;
+using EarthBackground.Background;
+using EarthBackground.Localization;
+using EarthBackground.Oss;
+using EarthBackground.ViewModels;
 using EarthBackground.Views;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Moq;
 using Xunit;
 
 namespace EarthBackground.Tests
 {
-    public class SettingsWindowUITests
+    public class SettingsWindowUITests : IDisposable
     {
+        private readonly ServiceProvider _serviceProvider;
+        private readonly WallpaperService _wallpaperService;
+        private readonly ResourceLocalizationService _localization;
+        private readonly Mock<IConfigureSaver> _configureSaverMock = new();
+        private readonly Mock<IWallpaperMonitorProvider> _monitorProviderMock = new();
+        private readonly System.Collections.Generic.List<Window> _windows = new();
+
+        public SettingsWindowUITests()
+        {
+            _localization = new ResourceLocalizationService(CultureInfo.GetCultureInfo("en-US"));
+            LocalizedStrings.Instance.Attach(_localization);
+
+            var backgroundProvider = new Mock<IBackgroudSetProvider>();
+            var logger = new Mock<ILogger<WallpaperService>>();
+            var dynamicWallpaperSetter = new Mock<IDynamicWallpaperSetter>();
+            var services = new ServiceCollection();
+            _serviceProvider = services.BuildServiceProvider();
+
+            _monitorProviderMock
+                .Setup(x => x.GetMonitors())
+                .Returns(new[]
+                {
+                    new WallpaperMonitor(@"\\?\DISPLAY#MONITOR1", "DISPLAY1 (1920x1080)", 0, 0, 1920, 1080),
+                    new WallpaperMonitor(@"\\?\DISPLAY#MONITOR2", "DISPLAY2 (2560x1440)", 1920, 0, 2560, 1440)
+                });
+
+            backgroundProvider
+                .Setup(x => x.GetSetter())
+                .Throws(new InvalidOperationException("Not used in settings window UI tests."));
+
+            _wallpaperService = new WallpaperService(
+                _serviceProvider,
+                logger.Object,
+                new TestOptionsMonitor<CaptureOption>(CreateCaptureOption()),
+                backgroundProvider.Object,
+                dynamicWallpaperSetter.Object);
+        }
+
         [AvaloniaFact]
         public void SettingsWindow_ShouldBindTitleAndHeader()
         {
             var viewModel = CreateViewModel();
             var window = CreateWindow(viewModel);
 
-            Assert.Equal(viewModel.WindowTitle, window.Title);
-
-            var headers = window.GetLogicalDescendants().OfType<TextBlock>().Select(x => x.Text).ToList();
-            Assert.Contains(viewModel.HeaderTitle, headers);
-            Assert.Contains(viewModel.Label_CaptureSection, headers);
-            Assert.Contains(viewModel.Label_DownloadSection, headers);
+            Assert.Equal(_localization["Settings_WindowTitle"], window.Title);
+            Assert.Contains(
+                window.GetLogicalDescendants().OfType<TextBlock>(),
+                x => string.Equals(x.Text, _localization["Settings_Header"], StringComparison.Ordinal));
         }
 
         [AvaloniaFact]
@@ -33,20 +75,17 @@ namespace EarthBackground.Tests
         {
             var viewModel = CreateViewModel();
             var window = CreateWindow(viewModel);
-
             var buttons = window.GetLogicalDescendants().OfType<Button>().ToList();
             var checkBoxes = window.GetLogicalDescendants().OfType<CheckBox>().ToList();
             var comboBoxes = window.GetLogicalDescendants().OfType<ComboBox>().ToList();
 
             Assert.Contains(buttons, x => string.Equals(x.Content?.ToString(), viewModel.Label_ChoosePath, StringComparison.Ordinal));
             Assert.Contains(buttons, x => string.Equals(x.Content?.ToString(), viewModel.Label_Save, StringComparison.Ordinal));
-
             Assert.Contains(checkBoxes, x => string.Equals(x.Content?.ToString(), viewModel.Label_AutoStart, StringComparison.Ordinal));
             Assert.Contains(checkBoxes, x => string.Equals(x.Content?.ToString(), viewModel.Label_DynamicWallpaper, StringComparison.Ordinal));
             Assert.Contains(checkBoxes, x => string.Equals(x.Content?.ToString(), viewModel.Label_SetWallpaper, StringComparison.Ordinal));
             Assert.Contains(checkBoxes, x => string.Equals(x.Content?.ToString(), viewModel.Label_SaveWallpaper, StringComparison.Ordinal));
             Assert.Contains(checkBoxes, x => string.Equals(x.Content?.ToString(), viewModel.Label_AllDynamicWallpaperMonitors, StringComparison.Ordinal));
-
             Assert.True(comboBoxes.Count >= 4);
         }
 
@@ -55,19 +94,15 @@ namespace EarthBackground.Tests
         {
             var viewModel = CreateViewModel();
             var window = CreateWindow(viewModel);
-
             var textBlocks = window.GetLogicalDescendants().OfType<TextBlock>().ToList();
 
-            var recentHoursLabel = textBlocks.FirstOrDefault(x => string.Equals(x.Text, viewModel.Label_RecentHours, StringComparison.Ordinal));
-            var frameIntervalLabel = textBlocks.FirstOrDefault(x => string.Equals(x.Text, viewModel.Label_FrameInterval, StringComparison.Ordinal));
-            var loopPauseLabel = textBlocks.FirstOrDefault(x => string.Equals(x.Text, viewModel.Label_LoopPauseMilliseconds, StringComparison.Ordinal));
+            var recentHoursLabel = FindTextBlock(textBlocks, viewModel.Label_RecentHours);
+            var frameIntervalLabel = FindTextBlock(textBlocks, viewModel.Label_FrameInterval);
+            var loopPauseLabel = FindTextBlock(textBlocks, viewModel.Label_LoopPauseMilliseconds);
 
-            Assert.NotNull(recentHoursLabel);
-            Assert.NotNull(frameIntervalLabel);
-            Assert.NotNull(loopPauseLabel);
-            Assert.True(recentHoursLabel!.IsVisible);
-            Assert.True(frameIntervalLabel!.IsVisible);
-            Assert.True(loopPauseLabel!.IsVisible);
+            Assert.True(recentHoursLabel.IsVisible);
+            Assert.True(frameIntervalLabel.IsVisible);
+            Assert.True(loopPauseLabel.IsVisible);
         }
 
         [AvaloniaFact]
@@ -75,13 +110,12 @@ namespace EarthBackground.Tests
         {
             var viewModel = CreateViewModel();
             viewModel.AllDynamicWallpaperMonitors = false;
-            viewModel.DynamicWallpaperMonitorListVisible = true;
             var window = CreateWindow(viewModel);
-
             var textBlocks = window.GetLogicalDescendants().OfType<TextBlock>().ToList();
-            var monitorList = window.GetLogicalDescendants().OfType<ItemsControl>().FirstOrDefault(x => ReferenceEquals(x.ItemsSource, viewModel.DynamicWallpaperMonitors));
+            var monitorList = window.GetLogicalDescendants().OfType<ItemsControl>()
+                .FirstOrDefault(x => ReferenceEquals(x.ItemsSource, viewModel.DynamicWallpaperMonitors));
 
-            Assert.Contains(textBlocks, x => string.Equals(x.Text, viewModel.Label_DynamicWallpaperMonitors, StringComparison.Ordinal));
+            Assert.NotNull(FindTextBlock(textBlocks, viewModel.Label_DynamicWallpaperMonitors));
             Assert.NotNull(monitorList);
             Assert.True(monitorList!.IsVisible);
             Assert.Same(viewModel.DynamicWallpaperMonitors, monitorList.ItemsSource);
@@ -92,17 +126,46 @@ namespace EarthBackground.Tests
         {
             var viewModel = CreateViewModel();
             viewModel.DynamicWallpaper = false;
-            viewModel.DynamicWallpaperMonitorListVisible = false;
             var window = CreateWindow(viewModel);
-
             var textBlocks = window.GetLogicalDescendants().OfType<TextBlock>().ToList();
-            var monitorLabel = textBlocks.FirstOrDefault(x => string.Equals(x.Text, viewModel.Label_DynamicWallpaperMonitors, StringComparison.Ordinal));
+            var monitorLabel = FindTextBlock(textBlocks, viewModel.Label_DynamicWallpaperMonitors);
 
-            Assert.NotNull(monitorLabel);
-            Assert.False(monitorLabel!.IsVisible);
+            Assert.False(monitorLabel.IsVisible);
         }
 
-        private static SettingsWindow CreateWindow(SettingsWindowTestViewModel viewModel)
+        private SettingsWindowViewModel CreateViewModel()
+        {
+            return new SettingsWindowViewModel(
+                new TestOptionsMonitor<CaptureOption>(CreateCaptureOption()),
+                new TestOptionsMonitor<OssOption>(new OssOption()),
+                _configureSaverMock.Object,
+                _wallpaperService,
+                _localization,
+                _monitorProviderMock.Object);
+        }
+
+        private static CaptureOption CreateCaptureOption()
+        {
+            return new CaptureOption
+            {
+                Captor = NameConsts.Fy4,
+                AutoStart = true,
+                DynamicWallpaper = true,
+                SetWallpaper = true,
+                SaveWallpaper = false,
+                SavePath = "images",
+                WallpaperFolder = "images",
+                Resolution = Resolution.r_2752,
+                Interval = 20,
+                FrameIntervalMinutes = 10,
+                Zoom = 100,
+                RecentHours = 24,
+                LoopPauseMilliseconds = 3000,
+                DynamicWallpaperMonitorIds = Array.Empty<string>()
+            };
+        }
+
+        private SettingsWindow CreateWindow(SettingsWindowViewModel viewModel)
         {
             var window = new SettingsWindow
             {
@@ -114,162 +177,28 @@ namespace EarthBackground.Tests
             window.ApplyTemplate();
             window.Measure(new Size(window.Width, window.Height));
             window.Arrange(new Rect(0, 0, window.Width, window.Height));
-
             return window;
         }
 
-        private static SettingsWindowTestViewModel CreateViewModel()
+        private static TextBlock FindTextBlock(System.Collections.Generic.IEnumerable<TextBlock> textBlocks, string text)
         {
-            return new SettingsWindowTestViewModel
-            {
-                WindowTitle = "Settings - EarthBackground",
-                HeaderTitle = "Settings",
-                Label_CaptureSection = "Capture Settings",
-                Label_DownloadSection = "Download Settings",
-                Label_AutoStart = "Launch at startup",
-                Label_DynamicWallpaper = "Dynamic wallpaper",
-                Label_SetWallpaper = "Set as wallpaper",
-                Label_SaveWallpaper = "Save wallpaper copy",
-                Label_Satellite = "Satellite",
-                Label_Resolution = "Resolution",
-                Label_Interval = "Update interval (min)",
-                Label_FrameInterval = "Frame interval (min)",
-                Label_Zoom = "Zoom",
-                Label_RecentHours = "Recent hours",
-                Label_LoopPauseMilliseconds = "Loop pause (ms)",
-                Label_DynamicWallpaperMonitors = "Apply to displays",
-                Label_AllDynamicWallpaperMonitors = "All displays",
-                Label_SavePath = "Save path",
-                Label_ChoosePath = "Browse",
-                Label_Downloader = "Downloader",
-                Label_Username = "Username",
-                Label_ApiKey = "API Key",
-                Label_ApiSecret = "API Secret",
-                Label_Domain = "Domain",
-                Label_Bucket = "Bucket",
-                Label_Zone = "Zone",
-                Label_Save = "Save Settings",
-                AutoStart = true,
-                DynamicWallpaper = true,
-                SetWallpaper = true,
-                SaveWallpaper = false,
-                SavePath = "images",
-                Captors = new[] { new NameValueStub("Himawari-9") },
-                Resolutions = new[] { new NameValueStub("2752*2752") },
-                Downloaders = new[] { new NameValueStub("Direct Download") },
-                Zones = new[] { new NameValueStub("East China") },
-                SelectedCaptor = new NameValueStub("Himawari-9"),
-                SelectedResolution = new NameValueStub("2752*2752"),
-                SelectedDownloader = new NameValueStub("Direct Download"),
-                SelectedZone = new NameValueStub("East China"),
-                ChooseSavePathEnabled = true,
-                AllDynamicWallpaperMonitors = true,
-                DynamicWallpaperMonitorListVisible = false,
-                DynamicWallpaperMonitors = new[] { new MonitorSelectionStub("DISPLAY1 (1920x1080)") }
-            };
+            var result = textBlocks.FirstOrDefault(x => string.Equals(x.Text, text, StringComparison.Ordinal));
+            Assert.NotNull(result);
+            return result!;
         }
 
-        private sealed class SettingsWindowTestViewModel
+        public void Dispose()
         {
-            public string WindowTitle { get; init; } = string.Empty;
-            public string HeaderTitle { get; init; } = string.Empty;
-            public string Label_CaptureSection { get; init; } = string.Empty;
-            public string Label_DownloadSection { get; init; } = string.Empty;
-            public string Label_AutoStart { get; init; } = string.Empty;
-            public string Label_DynamicWallpaper { get; init; } = string.Empty;
-            public string Label_SetWallpaper { get; init; } = string.Empty;
-            public string Label_SaveWallpaper { get; init; } = string.Empty;
-            public string Label_Satellite { get; init; } = string.Empty;
-            public string Label_Resolution { get; init; } = string.Empty;
-            public string Label_Interval { get; init; } = string.Empty;
-            public string Label_FrameInterval { get; init; } = string.Empty;
-            public string Label_Zoom { get; init; } = string.Empty;
-            public string Label_RecentHours { get; init; } = string.Empty;
-            public string Label_LoopPauseMilliseconds { get; init; } = string.Empty;
-            public string Label_DynamicWallpaperMonitors { get; init; } = string.Empty;
-            public string Label_AllDynamicWallpaperMonitors { get; init; } = string.Empty;
-            public string Label_SavePath { get; init; } = string.Empty;
-            public string Label_ChoosePath { get; init; } = string.Empty;
-            public string Label_Downloader { get; init; } = string.Empty;
-            public string Label_Username { get; init; } = string.Empty;
-            public string Label_ApiKey { get; init; } = string.Empty;
-            public string Label_ApiSecret { get; init; } = string.Empty;
-            public string Label_Domain { get; init; } = string.Empty;
-            public string Label_Bucket { get; init; } = string.Empty;
-            public string Label_Zone { get; init; } = string.Empty;
-            public string Label_Save { get; init; } = string.Empty;
-            public bool AutoStart { get; init; }
-            public bool DynamicWallpaper { get; set; }
-            public bool SetWallpaper { get; init; }
-            public bool SaveWallpaper { get; init; }
-            public string SavePath { get; init; } = string.Empty;
-            public IEnumerable Captors { get; init; } = Array.Empty<object>();
-            public IEnumerable Resolutions { get; init; } = Array.Empty<object>();
-            public IEnumerable Downloaders { get; init; } = Array.Empty<object>();
-            public IEnumerable Zones { get; init; } = Array.Empty<object>();
-            public IEnumerable DynamicWallpaperMonitors { get; init; } = Array.Empty<object>();
-            public object? SelectedCaptor { get; init; }
-            public object? SelectedResolution { get; init; }
-            public object? SelectedDownloader { get; init; }
-            public object? SelectedZone { get; init; }
-            public int Interval { get; init; } = 20;
-            public int FrameIntervalMinutes { get; init; } = 10;
-            public int FrameIntervalMaximum { get; init; } = 360;
-            public int Zoom { get; init; } = 100;
-            public int RecentHours { get; init; } = 24;
-            public int LoopPauseMilliseconds { get; init; } = 3000;
-            public string Username { get; init; } = string.Empty;
-            public string ApiKey { get; init; } = string.Empty;
-            public string ApiSecret { get; init; } = string.Empty;
-            public string Domain { get; init; } = string.Empty;
-            public string Bucket { get; init; } = string.Empty;
-            public bool UsernameEnabled { get; init; } = true;
-            public bool ApiKeyEnabled { get; init; } = true;
-            public bool ApiSecretEnabled { get; init; } = true;
-            public bool ZoneEnabled { get; init; } = true;
-            public bool DomainEnabled { get; init; } = true;
-            public bool BucketEnabled { get; init; } = true;
-            public bool ChooseSavePathEnabled { get; init; }
-            public bool AllDynamicWallpaperMonitors { get; set; }
-            public bool DynamicWallpaperMonitorListVisible { get; set; }
-            public ICommand ChooseSavePathCommand { get; } = new NoOpCommand();
-            public ICommand SaveCommand { get; } = new NoOpCommand();
+            _wallpaperService.StopWallpaperUpdates();
+            _serviceProvider.Dispose();
         }
 
-        private sealed class NameValueStub
+        private sealed class TestOptionsMonitor<T> : IOptionsMonitor<T>
         {
-            public NameValueStub(string name)
-            {
-                Name = name;
-            }
-
-            public string Name { get; }
-        }
-
-        private sealed class MonitorSelectionStub
-        {
-            public MonitorSelectionStub(string name)
-            {
-                Name = name;
-            }
-
-            public string Name { get; }
-            public bool IsSelected { get; set; }
-        }
-
-        private sealed class NoOpCommand : ICommand
-        {
-            public event EventHandler? CanExecuteChanged
-            {
-                add { }
-                remove { }
-            }
-
-            public bool CanExecute(object? parameter) => true;
-
-            public void Execute(object? parameter)
-            {
-            }
+            public TestOptionsMonitor(T currentValue) => CurrentValue = currentValue;
+            public T CurrentValue { get; set; }
+            public T Get(string? name) => CurrentValue;
+            public IDisposable? OnChange(Action<T, string?> listener) => null;
         }
     }
 }

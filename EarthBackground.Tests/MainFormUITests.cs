@@ -1,124 +1,140 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
-using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Headless.XUnit;
-using Avalonia.Layout;
 using Avalonia.LogicalTree;
-using EarthBackground.Controls;
+using EarthBackground.Background;
+using EarthBackground.Localization;
+using EarthBackground.ViewModels;
 using EarthBackground.Views;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Moq;
 using Xunit;
 
 namespace EarthBackground.Tests
 {
-    public class MainFormUITests
+    public class MainFormUITests : IDisposable
     {
+        private readonly ServiceProvider _serviceProvider;
+        private readonly WallpaperService _wallpaperService;
+        private readonly ResourceLocalizationService _localization;
+        private readonly Mock<ILogger<MainWindowViewModel>> _loggerMock = new();
+        private readonly Mock<IClassicDesktopStyleApplicationLifetime> _lifetimeMock = new();
+        private readonly List<MainWindowViewModel> _viewModels = new();
+        private readonly List<Window> _windows = new();
+
+        public MainFormUITests()
+        {
+            _localization = new ResourceLocalizationService(CultureInfo.GetCultureInfo("en-US"));
+            LocalizedStrings.Instance.Attach(_localization);
+
+            var options = new TestOptionsMonitor<CaptureOption>(new CaptureOption
+            {
+                Captor = "TestCaptor",
+                Interval = 10,
+                SetWallpaper = false,
+                SaveWallpaper = false,
+                DynamicWallpaper = false
+            });
+
+            var backgroundProvider = new Mock<IBackgroudSetProvider>();
+            var logger = new Mock<ILogger<WallpaperService>>();
+            var dynamicWallpaperSetter = new Mock<IDynamicWallpaperSetter>();
+            var monitorProvider = new Mock<IWallpaperMonitorProvider>();
+
+            var services = new ServiceCollection();
+            services.AddSingleton(monitorProvider.Object);
+            _serviceProvider = services.BuildServiceProvider();
+
+            backgroundProvider
+                .Setup(x => x.GetSetter())
+                .Throws(new InvalidOperationException("Not used in main window UI tests."));
+
+            _wallpaperService = new WallpaperService(
+                _serviceProvider,
+                logger.Object,
+                options,
+                backgroundProvider.Object,
+                dynamicWallpaperSetter.Object);
+
+            _lifetimeMock.SetupProperty(x => x.MainWindow, new Window());
+            _lifetimeMock.SetupProperty(x => x.ShutdownMode, ShutdownMode.OnExplicitShutdown);
+            _lifetimeMock.SetupGet(x => x.Windows).Returns(Array.Empty<Window>());
+            _lifetimeMock.SetupGet(x => x.Args).Returns(Array.Empty<string>());
+        }
+
         [AvaloniaFact]
         public void MainWindow_ShouldBindWindowTitleAndHeader()
         {
-            var viewModel = new MainWindowTestViewModel
-            {
-                WindowTitle = "EarthBackground - Test",
-                HeaderTitle = "Earth Background",
-                StatusText = "Ready",
-                ProgressText = "0/0",
-                ProgressValue = 0,
-                ProgressMax = 100,
-                EarthRotationAngle = 0,
-                BtnStart = "Start",
-                BtnStop = "Stop",
-                BtnSettings = "Settings",
-                BtnExit = "Exit",
-                CanStart = true,
-                CanStop = false
-            };
-
+            var viewModel = CreateViewModel();
             var window = CreateWindow(viewModel);
 
-            Assert.Equal(viewModel.WindowTitle, window.Title);
-
-            var header = window
-                .GetLogicalDescendants()
-                .OfType<TextBlock>()
-                .FirstOrDefault(x => string.Equals(x.Text, viewModel.HeaderTitle, StringComparison.Ordinal));
-
-            Assert.NotNull(header);
+            Assert.Equal(_localization["MainWindow_Title"], window.Title);
+            Assert.Equal(_localization["MainWindow_Header"], FindText(window, "HeaderTitleText"));
         }
 
         [AvaloniaFact]
         public void MainWindow_ShouldReflectButtonBindings()
         {
-            var viewModel = new MainWindowTestViewModel
-            {
-                WindowTitle = "EarthBackground - Test",
-                HeaderTitle = "Earth Background",
-                StatusText = "Running",
-                ProgressText = "1/2",
-                ProgressValue = 1,
-                ProgressMax = 2,
-                EarthRotationAngle = 10,
-                BtnStart = "Start",
-                BtnStop = "Stop",
-                BtnSettings = "Settings",
-                BtnExit = "Exit",
-                CanStart = true,
-                CanStop = false
-            };
-
+            var viewModel = CreateViewModel();
+            viewModel.IsRunning = false;
             var window = CreateWindow(viewModel);
-            var buttons = window.GetLogicalDescendants().OfType<Button>().ToList();
 
-            var startButton = FindButton(buttons, viewModel.BtnStart);
-            var stopButton = FindButton(buttons, viewModel.BtnStop);
-            var settingsButton = FindButton(buttons, viewModel.BtnSettings);
-            var exitButton = FindButton(buttons, viewModel.BtnExit);
+            var startButton = FindContainingButton(window, "BtnStartText");
+            var stopButton = FindContainingButton(window, "BtnStopText");
+            var settingsButton = FindContainingButton(window, "BtnSettingsText");
+            var exitButton = FindContainingButton(window, "BtnExitText");
 
-            Assert.NotNull(startButton);
-            Assert.NotNull(stopButton);
-            Assert.NotNull(settingsButton);
-            Assert.NotNull(exitButton);
-
-            Assert.True(startButton!.IsEnabled);
-            Assert.False(stopButton!.IsEnabled);
-            Assert.True(settingsButton!.IsEnabled);
-            Assert.True(exitButton!.IsEnabled);
+            Assert.Equal("Start", FindText(window, "BtnStartText"));
+            Assert.Equal("Stop", FindText(window, "BtnStopText"));
+            Assert.Equal("Settings", FindText(window, "BtnSettingsText"));
+            Assert.Equal("Exit", FindText(window, "BtnExitText"));
+            Assert.True(startButton.IsEnabled);
+            Assert.False(stopButton.IsEnabled);
+            Assert.True(settingsButton.IsEnabled);
+            Assert.True(exitButton.IsEnabled);
         }
 
         [AvaloniaFact]
         public void MainWindow_ShouldReflectStatusProgressAndEarthRotationBindings()
         {
-            var viewModel = new MainWindowTestViewModel
-            {
-                WindowTitle = "EarthBackground - Test",
-                HeaderTitle = "Earth Background",
-                StatusText = "Downloading...",
-                ProgressText = "3/5 (60%)",
-                ProgressValue = 3,
-                ProgressMax = 5,
-                EarthRotationAngle = 42,
-                BtnStart = "Start",
-                BtnStop = "Stop",
-                BtnSettings = "Settings",
-                BtnExit = "Exit",
-                CanStart = false,
-                CanStop = true
-            };
+            var viewModel = CreateViewModel();
+            viewModel.StatusText = "Downloading...";
+            viewModel.ProgressText = "3/5 (60%)";
+            viewModel.ProgressValue = 3;
+            viewModel.ProgressMax = 5;
+            viewModel.EarthRotationAngle = 42;
+            viewModel.IsRunning = true;
 
             var window = CreateWindow(viewModel);
-
-            var textBlocks = window.GetLogicalDescendants().OfType<TextBlock>().ToList();
             var progressBar = window.GetLogicalDescendants().OfType<ProgressBar>().FirstOrDefault();
 
-            Assert.Contains(textBlocks, x => string.Equals(x.Text, viewModel.StatusText, StringComparison.Ordinal));
-            Assert.Contains(textBlocks, x => string.Equals(x.Text, viewModel.ProgressText, StringComparison.Ordinal));
+            Assert.Equal(viewModel.StatusText, FindText(window, "StatusTextBlock"));
+            Assert.Equal(viewModel.ProgressText, FindText(window, "ProgressTextBlock"));
             Assert.NotNull(progressBar);
             Assert.Equal(viewModel.ProgressValue, progressBar!.Value);
             Assert.Equal(viewModel.ProgressMax, progressBar.Maximum);
         }
 
-        private static MainWindow CreateWindow(MainWindowTestViewModel viewModel)
+        private MainWindowViewModel CreateViewModel()
+        {
+            var viewModel = new MainWindowViewModel(
+                _loggerMock.Object,
+                _serviceProvider,
+                _wallpaperService,
+                _localization,
+                _lifetimeMock.Object);
+            _viewModels.Add(viewModel);
+            return viewModel;
+        }
+
+        private MainWindow CreateWindow(MainWindowViewModel viewModel)
         {
             var window = new MainWindow
             {
@@ -130,59 +146,39 @@ namespace EarthBackground.Tests
             window.ApplyTemplate();
             window.Measure(new Size(window.Width, window.Height));
             window.Arrange(new Rect(0, 0, window.Width, window.Height));
-
             return window;
         }
 
-        private static Button? FindButton(IEnumerable<Button> buttons, string content)
+        private static string FindText(Control root, string name)
         {
-            return buttons.FirstOrDefault(button => string.Equals(GetButtonText(button), content, StringComparison.Ordinal));
+            var control = root.FindControl<TextBlock>(name);
+            Assert.NotNull(control);
+            return control!.Text ?? string.Empty;
         }
 
-        private static string? GetButtonText(Button button)
+        private static Button FindContainingButton(Control root, string textBlockName)
         {
-            return button.Content switch
-            {
-                TextBlock textBlock => textBlock.Text,
-                string text => text,
-                _ => button.Content?.ToString()
-            };
+            var textBlock = root.FindControl<TextBlock>(textBlockName);
+            Assert.NotNull(textBlock);
+            var button = textBlock!.GetLogicalAncestors().OfType<Button>().FirstOrDefault();
+            Assert.NotNull(button);
+            return button!;
         }
 
-        private sealed class MainWindowTestViewModel
+        public void Dispose()
         {
-            public string WindowTitle { get; init; } = string.Empty;
-            public string HeaderTitle { get; init; } = string.Empty;
-            public string StatusText { get; init; } = string.Empty;
-            public string ProgressText { get; init; } = string.Empty;
-            public double ProgressValue { get; init; }
-            public int ProgressMax { get; init; }
-            public float EarthRotationAngle { get; init; }
-            public string BtnStart { get; init; } = string.Empty;
-            public string BtnStop { get; init; } = string.Empty;
-            public string BtnSettings { get; init; } = string.Empty;
-            public string BtnExit { get; init; } = string.Empty;
-            public bool CanStart { get; init; }
-            public bool CanStop { get; init; }
-            public ICommand StartCommand { get; } = new NoOpCommand();
-            public ICommand StopCommand { get; } = new NoOpCommand();
-            public ICommand SettingsCommand { get; } = new NoOpCommand();
-            public ICommand ExitCommand { get; } = new NoOpCommand();
+            foreach (var viewModel in _viewModels)
+                viewModel.Dispose();
+            _wallpaperService.StopWallpaperUpdates();
+            _serviceProvider.Dispose();
         }
 
-        private sealed class NoOpCommand : ICommand
+        private sealed class TestOptionsMonitor<T> : IOptionsMonitor<T>
         {
-            public event EventHandler? CanExecuteChanged
-            {
-                add { }
-                remove { }
-            }
-
-            public bool CanExecute(object? parameter) => true;
-
-            public void Execute(object? parameter)
-            {
-            }
+            public TestOptionsMonitor(T currentValue) => CurrentValue = currentValue;
+            public T CurrentValue { get; set; }
+            public T Get(string? name) => CurrentValue;
+            public IDisposable? OnChange(Action<T, string?> listener) => null;
         }
     }
 }
