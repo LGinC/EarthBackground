@@ -262,10 +262,11 @@ jobs:
         "RELEASE_NOTES_URL=https://github.com/${env:RELEASE_REPOSITORY}/releases/tag/${env:RELEASE_TAG}" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
     - name: Install nfpm
-      uses: goreleaser/nfpm-action@v1
-      with:
-        version: latest
-        install-only: true
+      run: |
+        curl -sSL -o /tmp/nfpm.tar.gz https://github.com/goreleaser/nfpm/releases/latest/download/nfpm_$(uname -s)_$(uname -m).tar.gz
+        tar -xzf /tmp/nfpm.tar.gz -C /tmp
+        sudo mv /tmp/nfpm /usr/local/bin/nfpm
+        nfpm --version
 
     - name: Build deb and rpm packages
       run: |
