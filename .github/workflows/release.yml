@@ -241,7 +241,25 @@ jobs:
         New-Item -ItemType Directory -Force -Path publish | Out-Null
         Copy-Item -Path "publish-inputs/EarthBackground-${env:LINUX_RUNTIME}-${env:RELEASE_SHA}/*" -Destination "publish/${env:LINUX_RUNTIME}" -Recurse -Force
         Copy-Item -Path "publish-inputs/EarthBackground-${env:WINDOWS_RUNTIME}-${env:RELEASE_SHA}/*" -Destination "publish/${env:WINDOWS_RUNTIME}" -Recurse -Force
-        Copy-Item -Path "publish-inputs/EarthBackground-${env:MACOS_RUNTIME}-${env:RELEASE_SHA}/*" -Destination "publish/${env:MACOS_RUNTIME}" -Recurse -Force
+
+        # macOS build artifact is the .app bundle (uploaded from App_Bundle_Dir).
+        # upload-artifact may nest paths; locate EarthBackground.app anywhere under the artifact.
+        $macArtifactRoot = "publish-inputs/EarthBackground-${env:MACOS_RUNTIME}-${env:RELEASE_SHA}"
+        if (-not (Test-Path -LiteralPath $macArtifactRoot)) {
+          throw "macOS build artifact not found: $macArtifactRoot"
+        }
+        New-Item -ItemType Directory -Force -Path "publish/${env:MACOS_RUNTIME}" | Out-Null
+        $macApp = Get-ChildItem -LiteralPath $macArtifactRoot -Filter 'EarthBackground.app' -Directory -Recurse -ErrorAction SilentlyContinue |
+          Select-Object -First 1
+        if ($macApp) {
+          Copy-Item -LiteralPath $macApp.FullName -Destination "publish/${env:MACOS_RUNTIME}/EarthBackground.app" -Recurse -Force
+        }
+        else {
+          # Fallback: copy artifact body as-is (may already be Contents/ layout)
+          Copy-Item -Path "$macArtifactRoot/*" -Destination "publish/${env:MACOS_RUNTIME}" -Recurse -Force
+        }
+        Write-Host "Normalized macOS layout under publish/${env:MACOS_RUNTIME}:"
+        Get-ChildItem -LiteralPath "publish/${env:MACOS_RUNTIME}" -Force | ForEach-Object { Write-Host " - $($_.Name)" }
 
     - name: Compute release metadata
       id: meta
@@ -330,9 +348,26 @@ jobs:
 
     - name: Prepare Homebrew payload
       run: |
-        New-Item -ItemType Directory -Force -Path dist/homebrew | Out-Null
-        Copy-Item -Path "publish/${env:MACOS_RUNTIME}/EarthBackground.app" -Destination "dist/homebrew/EarthBackground.app" -Recurse -Force
-        Compress-Archive -Path "dist/homebrew/EarthBackground.app" -DestinationPath "EarthBackground-${env:VERSION}-${env:MACOS_RUNTIME}-brew.zip" -Force
+        # Prefer the ditto-built release archive (EarthBackground.app at zip root via --keepParent).
+        # Do not re-pack from the raw build artifact layout, which may not be publish/<runtime>/EarthBackground.app.
+        $archiveZip = "publish-inputs/EarthBackground-${env:MACOS_RUNTIME}-archive/EarthBackground-${env:RELEASE_TAG}-${env:MACOS_RUNTIME}.zip"
+        if (-not (Test-Path -LiteralPath $archiveZip)) {
+          throw "macOS release archive not found: $archiveZip"
+        }
+
+        $brewZip = "EarthBackground-${env:VERSION}-${env:MACOS_RUNTIME}-brew.zip"
+        Copy-Item -LiteralPath $archiveZip -Destination $brewZip -Force
+
+        $probe = Join-Path $PWD 'dist/homebrew-probe'
+        if (Test-Path -LiteralPath $probe) { Remove-Item -LiteralPath $probe -Recurse -Force }
+        New-Item -ItemType Directory -Force -Path $probe | Out-Null
+        Expand-Archive -LiteralPath $brewZip -DestinationPath $probe -Force
+        $app = Get-ChildItem -LiteralPath $probe -Filter 'EarthBackground.app' -Directory -Recurse -ErrorAction SilentlyContinue |
+          Select-Object -First 1
+        if (-not $app) {
+          throw 'EarthBackground.app missing from macOS archive used for Homebrew payload.'
+        }
+        Write-Host "Homebrew payload OK: $($app.FullName)"
 
     - name: Compute Homebrew checksum
       id: brewhash
