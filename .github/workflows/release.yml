@@ -18,12 +18,12 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: '10.0.x'
 
@@ -70,12 +70,12 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: '10.0.x'
 
@@ -160,26 +160,26 @@ jobs:
         }
 
     - name: Upload Build Artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: EarthBackground-${{ matrix.runtime }}-${{ github.sha }}
         path: ${{ runner.os == 'macOS' && env.App_Bundle_Dir || format('{0}/', env.Publish_Dir) }}
 
     - name: Upload Release Archive
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: EarthBackground-${{ matrix.runtime }}-archive
         path: EarthBackground-*.zip
 
     - name: Upload macOS disk image
       if: runner.os == 'macOS'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: EarthBackground-${{ matrix.runtime }}-dmg
         path: ${{ env.Mac_Dmg_Path }}
 
     - name: Attach zip to Release
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v3
       with:
         files: EarthBackground-*.zip
       env:
@@ -187,7 +187,7 @@ jobs:
 
     - name: Attach macOS disk image to Release
       if: runner.os == 'macOS'
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v3
       with:
         files: ${{ env.Mac_Dmg_Path }}
       env:
@@ -223,7 +223,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
     - name: Install Linux repository tools
@@ -232,7 +232,7 @@ jobs:
         sudo apt-get install -y apt-utils createrepo-c gnupg
 
     - name: Download publish artifacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         path: publish-inputs
 
@@ -489,7 +489,7 @@ jobs:
 
     - name: Generate apt repository metadata with apt-ftparchive
       run: |
-        New-Item -ItemType Directory -Force -Path dist/packages/apt dist/packages/yum | Out-Null
+        New-Item -ItemType Directory -Force -Path @('dist/packages/apt','dist/packages/yum') | Out-Null
         Copy-Item -Path "EarthBackground-${env:VERSION}-linux-x64.deb" -Destination "dist/packages/apt/" -Force
         Copy-Item -Path "EarthBackground-${env:VERSION}-linux-x64.rpm" -Destination "dist/packages/yum/" -Force
         bash -lc 'cd dist/packages/apt && apt-ftparchive packages . > Packages && gzip -kf Packages && apt-ftparchive release . > Release'
@@ -540,7 +540,7 @@ jobs:
         "feed_signed=$signed" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
     - name: Upload package artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: EarthBackground-packages-${{ github.sha }}
         path: |
@@ -552,7 +552,7 @@ jobs:
           dist/packages/**
 
     - name: Attach package artifacts to release
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v3
       with:
         files: |
           EarthBackground-*.deb
@@ -569,7 +569,7 @@ jobs:
 
     steps:
     - name: Checkout gh-pages branch
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         ref: gh-pages
         path: gh-pages
@@ -586,10 +586,10 @@ jobs:
           git remote add origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
           Set-Location ..
         }
-        New-Item -ItemType Directory -Force -Path gh-pages/packages/apt gh-pages/packages/yum | Out-Null
+        New-Item -ItemType Directory -Force -Path @('gh-pages/packages/apt','gh-pages/packages/yum') | Out-Null
 
     - name: Download packaged repository metadata
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: EarthBackground-packages-${{ github.sha }}
         path: package-artifacts
@@ -627,7 +627,7 @@ jobs:
 
     - name: Checkout fork of homebrew-cask
       if: env.HOMEBREW_CASK_PAT != ''
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         repository: ${{ vars.HOMEBREW_CASK_FORK_REPOSITORY }}
         token: ${{ env.HOMEBREW_CASK_PAT }}
@@ -636,7 +636,7 @@ jobs:
 
     - name: Download official cask candidate artifacts
       if: env.HOMEBREW_CASK_PAT != ''
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: EarthBackground-packages-${{ github.sha }}
         path: package-artifacts
@@ -715,7 +715,7 @@ jobs:
 
     - name: Upload official PR result artifact
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: homebrew-official-pr-result-${{ github.sha }}
         path: official-pr-result/homebrew-official-pr-result.json
@@ -733,7 +733,7 @@ jobs:
 
     - name: Checkout generated manifest
       if: env.WINGET_PAT != ''
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: EarthBackground-packages-${{ github.sha }}
         path: package-artifacts
