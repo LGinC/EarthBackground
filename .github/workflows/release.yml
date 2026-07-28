@@ -255,9 +255,13 @@ jobs:
         "RELEASE_NOTES_URL=https://github.com/${env:RELEASE_REPOSITORY}/releases/tag/${env:RELEASE_TAG}" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
     - name: Install nfpm
+      shell: bash
       run: |
-        curl -sSL -o /tmp/nfpm.deb https://github.com/goreleaser/nfpm/releases/latest/download/nfpm_amd64.deb
-        sudo dpkg -i /tmp/nfpm.deb
+        # Official GoReleaser APT repo: https://nfpm.goreleaser.com/docs/install/
+        set -euo pipefail
+        echo 'deb [trusted=yes] https://repo.goreleaser.com/apt/ /' | sudo tee /etc/apt/sources.list.d/goreleaser.list
+        sudo apt-get update
+        sudo apt-get install -y nfpm
         nfpm --version
 
     - name: Build deb and rpm packages
