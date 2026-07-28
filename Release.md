@@ -2,33 +2,34 @@
 
 ## 发布流程
 
-GitHub Actions 使用 `.github/workflows/Avalonia.yml`：
+GitHub Actions 拆成两个 workflow：
+
+- `.github/workflows/ci.yml`：`push` / `pull_request` 到 `master` 时跑 `build-test`
+- `.github/workflows/release.yml`：`release: published` 时跑 `build-test` → `publish` → `package` → feeds / Homebrew / winget
 
 ```mermaid
 flowchart LR
-    A["push / pull_request / release"] --> B["build-test"]
+    A["push / pull_request"] --> B["ci.yml / build-test"]
     B --> C["dotnet restore"]
     C --> D["dotnet build Release"]
     D --> E["dotnet test Release"]
-    E --> F{"master 或 release?"}
-    F -->|否| G["结束"]
-    F -->|是| H["publish matrix"]
+
+    R["release published"] --> S["release.yml / build-test"]
+    S --> H["publish matrix"]
     H --> I["win-x64 / net10.0-windows"]
     H --> J["linux-x64 / net10.0"]
     H --> K["osx-x64 / net10.0"]
     H --> L["osx-arm64 / net10.0"]
-    I --> M["zip artifact"]
+    I --> M["zip + release assets"]
     J --> M
     K --> M
     L --> M
-    M --> N{"release?"}
-    N -->|否| O["上传构建产物"]
-    N -->|是| P["package job"]
+    M --> P["package job"]
     P --> Q["nfpm 生成 .deb / .rpm"]
-    P --> R["生成 winget manifest"]
-    P --> S["生成 Homebrew 官方 cask 候选 + brew zip"]
+    P --> W["生成 winget manifest"]
+    P --> HB["生成 Homebrew 官方 cask 候选 + brew zip"]
     Q --> T["附加到 GitHub Release"]
-    S --> T
+    HB --> T
 ```
 
 - `publish` job 仍然是唯一构建来源，先生成各平台 `dotnet publish` 目录与 zip。

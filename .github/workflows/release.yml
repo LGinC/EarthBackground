@@ -1,10 +1,6 @@
-name: .NET Desktop Build
+name: Release
 
 on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
   release:
     types: [ published ]
 
@@ -44,7 +40,6 @@ jobs:
 
   publish:
     needs: build-test
-    if: github.event_name == 'release' || github.ref == 'refs/heads/master'
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -184,16 +179,15 @@ jobs:
         path: ${{ env.Mac_Dmg_Path }}
 
     - name: Attach zip to Release
-      if: github.event_name == 'release'
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         files: EarthBackground-*.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Attach macOS disk image to Release
-      if: github.event_name == 'release' && runner.os == 'macOS'
-      uses: softprops/action-gh-release@v1
+      if: runner.os == 'macOS'
+      uses: softprops/action-gh-release@v2
       with:
         files: ${{ env.Mac_Dmg_Path }}
       env:
@@ -201,7 +195,6 @@ jobs:
 
   package:
     needs: publish
-    if: github.event_name == 'release'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -224,9 +217,9 @@ jobs:
 
     outputs:
       version: ${{ steps.meta.outputs.version }}
-      brew_sha256: ${{ steps.hashes.outputs.brew_sha256 }}
+      brew_sha256: ${{ steps.brewhash.outputs.brew_sha256 }}
       brew_zip_name: ${{ steps.hashes.outputs.brew_zip_name }}
-      feed_signed: ${{ steps.feed_signing.outputs.feed_signed }}
+      feed_signed: ${{ steps.feed_signed.outputs.feed_signed }}
 
     steps:
     - name: Checkout
@@ -263,9 +256,8 @@ jobs:
 
     - name: Install nfpm
       run: |
-        curl -sSL -o /tmp/nfpm.tar.gz https://github.com/goreleaser/nfpm/releases/latest/download/nfpm_$(uname -s)_$(uname -m).tar.gz
-        tar -xzf /tmp/nfpm.tar.gz -C /tmp
-        sudo mv /tmp/nfpm /usr/local/bin/nfpm
+        curl -sSL -o /tmp/nfpm.deb https://github.com/goreleaser/nfpm/releases/latest/download/nfpm_amd64.deb
+        sudo dpkg -i /tmp/nfpm.deb
         nfpm --version
 
     - name: Build deb and rpm packages
@@ -375,7 +367,6 @@ jobs:
           ]
         end
         "@ | Set-Content -Path "dist/homebrew-official/Casks/earthbackground.rb"
-
 
     - name: Generate official Homebrew submission notes
       run: |
@@ -501,12 +492,13 @@ jobs:
         bash -lc "printf '%s' '$PACKAGE_FEED_GPG_PASSPHRASE' | gpg --batch --pinentry-mode loopback --passphrase-fd 0$keyArg --clearsign -o dist/packages/apt/InRelease dist/packages/apt/Release"
         bash -lc "printf '%s' '$PACKAGE_FEED_GPG_PASSPHRASE' | gpg --batch --pinentry-mode loopback --passphrase-fd 0$keyArg --detach-sign --armor -o dist/packages/apt/Release.gpg dist/packages/apt/Release"
         bash -lc "printf '%s' '$PACKAGE_FEED_GPG_PASSPHRASE' | gpg --batch --pinentry-mode loopback --passphrase-fd 0$keyArg --detach-sign --armor -o dist/packages/yum/repodata/repomd.xml.asc dist/packages/yum/repodata/repomd.xml"
-        "feed_signed=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
-    - name: Mark unsigned feed
-      if: steps.feed_signing.outcome == 'skipped'
+    - name: Record feed signing status
+      id: feed_signed
+      if: always()
       run: |
-        "feed_signed=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+        $signed = if ('${{ steps.feed_signing.outcome }}' -eq 'success') { 'true' } else { 'false' }
+        "feed_signed=$signed" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
     - name: Upload package artifacts
       uses: actions/upload-artifact@v4
@@ -519,10 +511,9 @@ jobs:
           dist/winget/**
           dist/homebrew-official/**
           dist/packages/**
-          dist/packages/public.key
 
     - name: Attach package artifacts to release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         files: |
           EarthBackground-*.deb
@@ -533,7 +524,6 @@ jobs:
 
   publish-package-feeds:
     needs: package
-    if: github.event_name == 'release'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -549,8 +539,13 @@ jobs:
 
     - name: Initialize gh-pages branch contents
       run: |
-        if (-not (Test-Path gh-pages)) {
+        if (-not (Test-Path gh-pages/.git)) {
           New-Item -ItemType Directory -Force -Path gh-pages | Out-Null
+          Set-Location gh-pages
+          git init
+          git checkout -b gh-pages
+          git remote add origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+          Set-Location ..
         }
         New-Item -ItemType Directory -Force -Path gh-pages/packages/apt gh-pages/packages/yum | Out-Null
 
@@ -575,12 +570,11 @@ jobs:
           exit 0
         }
         git commit -m "Publish package feeds for ${{ needs.package.outputs.version }}"
-        git push origin HEAD:gh-pages
-
+        git push -u origin HEAD:gh-pages
 
   publish-homebrew-official-pr:
     needs: package
-    if: github.event_name == 'release' && vars.HOMEBREW_CASK_FORK_REPOSITORY != ''
+    if: vars.HOMEBREW_CASK_FORK_REPOSITORY != ''
     runs-on: ubuntu-latest
     env:
       HOMEBREW_CASK_PAT: ${{ secrets.HOMEBREW_CASK_PAT }}
@@ -688,12 +682,16 @@ jobs:
         path: official-pr-result/homebrew-official-pr-result.json
   publish-winget:
     needs: package
-    if: github.event_name == 'release'
     runs-on: ubuntu-latest
     env:
       WINGET_PAT: ${{ secrets.WINGET_PAT }}
 
     steps:
+
+    - name: Skip winget when PAT missing
+      if: env.WINGET_PAT == ''
+      run: Write-Host 'WINGET_PAT is not configured; skipping winget submission.'
+
     - name: Checkout generated manifest
       if: env.WINGET_PAT != ''
       uses: actions/download-artifact@v4
