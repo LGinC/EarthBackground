@@ -41,6 +41,9 @@ jobs:
   publish:
     needs: build-test
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+
 
     strategy:
       matrix:
@@ -63,6 +66,7 @@ jobs:
     env:
       Project_Path: src/EarthBackground.csproj
       Publish_Dir: publish/${{ matrix.runtime }}
+      Release_Tag: ${{ github.ref_name }}
       # Must stay outside Publish_Dir: build-macos-app.sh copies publish into the .app
       App_Bundle_Dir: publish-app/${{ matrix.runtime }}/EarthBackground.app
       Mac_Dmg_Path: publish-app/${{ matrix.runtime }}/EarthBackground-${{ github.ref_name }}-${{ matrix.runtime }}.dmg
@@ -83,7 +87,7 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         sudo apt-get update
-        sudo apt-get install -y clang zlib1g-dev
+        sudo apt-get install -y clang zlib1g-dev zip
 
     - name: Restore Native AOT dependencies
       run: |
@@ -130,8 +134,15 @@ jobs:
     - name: Build macOS app bundle
       if: runner.os == 'macOS'
       run: |
+        $versionMatch = [regex]::Match($env:Release_Tag, '^v?(\d+)\.(\d+)\.(\d+)(?:[-+].*)?$')
+        if (-not $versionMatch.Success) {
+          throw "Release tag must contain a three-part numeric version: $($env:Release_Tag)"
+        }
+        $bundleVersion = '{0}.{1}.{2}' -f $versionMatch.Groups[1].Value, $versionMatch.Groups[2].Value, $versionMatch.Groups[3].Value
         chmod +x ./packaging/macos/build-macos-app.sh
-        ./packaging/macos/build-macos-app.sh "$env:Publish_Dir" "$env:App_Bundle_Dir" "${{ github.ref_name }}" "src/Assets/earth.ico"
+        ./packaging/macos/build-macos-app.sh "$env:Publish_Dir" "$env:App_Bundle_Dir" "$bundleVersion" "src/Assets/earth.ico"
+        & plutil -lint "$env:App_Bundle_Dir/Contents/Info.plist"
+        if ($LASTEXITCODE -ne 0) { throw "plutil validation failed with exit code $LASTEXITCODE" }
 
     - name: Create macOS disk image
       if: runner.os == 'macOS'
@@ -144,19 +155,29 @@ jobs:
         Get-ChildItem -Path $env:Publish_Dir -Directory -Filter images | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
         Get-ChildItem -Path $env:Publish_Dir -Directory -Filter logs | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
         $archiveName = "EarthBackground-${{ github.ref_name }}-${{ matrix.runtime }}.zip"
-        if (Test-Path $archiveName) { Remove-Item $archiveName -Force }
+        $archivePath = Join-Path $PWD $archiveName
+        if (Test-Path -LiteralPath $archivePath) { Remove-Item -LiteralPath $archivePath -Force }
         if ("${{ runner.os }}" -eq "macOS") {
           if (-not (Test-Path -LiteralPath $env:App_Bundle_Dir)) {
             throw "macOS app bundle not found: $($env:App_Bundle_Dir)"
           }
-          # Call ditto from pwsh so $archiveName is not lost inside bash single quotes.
-          & ditto -c -k --sequesterRsrc --keepParent $env:App_Bundle_Dir $archiveName
-          if (-not (Test-Path -LiteralPath $archiveName)) {
-            throw "Failed to create macOS archive: $archiveName"
+          & ditto -c -k --sequesterRsrc --keepParent $env:App_Bundle_Dir $archivePath
+        }
+        elseif ("${{ runner.os }}" -eq "Linux") {
+          Push-Location $env:Publish_Dir
+          try {
+            & zip -q -r $archivePath .
+            if ($LASTEXITCODE -ne 0) { throw "zip failed with exit code $LASTEXITCODE" }
+          }
+          finally {
+            Pop-Location
           }
         }
         else {
-          Compress-Archive -Path "$env:Publish_Dir/*" -DestinationPath $archiveName
+          Compress-Archive -Path "$env:Publish_Dir/*" -DestinationPath $archivePath
+        }
+        if (-not (Test-Path -LiteralPath $archivePath -PathType Leaf)) {
+          throw "Failed to create release archive: $archivePath"
         }
 
     - name: Upload Build Artifacts
@@ -205,7 +226,8 @@ jobs:
       PUBLISHER: LGinC
       LINUX_RUNTIME: linux-x64
       WINDOWS_RUNTIME: win-x64
-      MACOS_RUNTIME: osx-arm64
+      MACOS_ARM64_RUNTIME: osx-arm64
+      MACOS_X64_RUNTIME: osx-x64
       RELEASE_TAG: ${{ github.event.release.tag_name }}
       RELEASE_REPOSITORY: ${{ github.repository }}
       RELEASE_SHA: ${{ github.sha }}
@@ -217,8 +239,6 @@ jobs:
 
     outputs:
       version: ${{ steps.meta.outputs.version }}
-      brew_sha256: ${{ steps.brewhash.outputs.brew_sha256 }}
-      brew_zip_name: ${{ steps.hashes.outputs.brew_zip_name }}
       feed_signed: ${{ steps.feed_signed.outputs.feed_signed }}
 
     steps:
@@ -240,26 +260,14 @@ jobs:
       run: |
         New-Item -ItemType Directory -Force -Path publish | Out-Null
         Copy-Item -Path "publish-inputs/EarthBackground-${env:LINUX_RUNTIME}-${env:RELEASE_SHA}/*" -Destination "publish/${env:LINUX_RUNTIME}" -Recurse -Force
+        $linuxExecutable = "publish/${env:LINUX_RUNTIME}/EarthBackground"
+        if (-not (Test-Path -LiteralPath $linuxExecutable -PathType Leaf)) {
+          throw "Linux executable not found after artifact download: $linuxExecutable"
+        }
+        & chmod +x $linuxExecutable
+        if ($LASTEXITCODE -ne 0) { throw "chmod failed with exit code $LASTEXITCODE" }
         Copy-Item -Path "publish-inputs/EarthBackground-${env:WINDOWS_RUNTIME}-${env:RELEASE_SHA}/*" -Destination "publish/${env:WINDOWS_RUNTIME}" -Recurse -Force
 
-        # macOS build artifact is the .app bundle (uploaded from App_Bundle_Dir).
-        # upload-artifact may nest paths; locate EarthBackground.app anywhere under the artifact.
-        $macArtifactRoot = "publish-inputs/EarthBackground-${env:MACOS_RUNTIME}-${env:RELEASE_SHA}"
-        if (-not (Test-Path -LiteralPath $macArtifactRoot)) {
-          throw "macOS build artifact not found: $macArtifactRoot"
-        }
-        New-Item -ItemType Directory -Force -Path "publish/${env:MACOS_RUNTIME}" | Out-Null
-        $macApp = Get-ChildItem -LiteralPath $macArtifactRoot -Filter 'EarthBackground.app' -Directory -Recurse -ErrorAction SilentlyContinue |
-          Select-Object -First 1
-        if ($macApp) {
-          Copy-Item -LiteralPath $macApp.FullName -Destination "publish/${env:MACOS_RUNTIME}/EarthBackground.app" -Recurse -Force
-        }
-        else {
-          # Fallback: copy artifact body as-is (may already be Contents/ layout)
-          Copy-Item -Path "$macArtifactRoot/*" -Destination "publish/${env:MACOS_RUNTIME}" -Recurse -Force
-        }
-        Write-Host "Normalized macOS layout under publish/${env:MACOS_RUNTIME}:"
-        Get-ChildItem -LiteralPath "publish/${env:MACOS_RUNTIME}" -Force | ForEach-Object { Write-Host " - $($_.Name)" }
 
     - name: Compute release metadata
       id: meta
@@ -269,7 +277,6 @@ jobs:
         "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
         "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
         "WIN_ZIP_URL=https://github.com/${env:RELEASE_REPOSITORY}/releases/download/${env:RELEASE_TAG}/EarthBackground-${env:RELEASE_TAG}-${env:WINDOWS_RUNTIME}.zip" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-        "MAC_ZIP_URL=https://github.com/${env:RELEASE_REPOSITORY}/releases/download/${env:RELEASE_TAG}/EarthBackground-${env:RELEASE_TAG}-${env:MACOS_RUNTIME}.zip" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
         "RELEASE_NOTES_URL=https://github.com/${env:RELEASE_REPOSITORY}/releases/tag/${env:RELEASE_TAG}" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
     - name: Install nfpm
@@ -287,16 +294,10 @@ jobs:
         nfpm package --packager deb --config packaging/nfpm.yaml --target "EarthBackground-${env:VERSION}-linux-x64.deb"
         nfpm package --packager rpm --config packaging/nfpm.yaml --target "EarthBackground-${env:VERSION}-linux-x64.rpm"
 
-    - name: Compute checksums
-      id: hashes
+    - name: Compute Windows checksum
       run: |
         $winHash = (Get-FileHash "publish-inputs/EarthBackground-${env:WINDOWS_RUNTIME}-archive/EarthBackground-${env:RELEASE_TAG}-${env:WINDOWS_RUNTIME}.zip" -Algorithm SHA256).Hash.ToLowerInvariant()
-        $macHash = (Get-FileHash "publish-inputs/EarthBackground-${env:MACOS_RUNTIME}-archive/EarthBackground-${env:RELEASE_TAG}-${env:MACOS_RUNTIME}.zip" -Algorithm SHA256).Hash.ToLowerInvariant()
         "WIN_SHA256=$winHash" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-        "MAC_SHA256=$macHash" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-
-        $brewZipName = "EarthBackground-${env:VERSION}-${env:MACOS_RUNTIME}-brew.zip"
-        "brew_zip_name=$brewZipName" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
     - name: Generate winget manifest
       run: |
@@ -346,47 +347,54 @@ jobs:
         ManifestVersion: 1.6.0
         "@ | Set-Content -Path "$manifestDir/${env:PACKAGE_ID}.installer.yaml"
 
-    - name: Prepare Homebrew payload
+    - name: Prepare Homebrew payloads
       run: |
-        # Prefer the ditto-built release archive (EarthBackground.app at zip root via --keepParent).
-        # Do not re-pack from the raw build artifact layout, which may not be publish/<runtime>/EarthBackground.app.
-        $archiveZip = "publish-inputs/EarthBackground-${env:MACOS_RUNTIME}-archive/EarthBackground-${env:RELEASE_TAG}-${env:MACOS_RUNTIME}.zip"
-        if (-not (Test-Path -LiteralPath $archiveZip)) {
-          throw "macOS release archive not found: $archiveZip"
+        # Prefer the ditto-built release archives so .app metadata and executable modes survive.
+        foreach ($runtime in @($env:MACOS_ARM64_RUNTIME, $env:MACOS_X64_RUNTIME)) {
+          $archiveZip = "publish-inputs/EarthBackground-${runtime}-archive/EarthBackground-${env:RELEASE_TAG}-${runtime}.zip"
+          if (-not (Test-Path -LiteralPath $archiveZip -PathType Leaf)) {
+            throw "macOS release archive not found: $archiveZip"
+          }
+
+          $brewZip = "EarthBackground-${env:VERSION}-${runtime}-brew.zip"
+          Copy-Item -LiteralPath $archiveZip -Destination $brewZip -Force
+
+          $probe = Join-Path $PWD "dist/homebrew-probe/$runtime"
+          if (Test-Path -LiteralPath $probe) { Remove-Item -LiteralPath $probe -Recurse -Force }
+          New-Item -ItemType Directory -Force -Path $probe | Out-Null
+          Expand-Archive -LiteralPath $brewZip -DestinationPath $probe -Force
+          $app = Get-ChildItem -LiteralPath $probe -Filter 'EarthBackground.app' -Directory -Recurse -ErrorAction SilentlyContinue |
+            Select-Object -First 1
+          if (-not $app) {
+            throw "EarthBackground.app missing from Homebrew payload for $runtime."
+          }
+          Write-Host "Homebrew payload OK for ${runtime}: $($app.FullName)"
         }
 
-        $brewZip = "EarthBackground-${env:VERSION}-${env:MACOS_RUNTIME}-brew.zip"
-        Copy-Item -LiteralPath $archiveZip -Destination $brewZip -Force
-
-        $probe = Join-Path $PWD 'dist/homebrew-probe'
-        if (Test-Path -LiteralPath $probe) { Remove-Item -LiteralPath $probe -Recurse -Force }
-        New-Item -ItemType Directory -Force -Path $probe | Out-Null
-        Expand-Archive -LiteralPath $brewZip -DestinationPath $probe -Force
-        $app = Get-ChildItem -LiteralPath $probe -Filter 'EarthBackground.app' -Directory -Recurse -ErrorAction SilentlyContinue |
-          Select-Object -First 1
-        if (-not $app) {
-          throw 'EarthBackground.app missing from macOS archive used for Homebrew payload.'
-        }
-        Write-Host "Homebrew payload OK: $($app.FullName)"
-
-    - name: Compute Homebrew checksum
-      id: brewhash
+    - name: Compute Homebrew checksums
       run: |
-        $brewHash = (Get-FileHash "EarthBackground-${env:VERSION}-${env:MACOS_RUNTIME}-brew.zip" -Algorithm SHA256).Hash.ToLowerInvariant()
-        "BREW_SHA256=$brewHash" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-        "brew_sha256=$brewHash" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-        "BREW_ZIP_URL=https://github.com/${env:RELEASE_REPOSITORY}/releases/download/${env:RELEASE_TAG}/EarthBackground-${env:VERSION}-${env:MACOS_RUNTIME}-brew.zip" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+        $armZip = "EarthBackground-${env:VERSION}-${env:MACOS_ARM64_RUNTIME}-brew.zip"
+        $x64Zip = "EarthBackground-${env:VERSION}-${env:MACOS_X64_RUNTIME}-brew.zip"
+        $armHash = (Get-FileHash $armZip -Algorithm SHA256).Hash.ToLowerInvariant()
+        $x64Hash = (Get-FileHash $x64Zip -Algorithm SHA256).Hash.ToLowerInvariant()
+        "BREW_ARM64_SHA256=$armHash" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+        "BREW_X64_SHA256=$x64Hash" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+        "BREW_ARM64_ZIP_URL=https://github.com/${env:RELEASE_REPOSITORY}/releases/download/${env:RELEASE_TAG}/$armZip" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+        "BREW_X64_ZIP_URL=https://github.com/${env:RELEASE_REPOSITORY}/releases/download/${env:RELEASE_TAG}/$x64Zip" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
     - name: Generate official Homebrew cask candidate
       run: |
-        $officialDir = "dist/homebrew-official/Casks"
+        $officialDir = "dist/homebrew-official/Casks/e"
         New-Item -ItemType Directory -Force -Path $officialDir | Out-Null
         @"
         cask "earthbackground" do
-          version "${env:VERSION}"
-          sha256 "${env:BREW_SHA256}"
+          arch arm: "arm64", intel: "x64"
 
-          url "${env:BREW_ZIP_URL}"
+          version "${env:VERSION}"
+          sha256 arm: "${env:BREW_ARM64_SHA256}",
+                 intel: "${env:BREW_X64_SHA256}"
+
+          url "https://github.com/${env:RELEASE_REPOSITORY}/releases/download/${env:RELEASE_TAG}/EarthBackground-#{version}-osx-#{arch}-brew.zip"
           name "EarthBackground"
           desc "Satellite earth wallpaper application built with .NET and Avalonia"
           homepage "https://github.com/${env:RELEASE_REPOSITORY}"
@@ -405,7 +413,7 @@ jobs:
             "~/Library/Saved Application State/io.github.lginc.earthbackground.savedState",
           ]
         end
-        "@ | Set-Content -Path "dist/homebrew-official/Casks/earthbackground.rb"
+        "@ | Set-Content -Path "dist/homebrew-official/Casks/e/earthbackground.rb"
 
     - name: Generate official Homebrew submission notes
       run: |
@@ -417,19 +425,21 @@ jobs:
         - Homebrew/homebrew-cask
 
         Candidate file:
-        - Casks/earthbackground.rb
+        - Casks/e/earthbackground.rb
 
-        Release asset:
-        - ${env:BREW_ZIP_URL}
+        Release assets:
+        - Apple Silicon: ${env:BREW_ARM64_ZIP_URL}
+        - Intel: ${env:BREW_X64_ZIP_URL}
 
         SHA256:
-        - ${env:BREW_SHA256}
+        - Apple Silicon: ${env:BREW_ARM64_SHA256}
+        - Intel: ${env:BREW_X64_SHA256}
 
         Verified against docs.brew.sh references used in this task:
         - Adding Software to Homebrew
         - Cask Cookbook
 
-        Current candidate already matches an app-in-zip install shape and now includes livecheck, depends_on, and a minimal zap stanza.
+        Current candidate supports separate Apple Silicon and Intel app archives and includes livecheck, depends_on, and a minimal zap stanza.
 
         The zap paths are inferred from the app bundle identifier because the repository does not currently persist macOS user-library paths explicitly in code. Re-verify them on a real macOS install before submitting an official PR.
         "@ | Set-Content -Path "dist/homebrew-official/README.txt"
@@ -441,13 +451,13 @@ jobs:
         ==================================
 
         Candidate files
-        - dist/homebrew-official/Casks/earthbackground.rb
+        - dist/homebrew-official/Casks/e/earthbackground.rb
         - dist/homebrew-official/README.txt
 
         Manual checks before opening PR
-        - Verify the release asset URL still downloads a zip containing EarthBackground.app.
-        - Verify the SHA256 still matches the published brew zip.
-        - Install locally with brew from the candidate cask and confirm the app launches.
+        - Verify both release asset URLs download a zip containing EarthBackground.app.
+        - Verify both SHA256 values match their published brew zips.
+        - Install locally with brew from the candidate cask on Apple Silicon and Intel Macs and confirm the app launches.
         - Run brew audit --cask --online on the candidate cask in a local Homebrew checkout.
         - Re-check the inferred zap paths on a real macOS install:
           - ~/Library/Preferences/io.github.lginc.earthbackground.plist
@@ -457,13 +467,13 @@ jobs:
         - Be ready to adjust stanza ordering or metadata to satisfy Homebrew maintainer review.
 
         Suggested PR scope
-        - Add Casks/earthbackground.rb only.
+        - Add Casks/e/earthbackground.rb only.
         - Do not mix unrelated cleanup with the submission.
         "@ | Set-Content -Path "dist/homebrew-official/PR-CHECKLIST.txt"
 
     - name: Generate official Homebrew PR template
       run: |
-        @"
+        $template = @'
         ## Summary
 
         Add `earthbackground` cask.
@@ -471,21 +481,25 @@ jobs:
         ## What this PR adds
 
         - New cask: `earthbackground`
-        - Release asset: `${env:BREW_ZIP_URL}`
-        - SHA256: `${env:BREW_SHA256}`
+        - Apple Silicon asset: __BREW_ARM64_ZIP_URL__
+        - Apple Silicon SHA256: __BREW_ARM64_SHA256__
+        - Intel asset: __BREW_X64_ZIP_URL__
+        - Intel SHA256: __BREW_X64_SHA256__
 
         ## Local verification
 
-        - [ ] `brew install --cask ./Casks/earthbackground.rb`
+        - [ ] `brew install --cask ./Casks/e/earthbackground.rb`
         - [ ] App launches successfully
         - [ ] `brew audit --cask --online earthbackground`
 
         ## Notes
 
-        - App bundle is distributed as a zip containing `EarthBackground.app`.
+        - App bundles are distributed as architecture-specific zips containing `EarthBackground.app`.
         - `depends_on macos: ">= :big_sur"` is derived from the app bundle minimum system version.
         - `zap` paths are a minimal set inferred from `io.github.lginc.earthbackground` and should be rechecked on a real macOS install.
-        "@ | Set-Content -Path "dist/homebrew-official/PR-TEMPLATE.md"
+        '@
+        $template = $template.Replace('__BREW_ARM64_ZIP_URL__', $env:BREW_ARM64_ZIP_URL).Replace('__BREW_ARM64_SHA256__', $env:BREW_ARM64_SHA256).Replace('__BREW_X64_ZIP_URL__', $env:BREW_X64_ZIP_URL).Replace('__BREW_X64_SHA256__', $env:BREW_X64_SHA256)
+        $template | Set-Content -Path "dist/homebrew-official/PR-TEMPLATE.md"
 
     - name: Generate apt repository metadata with apt-ftparchive
       run: |
@@ -500,37 +514,47 @@ jobs:
 
     - name: Import feed signing key
       if: env.PACKAGE_FEED_GPG_PRIVATE_KEY != '' && env.PACKAGE_FEED_GPG_PASSPHRASE != ''
+      shell: bash
       env:
         PACKAGE_FEED_GPG_PRIVATE_KEY: ${{ secrets.PACKAGE_FEED_GPG_PRIVATE_KEY }}
       run: |
-        $keyPath = Join-Path $PWD 'package-feed-private.asc'
-        [System.IO.File]::WriteAllText($keyPath, $env:PACKAGE_FEED_GPG_PRIVATE_KEY)
-        bash -lc "gpg --batch --import '$keyPath'"
+        set -euo pipefail
+        key_path="$RUNNER_TEMP/package-feed-private.asc"
+        trap 'rm -f "$key_path"' EXIT
+        printf '%s' "$PACKAGE_FEED_GPG_PRIVATE_KEY" > "$key_path"
+        gpg --batch --import "$key_path"
+
     - name: Export feed signing public key
       if: env.PACKAGE_FEED_GPG_PRIVATE_KEY != '' && env.PACKAGE_FEED_GPG_PASSPHRASE != ''
+      shell: bash
       env:
         PACKAGE_FEED_GPG_KEY_ID: ${{ secrets.PACKAGE_FEED_GPG_KEY_ID }}
       run: |
-        $keyArg = ''
-        if ($env:PACKAGE_FEED_GPG_KEY_ID) {
-          $keyArg = " --local-user '$($env:PACKAGE_FEED_GPG_KEY_ID)'"
-        }
-        bash -lc "mkdir -p dist/packages && gpg --armor --export$keyArg > dist/packages/public.key"
+        set -euo pipefail
+        mkdir -p dist/packages
+        key_spec=()
+        if [[ -n "$PACKAGE_FEED_GPG_KEY_ID" ]]; then
+          key_spec=("$PACKAGE_FEED_GPG_KEY_ID")
+        fi
+        gpg --armor --export "${key_spec[@]}" > dist/packages/public.key
+        test -s dist/packages/public.key
 
     - name: Sign apt and yum repository metadata
       id: feed_signing
       if: env.PACKAGE_FEED_GPG_PRIVATE_KEY != '' && env.PACKAGE_FEED_GPG_PASSPHRASE != ''
+      shell: bash
       env:
         PACKAGE_FEED_GPG_PASSPHRASE: ${{ secrets.PACKAGE_FEED_GPG_PASSPHRASE }}
         PACKAGE_FEED_GPG_KEY_ID: ${{ secrets.PACKAGE_FEED_GPG_KEY_ID }}
       run: |
-        $keyArg = ''
-        if ($env:PACKAGE_FEED_GPG_KEY_ID) {
-          $keyArg = " --local-user '$($env:PACKAGE_FEED_GPG_KEY_ID)'"
-        }
-        bash -lc "printf '%s' '$PACKAGE_FEED_GPG_PASSPHRASE' | gpg --batch --pinentry-mode loopback --passphrase-fd 0$keyArg --clearsign -o dist/packages/apt/InRelease dist/packages/apt/Release"
-        bash -lc "printf '%s' '$PACKAGE_FEED_GPG_PASSPHRASE' | gpg --batch --pinentry-mode loopback --passphrase-fd 0$keyArg --detach-sign --armor -o dist/packages/apt/Release.gpg dist/packages/apt/Release"
-        bash -lc "printf '%s' '$PACKAGE_FEED_GPG_PASSPHRASE' | gpg --batch --pinentry-mode loopback --passphrase-fd 0$keyArg --detach-sign --armor -o dist/packages/yum/repodata/repomd.xml.asc dist/packages/yum/repodata/repomd.xml"
+        set -euo pipefail
+        key_args=()
+        if [[ -n "$PACKAGE_FEED_GPG_KEY_ID" ]]; then
+          key_args=(--local-user "$PACKAGE_FEED_GPG_KEY_ID")
+        fi
+        printf '%s' "$PACKAGE_FEED_GPG_PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 "${key_args[@]}" --clearsign -o dist/packages/apt/InRelease dist/packages/apt/Release
+        printf '%s' "$PACKAGE_FEED_GPG_PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 "${key_args[@]}" --detach-sign --armor -o dist/packages/apt/Release.gpg dist/packages/apt/Release
+        printf '%s' "$PACKAGE_FEED_GPG_PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 "${key_args[@]}" --detach-sign --armor -o dist/packages/yum/repodata/repomd.xml.asc dist/packages/yum/repodata/repomd.xml
 
     - name: Record feed signing status
       id: feed_signed
@@ -598,12 +622,17 @@ jobs:
       run: |
         Remove-Item -Recurse -Force gh-pages/packages/apt/* -ErrorAction SilentlyContinue
         Remove-Item -Recurse -Force gh-pages/packages/yum/* -ErrorAction SilentlyContinue
+        Remove-Item -Force gh-pages/packages/public.key -ErrorAction SilentlyContinue
         Copy-Item -Path package-artifacts/dist/packages/apt/* -Destination gh-pages/packages/apt -Recurse -Force
         Copy-Item -Path package-artifacts/dist/packages/yum/* -Destination gh-pages/packages/yum -Recurse -Force
+        $publicKey = 'package-artifacts/dist/packages/public.key'
+        if (Test-Path -LiteralPath $publicKey -PathType Leaf) {
+          Copy-Item -LiteralPath $publicKey -Destination gh-pages/packages/public.key -Force
+        }
         Set-Location gh-pages
         git config user.name github-actions
         git config user.email github-actions@github.com
-        git add packages/apt packages/yum
+        git add packages
         if (git diff --cached --quiet) {
           Write-Host 'No package feed changes.'
           exit 0
@@ -632,7 +661,8 @@ jobs:
         repository: ${{ vars.HOMEBREW_CASK_FORK_REPOSITORY }}
         token: ${{ env.HOMEBREW_CASK_PAT }}
         path: homebrew-cask-fork
-        fetch-depth: 0
+        fetch-depth: 1
+        sparse-checkout: Casks/e
 
     - name: Download official cask candidate artifacts
       if: env.HOMEBREW_CASK_PAT != ''
@@ -648,37 +678,58 @@ jobs:
         FORK_REPOSITORY: ${{ vars.HOMEBREW_CASK_FORK_REPOSITORY }}
       run: |
         $forkParts = $env:FORK_REPOSITORY.Split('/')
-        if ($forkParts.Length -lt 2 -or [string]::IsNullOrWhiteSpace($forkParts[0])) {
+        if ($forkParts.Length -ne 2 -or [string]::IsNullOrWhiteSpace($forkParts[0])) {
           throw 'Unable to derive fork owner from HOMEBREW_CASK_FORK_REPOSITORY.'
         }
         $forkOwner = $forkParts[0]
         $branchName = "earthbackground-${{ needs.package.outputs.version }}"
-        $caskPath = Resolve-Path "package-artifacts/dist/homebrew-official/Casks/earthbackground.rb"
-        $bodyPath = Resolve-Path "package-artifacts/dist/homebrew-official/PR-TEMPLATE.md"
-        if (-not (Test-Path $caskPath)) { throw 'Official cask candidate file missing.' }
-        if (-not (Test-Path $bodyPath)) { throw 'Official PR template file missing.' }
+        $caskSource = "package-artifacts/dist/homebrew-official/Casks/e/earthbackground.rb"
+        $bodySource = "package-artifacts/dist/homebrew-official/PR-TEMPLATE.md"
+        if (-not (Test-Path -LiteralPath $caskSource -PathType Leaf)) { throw 'Official cask candidate file missing.' }
+        if (-not (Test-Path -LiteralPath $bodySource -PathType Leaf)) { throw 'Official PR template file missing.' }
+        $caskPath = (Resolve-Path -LiteralPath $caskSource).Path
+        $bodyPath = (Resolve-Path -LiteralPath $bodySource).Path
+
         Set-Location homebrew-cask-fork
         $remoteUrl = git remote get-url origin
         if ($remoteUrl -notmatch [Regex]::Escape($env:FORK_REPOSITORY)) {
           throw "Checked out fork does not match HOMEBREW_CASK_FORK_REPOSITORY: $remoteUrl"
         }
-        bash -lc 'gh auth status'
-        $defaultBranch = bash -lc "gh repo view Homebrew/homebrew-cask --json defaultBranchRef --jq '.defaultBranchRef.name'"
+        gh auth status
+        $defaultBranch = gh repo view Homebrew/homebrew-cask --json defaultBranchRef --jq '.defaultBranchRef.name'
         if ([string]::IsNullOrWhiteSpace($defaultBranch)) { throw 'Unable to resolve Homebrew/homebrew-cask default branch.' }
-        git fetch origin $defaultBranch --depth=1
-        git checkout -B $branchName origin/$defaultBranch
-        Copy-Item -Path $caskPath -Destination "Casks/earthbackground.rb" -Force
+        $defaultBranch = $defaultBranch.Trim()
+        if ((git remote) -contains 'upstream') {
+          git remote set-url upstream https://github.com/Homebrew/homebrew-cask.git
+        }
+        else {
+          git remote add upstream https://github.com/Homebrew/homebrew-cask.git
+        }
+        git fetch upstream $defaultBranch --depth=1
+        if ($LASTEXITCODE -ne 0) { throw "Unable to fetch upstream/$defaultBranch." }
+        git checkout -B $branchName "upstream/$defaultBranch"
+        if ($LASTEXITCODE -ne 0) { throw "Unable to create branch $branchName." }
+
+        New-Item -ItemType Directory -Force -Path Casks/e | Out-Null
+        Copy-Item -LiteralPath $caskPath -Destination "Casks/e/earthbackground.rb" -Force
         git config user.name github-actions
         git config user.email github-actions@github.com
-        git add Casks/earthbackground.rb
-        if (git diff --cached --quiet) {
+        git add Casks/e/earthbackground.rb
+        git diff --cached --quiet
+        if ($LASTEXITCODE -eq 0) {
           "official_pr_status=no_changes" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "No official Homebrew cask changes for $branchName."
           exit 0
         }
+        if ($LASTEXITCODE -ne 1) { throw 'Unable to inspect staged Homebrew changes.' }
+
         git commit -m "Add earthbackground cask ${{ needs.package.outputs.version }}"
-        git push origin HEAD --force --set-upstream
-        $existingPrUrl = bash -lc "gh pr list --repo Homebrew/homebrew-cask --head '$forkOwner:$branchName' --json url --jq '.[0].url // empty'"
+        if ($LASTEXITCODE -ne 0) { throw 'Unable to commit Homebrew cask changes.' }
+        git push --force --set-upstream origin HEAD
+        if ($LASTEXITCODE -ne 0) { throw 'Unable to push Homebrew cask branch.' }
+
+        $headRef = "${forkOwner}:$branchName"
+        $existingPrUrl = gh pr list --repo Homebrew/homebrew-cask --head $headRef --json url --jq '.[0].url // empty'
         if (-not [string]::IsNullOrWhiteSpace($existingPrUrl)) {
           "official_pr_status=existing" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           "official_pr_url=$existingPrUrl" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
@@ -686,7 +737,7 @@ jobs:
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "Existing official Homebrew PR: $existingPrUrl"
           exit 0
         }
-        $prUrl = bash -lc "gh pr create --repo Homebrew/homebrew-cask --base '$defaultBranch' --head '$forkOwner:$branchName' --title 'Add earthbackground cask' --body-file '$bodyPath'"
+        $prUrl = gh pr create --repo Homebrew/homebrew-cask --base $defaultBranch --head $headRef --title 'Add earthbackground cask' --body-file $bodyPath
         if ([string]::IsNullOrWhiteSpace($prUrl)) { throw 'gh pr create did not return a PR URL.' }
         "official_pr_status=created" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
         "official_pr_url=$prUrl" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
@@ -724,27 +775,100 @@ jobs:
     runs-on: ubuntu-latest
     env:
       WINGET_PAT: ${{ secrets.WINGET_PAT }}
+      WINGET_PACKAGE_ID: LGinC.EarthBackground
+      WINGET_FORK_REPOSITORY: ${{ format('{0}/winget-pkgs', github.repository_owner) }}
 
     steps:
-
     - name: Skip winget when PAT missing
       if: env.WINGET_PAT == ''
       run: Write-Host 'WINGET_PAT is not configured; skipping winget submission.'
 
-    - name: Checkout generated manifest
+    - name: Checkout fork of winget-pkgs
+      if: env.WINGET_PAT != ''
+      uses: actions/checkout@v7
+      with:
+        repository: ${{ env.WINGET_FORK_REPOSITORY }}
+        token: ${{ env.WINGET_PAT }}
+        path: winget-pkgs-fork
+        fetch-depth: 1
+        sparse-checkout: manifests/l/LGinC/EarthBackground
+
+    - name: Download generated manifest
       if: env.WINGET_PAT != ''
       uses: actions/download-artifact@v8
       with:
         name: EarthBackground-packages-${{ github.sha }}
         path: package-artifacts
 
-    - name: Submit winget manifest
+    - name: Create or update WinGet manifest PR
       if: env.WINGET_PAT != ''
-      uses: vedantmgoyal9/winget-releaser@v2
-      with:
-        identifier: LGinC.EarthBackground
-        version: ${{ needs.package.outputs.version }}
-        installers-regex: 'EarthBackground-.*-win-x64\.zip$'
-        token: ${{ env.WINGET_PAT }}
-        fork-user: ${{ github.repository_owner }}
-        manifest-dir: package-artifacts/dist/winget/LGinC.EarthBackground/${{ needs.package.outputs.version }}
+      env:
+        GH_TOKEN: ${{ env.WINGET_PAT }}
+      run: |
+        $forkParts = $env:WINGET_FORK_REPOSITORY.Split('/')
+        if ($forkParts.Length -ne 2 -or [string]::IsNullOrWhiteSpace($forkParts[0])) {
+          throw 'Unable to derive fork owner from WINGET_FORK_REPOSITORY.'
+        }
+        $forkOwner = $forkParts[0]
+        $version = '${{ needs.package.outputs.version }}'
+        $branchName = "earthbackground-$version"
+        $manifestSource = "package-artifacts/dist/winget/$($env:WINGET_PACKAGE_ID)/$version"
+        if (-not (Test-Path -LiteralPath $manifestSource -PathType Container)) {
+          throw "Generated WinGet manifest directory missing: $manifestSource"
+        }
+        $manifestSource = (Resolve-Path -LiteralPath $manifestSource).Path
+
+        Set-Location winget-pkgs-fork
+        $remoteUrl = git remote get-url origin
+        if ($remoteUrl -notmatch [Regex]::Escape($env:WINGET_FORK_REPOSITORY)) {
+          throw "Checked out fork does not match WINGET_FORK_REPOSITORY: $remoteUrl"
+        }
+        gh auth status
+        $defaultBranch = gh repo view microsoft/winget-pkgs --json defaultBranchRef --jq '.defaultBranchRef.name'
+        if ([string]::IsNullOrWhiteSpace($defaultBranch)) {
+          throw 'Unable to resolve microsoft/winget-pkgs default branch.'
+        }
+        if ((git remote) -contains 'upstream') {
+          git remote set-url upstream https://github.com/microsoft/winget-pkgs.git
+        }
+        else {
+          git remote add upstream https://github.com/microsoft/winget-pkgs.git
+        }
+        git fetch upstream $defaultBranch --depth=1
+        if ($LASTEXITCODE -ne 0) { throw "Unable to fetch upstream/$defaultBranch." }
+        git checkout -B $branchName "upstream/$defaultBranch"
+        if ($LASTEXITCODE -ne 0) { throw "Unable to create branch $branchName." }
+
+        $packageParts = $env:WINGET_PACKAGE_ID.Split('.')
+        $manifestRoot = "manifests/$($packageParts[0].Substring(0, 1).ToLowerInvariant())/$($packageParts -join '/')"
+        $targetDir = "$manifestRoot/$version"
+        if (Test-Path -LiteralPath $targetDir) {
+          Remove-Item -LiteralPath $targetDir -Recurse -Force
+        }
+        New-Item -ItemType Directory -Force -Path $targetDir | Out-Null
+        Copy-Item -Path "$manifestSource/*" -Destination $targetDir -Recurse -Force
+
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git add $targetDir
+        git diff --cached --quiet
+        if ($LASTEXITCODE -eq 0) {
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "No WinGet manifest changes for $branchName."
+          exit 0
+        }
+        if ($LASTEXITCODE -ne 1) { throw 'Unable to inspect staged WinGet changes.' }
+
+        git commit -m "Add $($env:WINGET_PACKAGE_ID) $version"
+        if ($LASTEXITCODE -ne 0) { throw 'Unable to commit WinGet manifest changes.' }
+        git push --force --set-upstream origin HEAD
+        if ($LASTEXITCODE -ne 0) { throw 'Unable to push WinGet manifest branch.' }
+
+        $headRef = "${forkOwner}:$branchName"
+        $existingPrUrl = gh pr list --repo microsoft/winget-pkgs --head $headRef --json url --jq '.[0].url // empty'
+        if (-not [string]::IsNullOrWhiteSpace($existingPrUrl)) {
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "Existing WinGet PR: $existingPrUrl"
+          exit 0
+        }
+        $prUrl = gh pr create --repo microsoft/winget-pkgs --base $defaultBranch --head $headRef --title "Add $($env:WINGET_PACKAGE_ID) $version" --body "Automated submission for $($env:WINGET_PACKAGE_ID) $version."
+        if ([string]::IsNullOrWhiteSpace($prUrl)) { throw 'gh pr create did not return a WinGet PR URL.' }
+        Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "Created WinGet PR: $prUrl"

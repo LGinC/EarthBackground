@@ -10,6 +10,11 @@ PUBLISH_DIR="$(cd "$1" && pwd)"
 APP_DIR="$2"
 VERSION="$3"
 ICON_SOURCE="$4"
+
+if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  echo "error: version must be three period-separated integers: $VERSION" >&2
+  exit 1
+fi
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PLIST_TEMPLATE="$SCRIPT_DIR/Info.plist"
 
