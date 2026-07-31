@@ -699,15 +699,12 @@ jobs:
         $defaultBranch = gh repo view Homebrew/homebrew-cask --json defaultBranchRef --jq '.defaultBranchRef.name'
         if ([string]::IsNullOrWhiteSpace($defaultBranch)) { throw 'Unable to resolve Homebrew/homebrew-cask default branch.' }
         $defaultBranch = $defaultBranch.Trim()
-        if ((git remote) -contains 'upstream') {
-          git remote set-url upstream https://github.com/Homebrew/homebrew-cask.git
-        }
-        else {
-          git remote add upstream https://github.com/Homebrew/homebrew-cask.git
-        }
-        git fetch upstream $defaultBranch --depth=1
-        if ($LASTEXITCODE -ne 0) { throw "Unable to fetch upstream/$defaultBranch." }
-        git checkout -B $branchName "upstream/$defaultBranch"
+        $syncType = gh api --method POST "repos/$env:FORK_REPOSITORY/merge-upstream" -f "branch=$defaultBranch" --jq '.merge_type'
+        if ($LASTEXITCODE -ne 0) { throw "Unable to sync $env:FORK_REPOSITORY with Homebrew/homebrew-cask." }
+        Write-Host "Homebrew fork sync result: $syncType"
+        git fetch origin $defaultBranch --depth=1
+        if ($LASTEXITCODE -ne 0) { throw "Unable to fetch origin/$defaultBranch after syncing the fork." }
+        git checkout -B $branchName "origin/$defaultBranch"
         if ($LASTEXITCODE -ne 0) { throw "Unable to create branch $branchName." }
 
         New-Item -ItemType Directory -Force -Path Casks/e | Out-Null
