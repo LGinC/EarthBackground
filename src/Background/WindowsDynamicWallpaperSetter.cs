@@ -33,7 +33,6 @@ namespace EarthBackground.Background
         private string[]? _currentMonitorIds;
         private int _currentFrameIntervalMs;
         private IntPtr _workerW = IntPtr.Zero;
-        private SharedPixelBuffer? _sharedPixelBuffer;
 
         public WindowsDynamicWallpaperSetter(
             ILogger<WindowsDynamicWallpaperSetter> logger,
@@ -107,24 +106,9 @@ namespace EarthBackground.Background
                 {
                     token.ThrowIfCancellationRequested();
                     var logger = _serviceProvider.GetRequiredService<ILogger<WallpaperPlaybackWindow>>();
-                    
-                    // 创建共享像素缓冲区
-                    SharedPixelBuffer? sharedBuffer = null;
-                    if (orderedFilePaths.Count > 0)
-                    {
-                        // 获取第一帧的尺寸
-                        var firstFrame = SixLabors.ImageSharp.Image.Identify(orderedFilePaths[0]);
-                        if (firstFrame != null)
-                        {
-                            sharedBuffer = new SharedPixelBuffer(firstFrame.Width, firstFrame.Height);
-                        }
-                    }
-                    
                     foreach (var monitor in monitors)
                     {
-                        var framePlayer = sharedBuffer != null
-                            ? await Task.Run(() => PngSequencePlayer.Open(orderedFilePaths, frameIntervalMs, sharedBuffer), token)
-                            : await Task.Run(() => PngSequencePlayer.Open(orderedFilePaths, frameIntervalMs), token);
+                        var framePlayer = await Task.Run(() => PngSequencePlayer.Open(orderedFilePaths, frameIntervalMs), token);
                         if (frameCount == 0)
                         {
                             frameCount = framePlayer.FrameCount;
@@ -144,11 +128,6 @@ namespace EarthBackground.Background
                         newSessions.Add(new PlaybackSession(monitor, window));
                         await window.ShowEmbeddedAsync();
                     }
-                    
-                    // 保存共享缓冲区引用
-                    _sharedPixelBuffer?.Dispose();
-                    _sharedPixelBuffer = sharedBuffer;
-
                     var oldSessions = _playbackSessions.ToArray();
                     _occlusionTimer.Stop();
                     _playbackSessions.Clear();
@@ -204,8 +183,6 @@ namespace EarthBackground.Background
             _currentMonitorIds = null;
             _currentFrameIntervalMs = 0;
             _workerW = IntPtr.Zero;
-            _sharedPixelBuffer?.Dispose();
-            _sharedPixelBuffer = null;
             _logger.LogInformation("动态壁纸已停止");
         }
 
@@ -262,7 +239,8 @@ namespace EarthBackground.Background
             }
 
             SendMessageTimeout(progman, 0x052C, IntPtr.Zero, IntPtr.Zero, SMTO_NORMAL, 1000, out _);
-            SendMessageTimeout(progman, 0x052C, IntPtr.Zero, new IntPtr(1), SMTO_NORMAL, 1000, out _);
+            // 26100 系列默认仍在图标层绘制静态壁纸；0xD/1 才启用透明的 raised desktop。
+            SendMessageTimeout(progman, 0x052C, new IntPtr(0xD), new IntPtr(1), SMTO_NORMAL, 1000, out _);
 
             IntPtr workerW = TryGetWorkerWFromProgman(progman);
             if (workerW != IntPtr.Zero)

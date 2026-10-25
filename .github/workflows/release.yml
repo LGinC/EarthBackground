@@ -10,33 +10,7 @@ defaults:
 
 jobs:
   build-test:
-    runs-on: windows-latest
-
-    env:
-      Project_Path: src\EarthBackground.csproj
-      Test_Project_Path: EarthBackground.Tests\EarthBackground.Tests.csproj
-
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v7
-      with:
-        fetch-depth: 0
-
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v6
-      with:
-        dotnet-version: '10.0.x'
-
-    - name: Restore dependencies
-      run: |
-        dotnet restore $env:Project_Path
-        dotnet restore $env:Test_Project_Path
-
-    - name: Build
-      run: dotnet build $env:Test_Project_Path --configuration Release --no-restore
-
-    - name: Test
-      run: dotnet test $env:Test_Project_Path --configuration Release --no-build --verbosity normal
+    uses: ./.github/workflows/build-test.yml
 
   publish:
     needs: build-test
@@ -57,11 +31,9 @@ jobs:
           - runtime: osx-x64
             os: macos-latest
             framework: net10.0
-            package_kind: app
           - runtime: osx-arm64
             os: macos-latest
             framework: net10.0
-            package_kind: app
 
     env:
       Project_Path: src/EarthBackground.csproj
@@ -70,13 +42,10 @@ jobs:
       # Must stay outside Publish_Dir: build-macos-app.sh copies publish into the .app
       App_Bundle_Dir: publish-app/${{ matrix.runtime }}/EarthBackground.app
       Mac_Dmg_Path: publish-app/${{ matrix.runtime }}/EarthBackground-${{ github.ref_name }}-${{ matrix.runtime }}.dmg
-      Mac_Notarize_Zip_Path: publish-app/${{ matrix.runtime }}/EarthBackground-${{ github.ref_name }}-${{ matrix.runtime }}-notarize.zip
 
     steps:
     - name: Checkout
       uses: actions/checkout@v7
-      with:
-        fetch-depth: 0
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v6
@@ -231,7 +200,6 @@ jobs:
       RELEASE_TAG: ${{ github.event.release.tag_name }}
       RELEASE_REPOSITORY: ${{ github.repository }}
       RELEASE_SHA: ${{ github.sha }}
-      PAGES_BRANCH: gh-pages
       # secrets cannot be referenced in if:; map them to env first
       PACKAGE_FEED_GPG_PRIVATE_KEY: ${{ secrets.PACKAGE_FEED_GPG_PRIVATE_KEY }}
       PACKAGE_FEED_GPG_PASSPHRASE: ${{ secrets.PACKAGE_FEED_GPG_PASSPHRASE }}
@@ -239,34 +207,50 @@ jobs:
 
     outputs:
       version: ${{ steps.meta.outputs.version }}
-      feed_signed: ${{ steps.feed_signed.outputs.feed_signed }}
 
     steps:
     - name: Checkout
       uses: actions/checkout@v7
-      with:
-        fetch-depth: 0
     - name: Install Linux repository tools
       run: |
         sudo apt-get update
         sudo apt-get install -y apt-utils createrepo-c gnupg
 
-    - name: Download publish artifacts
+    - name: Download Linux publish artifact
       uses: actions/download-artifact@v8
       with:
-        path: publish-inputs
+        name: EarthBackground-${{ env.LINUX_RUNTIME }}-${{ env.RELEASE_SHA }}
+        path: publish-inputs/builds/${{ env.LINUX_RUNTIME }}
 
+    - name: Download Windows publish artifact
+      uses: actions/download-artifact@v8
+      with:
+        name: EarthBackground-${{ env.WINDOWS_RUNTIME }}-${{ env.RELEASE_SHA }}
+        path: publish-inputs/builds/${{ env.WINDOWS_RUNTIME }}
+
+    - name: Download Windows release archive
+      uses: actions/download-artifact@v8
+      with:
+        name: EarthBackground-${{ env.WINDOWS_RUNTIME }}-archive
+        path: publish-inputs/archives/EarthBackground-${{ env.WINDOWS_RUNTIME }}-archive
+
+    - name: Download macOS release archives
+      uses: actions/download-artifact@v8
+      with:
+        pattern: EarthBackground-osx-*-archive
+        path: publish-inputs/archives
+        merge-multiple: false
     - name: Normalize publish layout
       run: |
         New-Item -ItemType Directory -Force -Path publish | Out-Null
-        Copy-Item -Path "publish-inputs/EarthBackground-${env:LINUX_RUNTIME}-${env:RELEASE_SHA}/*" -Destination "publish/${env:LINUX_RUNTIME}" -Recurse -Force
+        Copy-Item -Path "publish-inputs/builds/${env:LINUX_RUNTIME}/*" -Destination "publish/${env:LINUX_RUNTIME}" -Recurse -Force
         $linuxExecutable = "publish/${env:LINUX_RUNTIME}/EarthBackground"
         if (-not (Test-Path -LiteralPath $linuxExecutable -PathType Leaf)) {
           throw "Linux executable not found after artifact download: $linuxExecutable"
         }
         & chmod +x $linuxExecutable
         if ($LASTEXITCODE -ne 0) { throw "chmod failed with exit code $LASTEXITCODE" }
-        Copy-Item -Path "publish-inputs/EarthBackground-${env:WINDOWS_RUNTIME}-${env:RELEASE_SHA}/*" -Destination "publish/${env:WINDOWS_RUNTIME}" -Recurse -Force
+        Copy-Item -Path "publish-inputs/builds/${env:WINDOWS_RUNTIME}/*" -Destination "publish/${env:WINDOWS_RUNTIME}" -Recurse -Force
 
 
     - name: Compute release metadata
@@ -296,7 +280,7 @@ jobs:
 
     - name: Compute Windows checksum
       run: |
-        $winHash = (Get-FileHash "publish-inputs/EarthBackground-${env:WINDOWS_RUNTIME}-archive/EarthBackground-${env:RELEASE_TAG}-${env:WINDOWS_RUNTIME}.zip" -Algorithm SHA256).Hash.ToLowerInvariant()
+        $winHash = (Get-FileHash "publish-inputs/archives/EarthBackground-${env:WINDOWS_RUNTIME}-archive/EarthBackground-${env:RELEASE_TAG}-${env:WINDOWS_RUNTIME}.zip" -Algorithm SHA256).Hash.ToLowerInvariant()
         "WIN_SHA256=$winHash" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
     - name: Generate winget manifest
@@ -351,7 +335,7 @@ jobs:
       run: |
         # Prefer the ditto-built release archives so .app metadata and executable modes survive.
         foreach ($runtime in @($env:MACOS_ARM64_RUNTIME, $env:MACOS_X64_RUNTIME)) {
-          $archiveZip = "publish-inputs/EarthBackground-${runtime}-archive/EarthBackground-${env:RELEASE_TAG}-${runtime}.zip"
+          $archiveZip = "publish-inputs/archives/EarthBackground-${runtime}-archive/EarthBackground-${env:RELEASE_TAG}-${runtime}.zip"
           if (-not (Test-Path -LiteralPath $archiveZip -PathType Leaf)) {
             throw "macOS release archive not found: $archiveZip"
           }
@@ -471,35 +455,33 @@ jobs:
         - Do not mix unrelated cleanup with the submission.
         "@ | Set-Content -Path "dist/homebrew-official/PR-CHECKLIST.txt"
 
-    - name: Generate official Homebrew PR template
+    - name: Generate official Homebrew PR body
       run: |
-        $template = @'
-        ## Summary
+        $templateUrl = "https://raw.githubusercontent.com/Homebrew/homebrew-cask/main/.github/PULL_REQUEST_TEMPLATE.md"
+        $template = (Invoke-WebRequest -Uri $templateUrl).Content
+        if ([string]::IsNullOrWhiteSpace($template) -or $template -notmatch '(?m)^- \[[ xX]\] ') {
+          throw "Unable to download a valid Homebrew pull request template from $templateUrl"
+        }
 
-        Add `earthbackground` cask.
+        $details = @'
+        ## Submission details
 
-        ## What this PR adds
-
-        - New cask: `earthbackground`
+        - Cask: `earthbackground`
         - Apple Silicon asset: __BREW_ARM64_ZIP_URL__
         - Apple Silicon SHA256: __BREW_ARM64_SHA256__
         - Intel asset: __BREW_X64_ZIP_URL__
         - Intel SHA256: __BREW_X64_SHA256__
-
-        ## Local verification
-
-        - [ ] `brew install --cask ./Casks/e/earthbackground.rb`
-        - [ ] App launches successfully
-        - [ ] `brew audit --cask --online earthbackground`
-
-        ## Notes
-
-        - App bundles are distributed as architecture-specific zips containing `EarthBackground.app`.
+        - App bundles are architecture-specific zips containing `EarthBackground.app`.
         - `depends_on macos: ">= :big_sur"` is derived from the app bundle minimum system version.
-        - `zap` paths are a minimal set inferred from `io.github.lginc.earthbackground` and should be rechecked on a real macOS install.
+        - `zap` paths are inferred from `io.github.lginc.earthbackground` and must be rechecked on a real macOS install.
+
+        ## AI/LLM disclosure
+
+        An AI coding assistant using GPT-5.6 was used to update the automated release workflow and draft this cask submission. The pull request author must review the cask, including the `zap` stanza, and complete the unchecked Homebrew commands above before requesting review.
         '@
-        $template = $template.Replace('__BREW_ARM64_ZIP_URL__', $env:BREW_ARM64_ZIP_URL).Replace('__BREW_ARM64_SHA256__', $env:BREW_ARM64_SHA256).Replace('__BREW_X64_ZIP_URL__', $env:BREW_X64_ZIP_URL).Replace('__BREW_X64_SHA256__', $env:BREW_X64_SHA256)
-        $template | Set-Content -Path "dist/homebrew-official/PR-TEMPLATE.md"
+        $details = $details.Replace('__BREW_ARM64_ZIP_URL__', $env:BREW_ARM64_ZIP_URL).Replace('__BREW_ARM64_SHA256__', $env:BREW_ARM64_SHA256).Replace('__BREW_X64_ZIP_URL__', $env:BREW_X64_ZIP_URL).Replace('__BREW_X64_SHA256__', $env:BREW_X64_SHA256)
+        $body = $template.TrimEnd() + "`n`n" + $details.Trim() + "`n"
+        $body | Set-Content -Path "dist/homebrew-official/PR-TEMPLATE.md" -Encoding utf8
 
     - name: Generate apt repository metadata with apt-ftparchive
       run: |
@@ -556,12 +538,6 @@ jobs:
         printf '%s' "$PACKAGE_FEED_GPG_PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 "${key_args[@]}" --detach-sign --armor -o dist/packages/apt/Release.gpg dist/packages/apt/Release
         printf '%s' "$PACKAGE_FEED_GPG_PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 "${key_args[@]}" --detach-sign --armor -o dist/packages/yum/repodata/repomd.xml.asc dist/packages/yum/repodata/repomd.xml
 
-    - name: Record feed signing status
-      id: feed_signed
-      if: always()
-      run: |
-        $signed = if ('${{ steps.feed_signing.outcome }}' -eq 'success') { 'true' } else { 'false' }
-        "feed_signed=$signed" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
     - name: Upload package artifacts
       uses: actions/upload-artifact@v7
@@ -597,7 +573,6 @@ jobs:
       with:
         ref: gh-pages
         path: gh-pages
-        fetch-depth: 0
       continue-on-error: true
 
     - name: Initialize gh-pages branch contents
@@ -726,12 +701,25 @@ jobs:
         if ($LASTEXITCODE -ne 0) { throw 'Unable to push Homebrew cask branch.' }
 
         $headRef = "${forkOwner}:$branchName"
-        $existingPrUrl = gh pr list --repo Homebrew/homebrew-cask --head $headRef --json url --jq '.[0].url // empty'
-        if (-not [string]::IsNullOrWhiteSpace($existingPrUrl)) {
-          "official_pr_status=existing" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+        $existingPrRecord = gh api --method GET "repos/Homebrew/homebrew-cask/pulls" `
+          -f state=all `
+          -f "base=$defaultBranch" `
+          -f "head=$headRef" `
+          --jq 'map(select(.merged_at == null)) | (.[0] // empty) | [.number, .html_url, .state] | @tsv'
+        if ($LASTEXITCODE -ne 0) { throw "Unable to look up an existing Homebrew PR for $headRef." }
+        if (-not [string]::IsNullOrWhiteSpace($existingPrRecord)) {
+          $existingPrFields = $existingPrRecord -split "`t", 3
+          if ($existingPrFields.Length -ne 3) { throw "Unexpected existing Homebrew PR response: $existingPrRecord" }
+          $existingPrNumber = $existingPrFields[0]
+          $existingPrUrl = $existingPrFields[1]
+          $existingPrState = $existingPrFields[2]
+          gh pr edit $existingPrNumber --repo Homebrew/homebrew-cask --title 'Add earthbackground cask' --body-file $bodyPath
+          if ($LASTEXITCODE -ne 0) { throw "Unable to update existing Homebrew PR $existingPrUrl." }
+          $existingStatus = if ($existingPrState -eq 'closed') { 'updated_closed' } else { 'updated_open' }
+          "official_pr_status=$existingStatus" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           "official_pr_url=$existingPrUrl" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           "official_pr_fork_owner=$forkOwner" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "Existing official Homebrew PR: $existingPrUrl"
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "Updated existing official Homebrew PR ($existingPrState): $existingPrUrl"
           exit 0
         }
         $prUrl = gh pr create --repo Homebrew/homebrew-cask --base $defaultBranch --head $headRef --title 'Add earthbackground cask' --body-file $bodyPath

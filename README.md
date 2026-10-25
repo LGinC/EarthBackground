@@ -52,17 +52,28 @@
 2. `Captor` 获取最近时间戳列表
 3. 对缺失帧执行下载和拼接，已有帧直接复用
 4. 平台动态壁纸设置器对帧路径排序
-5. `PngSequencePlayer` 按需逐帧读取 PNG
-6. `WallpaperPlaybackWindow` 将帧内容绘制到平台桌面窗口
+5. `WallpaperPlaybackWindow` 在后台调用 `PngSequencePlayer`，预解码下一帧
+6. 通过两个复用位图和绘制层交叉淡化显示，不生成或保存过渡图片
 
 这样做的好处：
 - 避免 APNG 编码和再次解析带来的额外耗时
 - 降低播放前的峰值内存占用
 - 更适合“抓一批帧然后循环播放”的桌面壁纸场景
 
+播放规则：
+- 每个显示器窗口保留当前帧和下一帧两个位图缓冲，不预解码整段序列；单帧只显示，不启动动画计时器。
+- 过渡占帧间隔的后 40%，最长 200 ms。例如 `FrameIntervalMs = 500` 时，保持 300 ms、淡化 200 ms；只在过渡期间按约 60 Hz 更新透明度。
+- 淡化层的黑底和图像按整体透明度合成；父画布启用 `RequiresFullOpacityHandling`，避免实时合成器重复压暗。相同帧之间的过渡应保持亮度不变。
+- 下一帧尚未解码完成时保持当前画面，不阻塞 UI；慢帧就绪后再开始完整过渡。
+- 末帧保持 `LoopPauseMilliseconds` 指定的停顿，然后直接回到首帧，不把不连续的首尾云图混合。
+- 窗口暂停时冻结过渡进度；关闭时等待正在解码的帧结束后释放位图。
+- 位图缓冲之外仍有解码临时内存和渲染器纹理；交叉淡化不等于减少播放内存。
+
 ### 平台窗口策略
 
-- Windows：查找 `Progman` / `WorkerW`，将 Avalonia 播放窗口设为子窗口并放在桌面图标层下方。
+- Windows：旧桌面结构直接嵌入 `WorkerW`。Windows 11 24H2 的 raised desktop 使用 `0x052C / 0xD / 1` 激活透明图标层，并在 `Progman` 下创建分层宿主，放在 `SHELLDLL_DefView` 图标层之下、系统 `WorkerW` 静态壁纸层之上。
+  - Avalonia 窗口类带 `CS_OWNDC`，不能直接添加 `WS_EX_LAYERED`，因此使用独立的系统 `STATIC` 宿主承载 Avalonia 子窗口，保留原渲染后端。
+  - 按真实父窗口客户区转换显示器坐标，支持负坐标和非零桌面原点；检查原生嵌入调用结果，并在关闭时销毁宿主。
 - macOS：通过 native `NSWindow` 设置 `level = kCGDesktopWindowLevel - 1`，并启用 `canJoinAllSpaces | stationary | ignoresCycle`；窗口无边框、无阴影、鼠标穿透。
 - Linux X11：要求 `TopLevel.TryGetPlatformHandle()` 返回 `HandleDescriptor == "X11"` 或 `"XID"`，然后用 `libX11` 设置 `_NET_WM_WINDOW_TYPE_DESKTOP`、`_NET_WM_STATE_BELOW/SKIP_TASKBAR/SKIP_PAGER/STICKY`；若存在 `xfdesktop` 等已有桌面窗口，则将播放窗口堆叠到其上方，否则退回 root window 并 lower。
 
@@ -84,10 +95,10 @@ flowchart TD
     K -->|Windows| L["WorkerW 桌面子窗口"]
     K -->|macOS| M["NSWindow desktop level"]
     K -->|Linux X11| N["X11 root window / desktop atoms"]
-    L --> O["PngSequencePlayer 按需逐帧读取 PNG"]
+    L --> O["PngSequencePlayer 后台解码下一帧"]
     M --> O
     N --> O
-    O --> P["WallpaperPlaybackWindow 绘制帧"]
+    O --> P["WallpaperPlaybackWindow 双缓冲交叉淡化"]
     P --> Q["多显示器动态壁纸播放"]
 ```
 
@@ -110,8 +121,9 @@ sequenceDiagram
     D->>W: 为目标显示器创建播放窗口
     W->>W: 配置平台桌面层级
     loop 播放循环
-        W->>P: 渲染下一帧
-        P-->>W: 写入 WriteableBitmap
+        W->>P: 后台预解码下一帧
+        P-->>W: 写入备用 WriteableBitmap
+        W->>W: 就绪后交叉淡化并交换位图
     end
 ```
 
@@ -159,9 +171,9 @@ sequenceDiagram
 - 获取最近 `RecentHours` 的时间戳列表
 - 对每个时间戳检查是否已有 `frame_xxx.png`
 - 缺失帧才下载并拼接
-- 最终按时间顺序播放 PNG 帧序列
-- Windows 使用单个跨显示器窗口嵌入 `WorkerW`
-- macOS / Linux 按显示器创建独立窗口，避免跨屏窗口带来的 Mission Control / X11 桌面行为问题
+- 最终按时间顺序播放 PNG 帧序列，后台预解码下一帧并进行短时间交叉淡化
+- Windows 按显示器创建独立窗口并嵌入 `WorkerW`
+- macOS / Linux 同样按显示器创建独立窗口，避免跨屏窗口带来的 Mission Control / X11 桌面行为问题
 
 ### 发布
 
@@ -249,7 +261,7 @@ sequenceDiagram
 - `FrameIntervalMinutes`
   - 抓取帧间隔，单位分钟，最小 10，最大 360，且不超过 `RecentHours` 对应的分钟数
 - `FrameIntervalMs`
-  - 每帧播放间隔，单位毫秒
+  - 每帧播放间隔，单位毫秒，包含保持和淡化时间；淡化占后 40%，最长 200 ms
 - `RecentHours`
   - 回溯最近多少小时的时间戳来构建动画
 - `LoopPauseMilliseconds`
@@ -299,7 +311,7 @@ dotnet run --project .\src\EarthBackground.csproj -- --service
 
 ## 说明
 
-- Windows 动态壁纸依赖桌面 `WorkerW` 行为，不同 Windows 版本会有兼容处理
+- Windows 动态壁纸依赖桌面 `WorkerW` 行为，不同 Windows 版本会有兼容处理；24H2 若只激活旧式桌面消息，图标层可能继续覆盖静态壁纸，表现为图标附近黑块而其余背景不变。
 - macOS 全屏 Space 不支持 desktop window level 覆盖全屏应用，进入全屏应用时窗口会被系统遮挡
 - Linux 动态壁纸目前支持 X11；GNOME / KDE / 带桌面图标扩展的环境对图标层和点击行为可能不同，需要在目标桌面环境实测
 - 仓库中仍保留部分 APNG 相关代码，主要用于过渡和后续兼容实验，当前默认播放路径是 PNG 序列

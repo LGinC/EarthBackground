@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading;
 using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -95,8 +96,8 @@ namespace EarthBackground.Imaging
         {
             var frameMeta = frame.Metadata.GetPngMetadata();
             frameMeta.FrameDelay = new Rational((uint)delayMs, 1000);
-            frameMeta.BlendMethod = isDeltaFrame ? PngBlendMethod.Over : PngBlendMethod.Source;
-            frameMeta.DisposalMethod = PngDisposalMethod.DoNotDispose;
+            frameMeta.BlendMode = isDeltaFrame ? FrameBlendMode.Over : FrameBlendMode.Source;
+            frameMeta.DisposalMode = FrameDisposalMode.DoNotDispose;
         }
 
         /// <summary>
