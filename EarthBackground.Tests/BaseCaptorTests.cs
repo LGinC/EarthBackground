@@ -8,8 +8,7 @@ using System.Threading.Tasks;
 using EarthBackground.Captors;
 using EarthBackground.Oss;
 using Microsoft.Extensions.Options;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
+using SkiaSharp;
 using Xunit;
 
 namespace EarthBackground.Tests
@@ -158,14 +157,101 @@ namespace EarthBackground.Tests
                 baseRate: 678);
 
             var framePath = Path.Combine(_tempDirectory, "frame_20260427040021.png");
-            using (var image = new Image<Rgba32>(688, 688))
-            {
-                image.SaveAsPng(framePath);
-            }
+            WritePng(framePath, 688, 688, SKColors.Transparent);
 
             Assert.False(captor.TryGetExistingFrame("20260427040021", out var existingFramePath));
             Assert.Equal(framePath, existingFramePath);
             Assert.False(File.Exists(framePath));
+        }
+
+        [Theory]
+        [InlineData(100)]
+        [InlineData(50)]
+        [InlineData(150)]
+        public void JoinImageFromDir_ShouldPreserveTilePositionsAndTransparency_WhenResizing(int zoom)
+        {
+            var tileDirectory = Path.Combine(_tempDirectory, "tiles");
+            Directory.CreateDirectory(tileDirectory);
+            using var captor = new TestCaptor(
+                new TestOptionsSnapshot<CaptureOption>(new CaptureOption
+                {
+                    SavePath = _tempDirectory,
+                    WallpaperFolder = _tempDirectory,
+                    Resolution = Resolution.r_1376,
+                    Zoom = zoom
+                }),
+                new TestHttpClientFactory(),
+                new TestOssProvider(),
+                baseRate: 8);
+
+            var colors = new[] { SKColors.Red, SKColors.Lime, new SKColor(0, 0, 255, 128), SKColors.Transparent };
+            for (var row = 0; row < 2; row++)
+            {
+                for (var column = 0; column < 2; column++)
+                {
+                    WritePng(Path.Combine(tileDirectory, $"{row:000}_{column:000}.png"), 8, 8, colors[row * 2 + column]);
+                }
+            }
+
+            var framePath = Path.Combine(_tempDirectory, "frame_20260427040021.png");
+            Assert.Equal(framePath, captor.JoinTiles(tileDirectory, framePath));
+            using var image = SKBitmap.Decode(framePath);
+            Assert.NotNull(image);
+            var expectedSize = 16 * zoom / 100;
+            Assert.Equal(expectedSize, image.Width);
+            Assert.Equal(expectedSize, image.Height);
+            for (var row = 0; row < 2; row++)
+            {
+                for (var column = 0; column < 2; column++)
+                {
+                    var pixel = image.GetPixel((2 * column + 1) * expectedSize / 4, (2 * row + 1) * expectedSize / 4);
+                    var expected = colors[row * 2 + column];
+                    Assert.Equal(expected.Alpha, pixel.Alpha);
+                    if (expected.Alpha != 0)
+                    {
+                        Assert.Equal(expected, pixel);
+                    }
+                }
+            }
+
+            Assert.Empty(Directory.GetFiles(tileDirectory));
+            Assert.True(captor.TryGetExistingFrame("20260427040021", out var cachedPath));
+            Assert.Equal(framePath, cachedPath);
+            using var codec = SKCodec.Create(framePath);
+            Assert.Equal(SKEncodedImageFormat.Png, codec.EncodedFormat);
+        }
+
+        [Fact]
+        public void JoinImageFromDir_ShouldRejectInvalidTile_WithoutDeletingIt()
+        {
+            Directory.CreateDirectory(_tempDirectory);
+            using var captor = new TestCaptor(
+                new TestOptionsSnapshot<CaptureOption>(new CaptureOption
+                {
+                    SavePath = _tempDirectory,
+                    WallpaperFolder = _tempDirectory,
+                    Resolution = 0
+                }),
+                new TestHttpClientFactory(),
+                new TestOssProvider(),
+                baseRate: 8);
+            var tilePath = Path.Combine(_tempDirectory, "000_000.png");
+            File.WriteAllText(tilePath, "invalid PNG");
+            var outputPath = Path.Combine(_tempDirectory, "output.png");
+
+            var error = Assert.Throws<InvalidDataException>(() => captor.JoinTiles(_tempDirectory, outputPath));
+
+            Assert.Contains(tilePath, error.Message);
+            Assert.True(File.Exists(tilePath));
+            Assert.False(File.Exists(outputPath));
+        }
+
+        private static void WritePng(string path, int width, int height, SKColor color)
+        {
+            using var image = new SKBitmap(width, height, SKColorType.Rgba8888, SKAlphaType.Premul);
+            image.Erase(color);
+            using var stream = File.Create(path);
+            Assert.True(image.Encode(stream, SKEncodedImageFormat.Png, 100));
         }
 
         public void Dispose()
@@ -221,6 +307,11 @@ namespace EarthBackground.Tests
             public bool TryGetExistingFrame(string imageId, out string framePath)
             {
                 return TryGetExistingFrameImagePath(imageId, out framePath);
+            }
+
+            public string JoinTiles(string sourceDirectory, string outputPath)
+            {
+                return JoinImageFromDir(sourceDirectory, outputPath);
             }
 
             protected override int GetFrameProcessingParallelism() => 2;

@@ -1,8 +1,6 @@
 using EarthBackground.Oss;
 using Microsoft.Extensions.Options;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -87,8 +85,9 @@ namespace EarthBackground.Captors
                 size = (int)(size * Options.Zoom * 1.0 / 100);
             }
 
-            var metadata = Image.Identify(framePath);
-            return metadata != null && metadata.Width == size && metadata.Height == size;
+            using var codec = SKCodec.Create(framePath)
+                ?? throw new InvalidDataException($"无法读取图像元数据：{framePath}");
+            return codec.Info.Width == size && codec.Info.Height == size;
         }
 
         protected async Task<IReadOnlyList<string>> BuildFrameSequenceAsync(
@@ -308,34 +307,46 @@ namespace EarthBackground.Captors
         protected string JoinImageFromDir(string sourceDir, string outputPath)
         {
             var size = 1 << (int)Options.Resolution;
-            using var image = new Image<Rgba32>(BaseRate * size, BaseRate * size);
-            image.Mutate(context =>
+            using var image = new SKBitmap(BaseRate * size, BaseRate * size, SKColorType.Rgba8888, SKAlphaType.Premul);
+            using (var canvas = new SKCanvas(image))
             {
+                canvas.Clear(SKColors.Transparent);
                 for (var i = 0; i < size; i++)
                 {
                     for (var j = 0; j < size; j++)
                     {
-                        using var tile = Image.Load<Rgba32>(Path.Combine(sourceDir, $"{i:000}_{j:000}.png"));
-                        context.DrawImage(tile, new Point(BaseRate * j, BaseRate * i), 1f);
+                        var tilePath = Path.Combine(sourceDir, $"{i:000}_{j:000}.png");
+                        using var codec = SKCodec.Create(tilePath)
+                            ?? throw new InvalidDataException($"无法解码图像：{tilePath}");
+                        using var tile = new SKBitmap(codec.Info.Width, codec.Info.Height, SKColorType.Rgba8888, SKAlphaType.Premul);
+                        var result = codec.GetPixels(tile.Info, tile.GetPixels());
+                        if (result != SKCodecResult.Success)
+                        {
+                            throw new InvalidDataException($"无法解码图像：{tilePath}（{result}）");
+                        }
+
+                        tile.SetImmutable();
+                        canvas.DrawBitmap(tile, BaseRate * j, BaseRate * i);
                     }
                 }
-            });
+            }
 
             if (File.Exists(outputPath))
             {
                 File.Delete(outputPath);
             }
 
-            if (Options.Zoom == 100)
+            var newSize = (int)(image.Height * Options.Zoom * 1.0 / 100);
+            using var resized = Options.Zoom == 100
+                ? null
+                : image.Resize(new SKSizeI(newSize, newSize), new SKSamplingOptions(SKCubicResampler.CatmullRom))
+                    ?? throw new InvalidOperationException($"无法缩放图像至 {newSize}×{newSize}。");
+            using (var stream = File.Create(outputPath))
             {
-                image.SaveAsPng(outputPath);
-            }
-            else
-            {
-                // Resize in-place instead of cloning to avoid doubling memory
-                var newSize = (int)(image.Height * Options.Zoom * 1.0 / 100);
-                image.Mutate(context => context.Resize(newSize, newSize));
-                image.SaveAsPng(outputPath);
+                if (!(resized ?? image).Encode(stream, SKEncodedImageFormat.Png, 100))
+                {
+                    throw new IOException($"无法编码 PNG 图像：{outputPath}");
+                }
             }
 
             foreach (var f in Directory.GetFiles(sourceDir).Where(f => f.Contains("_")))

@@ -6,11 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Threading;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Gif;
-using SixLabors.ImageSharp.Formats.Png;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
+using SkiaSharp;
 
 namespace EarthBackground.Controls
 {
@@ -78,22 +74,14 @@ namespace EarthBackground.Controls
                 return;
 
             using var asset = AssetLoader.Open(new Uri(AssetPath, UriKind.RelativeOrAbsolute));
-            using var image = SixLabors.ImageSharp.Image.Load<Rgba32>(asset);
-            var width = Math.Max(1, DecodeWidth);
-            var height = Math.Max(1, (int)Math.Round(image.Height * (width / (double)image.Width)));
-
-            for (var i = 0; i < image.Frames.Count; i++)
+            try
             {
-                using var frame = image.Frames.CloneFrame(i);
-                frame.Mutate(x => x.Resize(width, height));
-
-                using var output = new MemoryStream();
-                frame.Save(output, PngFormat.Instance);
-                output.Position = 0;
-                _frames.Add(new Bitmap(output));
-
-                var delay = image.Frames[i].Metadata.GetGifMetadata().FrameDelay;
-                _delays.Add(TimeSpan.FromMilliseconds(Math.Max(20, delay * 10)));
+                DecodeFrames(asset, DecodeWidth, _frames, _delays);
+            }
+            catch
+            {
+                ClearFrames();
+                throw;
             }
 
             _frameIndex = 0;
@@ -103,6 +91,56 @@ namespace EarthBackground.Controls
             {
                 _timer.Interval = _delays[0];
                 _timer.Start();
+            }
+        }
+
+        internal static void DecodeFrames(Stream asset, int decodeWidth, List<Bitmap> frames, List<TimeSpan> delays)
+        {
+            using var codec = SKCodec.Create(asset) ?? throw new InvalidDataException("Cannot decode animation.");
+            var info = new SKImageInfo(codec.Info.Width, codec.Info.Height, SKColorType.Bgra8888, SKAlphaType.Premul);
+            var width = Math.Max(1, decodeWidth);
+            var height = Math.Max(1, checked((int)Math.Round(info.Height * (width / (double)info.Width))));
+            using var prior = new SKBitmap(info);
+            using var resized = width == info.Width && height == info.Height
+                ? null
+                : new SKBitmap(new SKImageInfo(width, height, info.ColorType, info.AlphaType));
+            var frameInfo = codec.FrameInfo;
+            SKBitmap? temporary = null;
+            var priorIndex = -1;
+            try
+            {
+                for (var i = 0; i < Math.Max(1, codec.FrameCount); i++)
+                {
+                    var metadata = frameInfo.Length > i ? frameInfo[i] : default;
+                    var requiredIndex = frameInfo.Length > i ? metadata.RequiredFrame : -1;
+                    var restorePrevious = metadata.DisposalMethod == SKCodecAnimationDisposalMethod.RestorePrevious;
+                    var frame = restorePrevious ? temporary ??= new SKBitmap(info) : prior;
+                    var decodePrior = requiredIndex < 0 ? -1 : priorIndex;
+                    // RestorePrevious frames must not overwrite the canvas needed by later frames.
+                    if (restorePrevious && decodePrior >= 0)
+                        prior.GetPixelSpan().CopyTo(frame.GetPixelSpan());
+
+                    var result = codec.GetPixels(info, frame.GetPixels(), frame.RowBytes, new SKCodecOptions(i, decodePrior));
+                    if (result != SKCodecResult.Success)
+                        throw new InvalidDataException($"Cannot decode animation frame {i}: {result}.");
+                    if (!restorePrevious)
+                        priorIndex = i;
+
+                    if (resized is not null)
+                    {
+                        if (!frame.ScalePixels(resized, new SKSamplingOptions(SKCubicResampler.Mitchell)))
+                            throw new InvalidDataException("Cannot resize animation frame.");
+                        frame = resized;
+                    }
+
+                    frames.Add(new Bitmap(PixelFormat.Bgra8888, AlphaFormat.Premul, frame.GetPixels(),
+                        new PixelSize(width, height), new Vector(96, 96), frame.RowBytes));
+                    delays.Add(TimeSpan.FromMilliseconds(Math.Max(20, metadata.Duration)));
+                }
+            }
+            finally
+            {
+                temporary?.Dispose();
             }
         }
 

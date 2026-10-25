@@ -1,12 +1,9 @@
 using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Media.Imaging;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
+using SkiaSharp;
 
 namespace EarthBackground.Imaging
 {
@@ -38,8 +35,10 @@ namespace EarthBackground.Imaging
                 throw new ArgumentException("At least one frame is required.", nameof(filePaths));
             }
 
-            var firstFrame = Image.Identify(filePaths[0]);
-            var compatibleFilePaths = FilterCompatibleFrames(filePaths, firstFrame.Width, firstFrame.Height);
+            using var firstFrame = SKCodec.Create(filePaths[0])
+                ?? throw new InvalidDataException($"无法识别图像：{filePaths[0]}");
+            var size = firstFrame.Info;
+            var compatibleFilePaths = FilterCompatibleFrames(filePaths, size.Width, size.Height);
             if (compatibleFilePaths.Length == 0)
             {
                 throw new InvalidOperationException("No compatible PNG frames were found.");
@@ -47,8 +46,8 @@ namespace EarthBackground.Imaging
 
             return new PngSequencePlayer(
                 compatibleFilePaths,
-                firstFrame.Width,
-                firstFrame.Height,
+                size.Width,
+                size.Height,
                 Math.Max(delayMilliseconds, 1));
         }
 
@@ -61,9 +60,20 @@ namespace EarthBackground.Imaging
 
             _currentFrameIndex = (_currentFrameIndex + 1) % _filePaths.Length;
 
-            using var image = Image.Load<Rgba32>(_filePaths[_currentFrameIndex]);
+            using var codec = SKCodec.Create(_filePaths[_currentFrameIndex])
+                ?? throw new InvalidDataException($"无法识别图像：{_filePaths[_currentFrameIndex]}");
+            if (codec.Info.Width != _width || codec.Info.Height != _height)
+            {
+                throw new InvalidDataException("播放期间 PNG 帧尺寸发生变化。");
+            }
 
-            CopyImageToBitmap(image, bitmap);
+            using var framebuffer = bitmap.Lock();
+            var info = new SKImageInfo(_width, _height, SKColorType.Rgba8888, SKAlphaType.Unpremul);
+            var result = codec.GetPixels(info, framebuffer.Address, framebuffer.RowBytes, SKCodecOptions.Default);
+            if (result != SKCodecResult.Success)
+            {
+                throw new InvalidDataException($"PNG 帧解码失败：{result}");
+            }
 
             return new FrameRenderResult(_delayMilliseconds, _currentFrameIndex == _filePaths.Length - 1, _currentFrameIndex);
         }
@@ -74,41 +84,15 @@ namespace EarthBackground.Imaging
             _disposed = true;
         }
 
-        /// <summary>
-        /// Copy pixel data directly from Image to WriteableBitmap, row by row.
-        /// Uses a single row-sized temp buffer to avoid allocating a full-frame buffer.
-        /// </summary>
-        private void CopyImageToBitmap(Image<Rgba32> image, WriteableBitmap bitmap)
-        {
-            var rowByteCount = _width * 4; // Rgba32 = 4 bytes per pixel
-            var rowBuffer = ArrayPool<byte>.Shared.Rent(rowByteCount);
-            try
-            {
-                using var framebuffer = bitmap.Lock();
-                image.ProcessPixelRows(accessor =>
-                {
-                    for (int y = 0; y < accessor.Height; y++)
-                    {
-                        var row = accessor.GetRowSpan(y);
-                        MemoryMarshal.AsBytes(row).CopyTo(rowBuffer);
-                        Marshal.Copy(rowBuffer, 0, framebuffer.Address + (y * framebuffer.RowBytes), rowByteCount);
-                    }
-                });
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(rowBuffer);
-            }
-        }
-
         private static string[] FilterCompatibleFrames(IReadOnlyList<string> filePaths, int width, int height)
         {
             List<string>? result = null;
-            for (int i = 0; i < filePaths.Count; i++)
+            for (int i = 1; i < filePaths.Count; i++)
             {
                 var path = filePaths[i];
-                var frame = Image.Identify(path);
-                if (frame == null || frame.Width != width || frame.Height != height)
+                using var frame = SKCodec.Create(path)
+                    ?? throw new InvalidDataException($"无法识别图像：{path}");
+                if (frame.Info.Width != width || frame.Info.Height != height)
                 {
                     result ??= CopyBefore(filePaths, i);
                     continue;

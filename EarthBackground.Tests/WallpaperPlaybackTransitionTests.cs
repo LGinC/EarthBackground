@@ -12,7 +12,7 @@ using Avalonia.Threading;
 using EarthBackground.Imaging;
 using EarthBackground.Views;
 using Microsoft.Extensions.Logging.Abstractions;
-using SixLabors.ImageSharp.PixelFormats;
+using SkiaSharp;
 using Xunit;
 
 namespace EarthBackground.Tests
@@ -29,33 +29,33 @@ namespace EarthBackground.Tests
             var hold = interval - transition;
 
             playback.Advance(hold - 1);
-            Assert.Equal(new Rgba32(255, 0, 0), playback.CurrentPixel);
+            Assert.Equal(new SKColor(255, 0, 0), playback.CurrentPixel);
             Assert.Equal(0, playback.Overlay.Opacity);
 
             playback.Advance(hold);
             playback.Advance(hold + transition / 2.0);
             Assert.Equal(0.5, playback.Overlay.Opacity, 6);
-            Assert.Equal(new Rgba32(255, 0, 0), playback.CurrentPixel);
-            Assert.Equal(new Rgba32(0, 0, 255), playback.NextPixel);
+            Assert.Equal(new SKColor(255, 0, 0), playback.CurrentPixel);
+            Assert.Equal(new SKColor(0, 0, 255), playback.NextPixel);
             var blended = playback.CapturePixels();
-            Assert.InRange(blended.Left.R, (byte)126, (byte)129);
-            Assert.InRange(blended.Left.B, (byte)126, (byte)129);
-            Assert.InRange(blended.Right.R, (byte)126, (byte)129);
-            Assert.Equal(0, blended.Right.B);
+            Assert.InRange(blended.Left.Red, (byte)126, (byte)129);
+            Assert.InRange(blended.Left.Blue, (byte)126, (byte)129);
+            Assert.InRange(blended.Right.Red, (byte)126, (byte)129);
+            Assert.Equal(0, blended.Right.Blue);
 
             playback.Advance(interval);
-            Assert.Equal(new Rgba32(0, 0, 255), playback.CurrentPixel);
+            Assert.Equal(new SKColor(0, 0, 255), playback.CurrentPixel);
             Assert.Equal(0, playback.Overlay.Opacity);
             var finished = playback.CapturePixels();
-            Assert.Equal(new Rgba32(0, 0, 255), finished.Left);
-            Assert.Equal(new Rgba32(0, 0, 0), finished.Right);
+            Assert.Equal(new SKColor(0, 0, 255), finished.Left);
+            Assert.Equal(new SKColor(0, 0, 0), finished.Right);
             await playback.PendingFrame;
 
             playback.Advance(999);
-            Assert.Equal(new Rgba32(0, 0, 255), playback.CurrentPixel);
+            Assert.Equal(new SKColor(0, 0, 255), playback.CurrentPixel);
             Assert.Equal(0, playback.Overlay.Opacity);
             playback.Advance(1000);
-            Assert.Equal(new Rgba32(255, 0, 0), playback.CurrentPixel);
+            Assert.Equal(new SKColor(255, 0, 0), playback.CurrentPixel);
             Assert.Equal(0, playback.Overlay.Opacity);
             Assert.False(playback.Player.DecodedOnUiThread);
         }
@@ -107,7 +107,7 @@ namespace EarthBackground.Tests
 
             playback.Advance(300);
             playback.Advance(1000);
-            Assert.Equal(new Rgba32(255, 0, 0), playback.CurrentPixel);
+            Assert.Equal(new SKColor(255, 0, 0), playback.CurrentPixel);
             Assert.Equal(0, playback.Overlay.Opacity);
 
             playback.Player.ReleaseSecondFrame.TrySetResult(true);
@@ -117,7 +117,7 @@ namespace EarthBackground.Tests
             playback.Advance(1100);
             Assert.Equal(0.5, playback.Overlay.Opacity, 6);
             playback.Advance(1200);
-            Assert.Equal(new Rgba32(0, 0, 255), playback.CurrentPixel);
+            Assert.Equal(new SKColor(0, 0, 255), playback.CurrentPixel);
         }
 
         [AvaloniaFact]
@@ -142,7 +142,7 @@ namespace EarthBackground.Tests
         public async Task SingleFrame_ShouldRemainStatic_WithoutStartingAnimation()
         {
             await using var playback = await Playback.CreateAsync(500, singleFrame: true);
-            Assert.Equal(new Rgba32(255, 0, 0), playback.CurrentPixel);
+            Assert.Equal(new SKColor(255, 0, 0), playback.CurrentPixel);
             Assert.False(playback.Timer.IsEnabled);
         }
 
@@ -155,8 +155,8 @@ namespace EarthBackground.Tests
             public DispatcherTimer Timer => Field<DispatcherTimer>("_timer");
             public Task<FrameRenderResult> PendingFrame => Field<Task<FrameRenderResult>>("_pendingFrame");
             public Border Overlay => ((Canvas)Window.Content!).Children.OfType<Border>().Single();
-            public Rgba32 CurrentPixel => ReadPixel(((Canvas)Window.Content!).Children.OfType<Image>().Single());
-            public Rgba32 NextPixel => ReadPixel((Image)Overlay.Child!);
+            public SKColor CurrentPixel => ReadPixel(((Canvas)Window.Content!).Children.OfType<Image>().Single());
+            public SKColor NextPixel => ReadPixel((Image)Overlay.Child!);
 
             private Playback(string directory, GatedPlayer player)
             {
@@ -179,17 +179,19 @@ namespace EarthBackground.Tests
                     ? new[] { Path.Combine(directory, "first.png") }
                     : new[] { Path.Combine(directory, "first.png"), Path.Combine(directory, "second.png") };
                 var colors = identicalFrames
-                    ? new[] { new Rgba32(160, 160, 160), new Rgba32(160, 160, 160) }
-                    : new[] { new Rgba32(255, 0, 0), new Rgba32(0, 0, 255) };
+                    ? new[] { new SKColor(160, 160, 160), new SKColor(160, 160, 160) }
+                    : new[] { new SKColor(255, 0, 0), new SKColor(0, 0, 255) };
                 for (int i = 0; i < paths.Length; i++)
                 {
-                    using var image = new SixLabors.ImageSharp.Image<Rgba32>(2, 2, colors[i]);
+                    using var image = new SKBitmap(2, 2);
+                    image.Erase(colors[i]);
                     if (i == 1 && !identicalFrames)
                     {
-                        image[1, 0] = default;
-                        image[1, 1] = default;
+                        image.SetPixel(1, 0, SKColors.Transparent);
+                        image.SetPixel(1, 1, SKColors.Transparent);
                     }
-                    SixLabors.ImageSharp.ImageExtensions.SaveAsPng(image, paths[i]);
+                    using var output = File.Create(paths[i]);
+                    Assert.True(image.Encode(output, SKEncodedImageFormat.Png, 100));
                 }
 
                 var playback = new Playback(directory, new GatedPlayer(PngSequencePlayer.Open(paths, interval), blockSecondFrame));
@@ -204,7 +206,7 @@ namespace EarthBackground.Tests
                 Timer.Stop();
             }
 
-            public (Rgba32 Left, Rgba32 Right) CapturePixels()
+            public (SKColor Left, SKColor Right) CapturePixels()
             {
                 var canvas = (Canvas)Window.Content!;
                 canvas.Measure(new Size(20, 20));
@@ -214,8 +216,8 @@ namespace EarthBackground.Tests
                 using var stream = new MemoryStream();
                 target.Save(stream, new PngBitmapEncoderOptions());
                 stream.Position = 0;
-                using var image = SixLabors.ImageSharp.Image.Load<Rgba32>(stream);
-                return (image[1, 10], image[18, 10]);
+                using var image = SKBitmap.Decode(stream);
+                return (image.GetPixel(1, 10), image.GetPixel(18, 10));
             }
 
             public Task StopAsync() => (Task)Invoke("StopPlaybackAsync")!;
@@ -233,10 +235,10 @@ namespace EarthBackground.Tests
             private object? Invoke(string name, params object[] arguments)
                 => typeof(WallpaperPlaybackWindow).GetMethod(name, PrivateInstance)!.Invoke(Window, arguments);
 
-            private static Rgba32 ReadPixel(Image image)
+            private static SKColor ReadPixel(Image image)
             {
                 using var pixels = ((WriteableBitmap)image.Source!).Lock();
-                return new Rgba32(
+                return new SKColor(
                     Marshal.ReadByte(pixels.Address, 0),
                     Marshal.ReadByte(pixels.Address, 1),
                     Marshal.ReadByte(pixels.Address, 2),
