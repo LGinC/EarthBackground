@@ -1,16 +1,16 @@
 Package: earthbackground
 Architecture: amd64
-Version: 2.5.8
+Version: 2.6.0
 Priority: optional
 Section: utils
 Maintainer: liguo
-Installed-Size: 46794
-Filename: ./EarthBackground-2.5.8-linux-x64.deb
-Size: 21801496
-MD5sum: 2cb5626d48266f53b8f81608ea63e866
-SHA1: b6a0b81980927442964d1280aa12017129a8a495
-SHA256: 8061a07a6875e09a6f8e1f6b269eb63ed74ba8bf4000b4ce333fce7913c717ca
-SHA512: 775596b4a3fe48e15fb2887dba0c9ca079abaa7d5baad345f38caabdd2f8b5add871afe144fa515e55bf76227a8549ab4104c65d18a6f8479a3c978bd93ac30b
+Installed-Size: 42771
+Filename: ./EarthBackground-2.6.0-linux-x64.deb
+Size: 19540226
+MD5sum: 847df56fde5af5289e0b22d23e26208d
+SHA1: caea24409a26142cfbeb603444324f2c619dc3d1
+SHA256: 3ee2eee3b2a401b69ae883b8c6dece1afc426df4c21bf403678000b34b82938f
+SHA512: c8f26ec3b9ba393fef4e8409d7738177d10de77a55c1cb0e3f659b6c6ec9daf3dfb96ae40a9911f82c91051d0c9fde2fdc35cbbf341de387c5727a177a4731fa
 Homepage: https://github.com/LGinC/EarthBackground
 Description: Satellite earth wallpaper application built with .NET and Avalonia.
 
