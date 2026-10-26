@@ -43,22 +43,20 @@ esac
 rm -rf "$APP_DIR"
 mkdir -p "$MACOS_DIR" "$RESOURCES_DIR"
 
-# Copy publish output into Contents/MacOS without following nested self-copies.
-# Prefer rsync when available so we can exclude any stray .app under publish.
-if command -v rsync >/dev/null 2>&1; then
-  rsync -a --exclude '*.app' "$PUBLISH_DIR"/ "$MACOS_DIR"/
-else
-  # Fallback: copy top-level entries, skip .app bundles.
-  shopt -s nullglob dotglob
-  for entry in "$PUBLISH_DIR"/*; do
-    base="$(basename "$entry")"
-    case "$base" in
-      *.app) continue ;;
-    esac
-    cp -a "$entry" "$MACOS_DIR/"
-  done
-  shopt -u nullglob dotglob
-fi
+# Native code belongs in MacOS; configuration and other data belong in Resources.
+shopt -s nullglob dotglob
+for entry in "$PUBLISH_DIR"/*; do
+  base="$(basename "$entry")"
+  case "$base" in
+    *.app) continue ;;
+  esac
+  case "$(file -bL "$entry")" in
+    Mach-O*executable*|Mach-O*"dynamically linked shared library"*|Mach-O*bundle*) destination="$MACOS_DIR" ;;
+    *) destination="$RESOURCES_DIR" ;;
+  esac
+  cp -a "$entry" "$destination/"
+done
+shopt -u nullglob dotglob
 
 if [ ! -f "$MACOS_DIR/EarthBackground" ]; then
   echo "error: expected executable missing: $MACOS_DIR/EarthBackground" >&2
@@ -89,5 +87,10 @@ if command -v sips >/dev/null 2>&1 && command -v iconutil >/dev/null 2>&1 && [ -
 fi
 
 # ponytail: ad-hoc 只封印包完整性；通过 Gatekeeper 仍需 Developer ID 签名和公证。
+for binary in "$MACOS_DIR"/*; do
+  if [ "$binary" != "$MACOS_DIR/EarthBackground" ] && [ ! -L "$binary" ]; then
+    codesign --force --sign - "$binary"
+  fi
+done
 codesign --force --sign - "$APP_DIR"
 codesign --verify --deep --strict --verbose=2 "$APP_DIR"

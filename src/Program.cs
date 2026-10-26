@@ -158,8 +158,10 @@ namespace EarthBackground
             AddHttpClients(services, config);
 
             var nlogConfig = new ConfigurationBuilder()
-                .AddJsonFile(Path.Combine(AppPaths.BaseDirectory, "nlog.json"))
+                .AddJsonFile(Path.Combine(AppPaths.ResourceDirectory, "nlog.json"))
                 .Build();
+            if (OperatingSystem.IsMacOS())
+                nlogConfig["NLog:targets:logfile:fileName"] = Path.Combine(AppPaths.BaseDirectory, "logs", "nlog-${shortdate}.log");
             NLog.LogManager.Configuration = new NLogLoggingConfiguration(nlogConfig.GetSection("NLog"));
             services.AddLogging(builder =>
             {

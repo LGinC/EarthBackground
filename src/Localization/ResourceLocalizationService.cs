@@ -192,7 +192,7 @@ namespace EarthBackground.Localization
         {
             try
             {
-                var baseDir = AppContext.BaseDirectory;
+                var baseDir = AppPaths.BaseDirectory;
                 var path = Path.Combine(baseDir, "loc-diag.txt");
                 var keys = new[]
                 {
