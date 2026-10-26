@@ -183,8 +183,12 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  package:
+  verify-macos-bundle:
     needs: publish
+    uses: ./.github/workflows/macos-bundle.yml
+
+  package:
+    needs: [publish, verify-macos-bundle]
     runs-on: ubuntu-latest
     permissions:
       contents: write

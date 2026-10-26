@@ -74,8 +74,15 @@ jobs:
 
       - name: Assess Gatekeeper acceptance
         id: gatekeeper
+        continue-on-error: true
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: spctl --assess --type execute --verbose=4 /Applications/EarthBackground.app
+
+      - name: Report manual macOS approval requirement
+        if: ${{ !cancelled() && steps.signature.outcome == 'success' && steps.gatekeeper.outcome == 'failure' }}
+        run: |
+          echo '::warning::此个人 Tap 未做 Apple 公证；Gatekeeper 未接受，用户须在 macOS 安全设置中手动授权。未关闭保护或移除隔离属性。'
+          echo 'Gatekeeper 未通过：未公证个人 Tap，不保证免确认启动；需要用户手动授权。包完整性校验仍必须通过。' >> "$GITHUB_STEP_SUMMARY"
 
       - name: Launch installed app and verify its window
         timeout-minutes: 2

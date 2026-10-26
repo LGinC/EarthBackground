@@ -1,4 +1,4 @@
-name: macOS bundle (local build, not Gatekeeper)
+name: macOS bundle (integrity and runtime)
 
 on:
   push:
@@ -16,6 +16,7 @@ on:
       - src/Localization/ResourceLocalizationService.cs
       - .github/workflows/macos-bundle.yml
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
@@ -34,26 +35,41 @@ jobs:
     timeout-minutes: 20
     env:
       RUNTIME: ${{ matrix.runtime }}
-      APP: roundtrip/EarthBackground.app
+      APP: ${{ github.workspace }}/roundtrip/EarthBackground.app
+      RELEASE_TAG: ${{ github.event.release.tag_name }}
 
     steps:
       - uses: actions/checkout@v7
+      - name: Download produced release archive
+        if: github.event_name == 'release'
+        uses: actions/download-artifact@v8
+        with:
+          name: EarthBackground-${{ matrix.runtime }}-archive
+          path: release-archive
+      - name: Unpack produced release archive
+        if: github.event_name == 'release'
+        run: ditto -x -k "release-archive/EarthBackground-${RELEASE_TAG}-${RUNTIME}.zip" roundtrip
       - uses: actions/setup-dotnet@v6
+        if: github.event_name != 'release'
         with:
           dotnet-version: '10.0.x'
       - name: Publish actual Native AOT app
+        if: github.event_name != 'release'
         run: |
           dotnet restore src/EarthBackground.csproj -r "$RUNTIME" -p:TargetFramework=net10.0 -p:PublishAot=true -p:PublishReadyToRun=false
           dotnet publish src/EarthBackground.csproj --framework net10.0 --configuration Release --runtime "$RUNTIME" --output publish --self-contained true --no-restore -p:PublishAot=true -p:PublishReadyToRun=false -p:UseAppHost=true -p:PublishSingleFile=false
       - name: Build and archive the complete bundle
+        if: github.event_name != 'release'
         run: |
           bash packaging/macos/build-macos-app.sh publish packaged/EarthBackground.app 2.6.0 src/Assets/earth.ico
-          test -f packaged/EarthBackground.app/Contents/Resources/appsettings.json
-          test -f packaged/EarthBackground.app/Contents/Resources/nlog.json
-          test ! -e packaged/EarthBackground.app/Contents/MacOS/appsettings.json
-          test ! -e packaged/EarthBackground.app/Contents/MacOS/nlog.json
           ditto -c -k --sequesterRsrc --keepParent packaged/EarthBackground.app candidate.zip
           ditto -x -k candidate.zip roundtrip
+      - name: Verify archived code and resource layout
+        run: |
+          test -f "$APP/Contents/Resources/appsettings.json"
+          test -f "$APP/Contents/Resources/nlog.json"
+          test ! -e "$APP/Contents/MacOS/appsettings.json"
+          test ! -e "$APP/Contents/MacOS/nlog.json"
           codesign --verify --deep --strict --verbose=2 "$APP"
       - name: Verify GUI, writable user data and settings preservation
         timeout-minutes: 3
@@ -88,6 +104,9 @@ jobs:
           assert settings['CaptureOptions']['Interval'] == int(Path('expected-interval.txt').read_text()), 'Startup overwrote saved user settings.'
           PY
           codesign --verify --deep --strict --verbose=2 "$APP"
+      - name: Capture failed macOS surface
+        if: failure()
+        run: screencapture -x bundle-screen.png
       - name: Upload local build GUI evidence
         if: always()
         uses: actions/upload-artifact@v7
