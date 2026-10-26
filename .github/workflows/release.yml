@@ -363,22 +363,21 @@ jobs:
         $x64Hash = (Get-FileHash $x64Zip -Algorithm SHA256).Hash.ToLowerInvariant()
         "BREW_ARM64_SHA256=$armHash" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
         "BREW_X64_SHA256=$x64Hash" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-        "BREW_ARM64_ZIP_URL=https://github.com/${env:RELEASE_REPOSITORY}/releases/download/${env:RELEASE_TAG}/$armZip" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-        "BREW_X64_ZIP_URL=https://github.com/${env:RELEASE_REPOSITORY}/releases/download/${env:RELEASE_TAG}/$x64Zip" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
-    - name: Generate official Homebrew cask candidate
+    - name: Generate Homebrew tap cask
       run: |
-        $officialDir = "dist/homebrew-official/Casks/e"
-        New-Item -ItemType Directory -Force -Path $officialDir | Out-Null
+        $tapDir = "dist/homebrew-tap/Casks"
+        New-Item -ItemType Directory -Force -Path $tapDir | Out-Null
+        $tagPrefix = if ($env:RELEASE_TAG.StartsWith('v')) { 'v' } else { '' }
         @"
         cask "earthbackground" do
           arch arm: "arm64", intel: "x64"
 
           version "${env:VERSION}"
-          sha256 arm: "${env:BREW_ARM64_SHA256}",
+          sha256 arm:   "${env:BREW_ARM64_SHA256}",
                  intel: "${env:BREW_X64_SHA256}"
 
-          url "https://github.com/${env:RELEASE_REPOSITORY}/releases/download/${env:RELEASE_TAG}/EarthBackground-#{version}-osx-#{arch}-brew.zip"
+          url "https://github.com/${env:RELEASE_REPOSITORY}/releases/download/${tagPrefix}#{version}/EarthBackground-#{version}-osx-#{arch}-brew.zip"
           name "EarthBackground"
           desc "Satellite earth wallpaper application built with .NET and Avalonia"
           homepage "https://github.com/${env:RELEASE_REPOSITORY}"
@@ -388,100 +387,11 @@ jobs:
             strategy :github_latest
           end
 
-          depends_on macos: ">= :big_sur"
+          depends_on :macos
 
           app "EarthBackground.app"
-
-          zap trash: [
-            "~/Library/Preferences/io.github.lginc.earthbackground.plist",
-            "~/Library/Saved Application State/io.github.lginc.earthbackground.savedState",
-          ]
         end
-        "@ | Set-Content -Path "dist/homebrew-official/Casks/e/earthbackground.rb"
-
-    - name: Generate official Homebrew submission notes
-      run: |
-        @"
-        Homebrew official cask candidate
-        =================================
-
-        Target repository:
-        - Homebrew/homebrew-cask
-
-        Candidate file:
-        - Casks/e/earthbackground.rb
-
-        Release assets:
-        - Apple Silicon: ${env:BREW_ARM64_ZIP_URL}
-        - Intel: ${env:BREW_X64_ZIP_URL}
-
-        SHA256:
-        - Apple Silicon: ${env:BREW_ARM64_SHA256}
-        - Intel: ${env:BREW_X64_SHA256}
-
-        Verified against docs.brew.sh references used in this task:
-        - Adding Software to Homebrew
-        - Cask Cookbook
-
-        Current candidate supports separate Apple Silicon and Intel app archives and includes livecheck, depends_on, and a minimal zap stanza.
-
-        The zap paths are inferred from the app bundle identifier because the repository does not currently persist macOS user-library paths explicitly in code. Re-verify them on a real macOS install before submitting an official PR.
-        "@ | Set-Content -Path "dist/homebrew-official/README.txt"
-
-    - name: Generate official Homebrew PR checklist
-      run: |
-        @"
-        Homebrew official cask PR checklist
-        ==================================
-
-        Candidate files
-        - dist/homebrew-official/Casks/e/earthbackground.rb
-        - dist/homebrew-official/README.txt
-
-        Manual checks before opening PR
-        - Verify both release asset URLs download a zip containing EarthBackground.app.
-        - Verify both SHA256 values match their published brew zips.
-        - Install locally with brew from the candidate cask on Apple Silicon and Intel Macs and confirm the app launches.
-        - Run brew audit --cask --online on the candidate cask in a local Homebrew checkout.
-        - Re-check the inferred zap paths on a real macOS install:
-          - ~/Library/Preferences/io.github.lginc.earthbackground.plist
-          - ~/Library/Saved Application State/io.github.lginc.earthbackground.savedState
-        - If the app creates extra files under ~/Library/Application Support, ~/Library/Caches, or other user Library paths, add them to zap before submitting.
-        - Check open PRs/issues in Homebrew/homebrew-cask to avoid duplicate submission.
-        - Be ready to adjust stanza ordering or metadata to satisfy Homebrew maintainer review.
-
-        Suggested PR scope
-        - Add Casks/e/earthbackground.rb only.
-        - Do not mix unrelated cleanup with the submission.
-        "@ | Set-Content -Path "dist/homebrew-official/PR-CHECKLIST.txt"
-
-    - name: Generate official Homebrew PR body
-      run: |
-        $templateUrl = "https://raw.githubusercontent.com/Homebrew/homebrew-cask/main/.github/PULL_REQUEST_TEMPLATE.md"
-        $template = (Invoke-WebRequest -Uri $templateUrl).Content
-        if ([string]::IsNullOrWhiteSpace($template) -or $template -notmatch '(?m)^- \[[ xX]\] ') {
-          throw "Unable to download a valid Homebrew pull request template from $templateUrl"
-        }
-
-        $details = @'
-        ## Submission details
-
-        - Cask: `earthbackground`
-        - Apple Silicon asset: __BREW_ARM64_ZIP_URL__
-        - Apple Silicon SHA256: __BREW_ARM64_SHA256__
-        - Intel asset: __BREW_X64_ZIP_URL__
-        - Intel SHA256: __BREW_X64_SHA256__
-        - App bundles are architecture-specific zips containing `EarthBackground.app`.
-        - `depends_on macos: ">= :big_sur"` is derived from the app bundle minimum system version.
-        - `zap` paths are inferred from `io.github.lginc.earthbackground` and must be rechecked on a real macOS install.
-
-        ## AI/LLM disclosure
-
-        An AI coding assistant using GPT-5.6 was used to update the automated release workflow and draft this cask submission. The pull request author must review the cask, including the `zap` stanza, and complete the unchecked Homebrew commands above before requesting review.
-        '@
-        $details = $details.Replace('__BREW_ARM64_ZIP_URL__', $env:BREW_ARM64_ZIP_URL).Replace('__BREW_ARM64_SHA256__', $env:BREW_ARM64_SHA256).Replace('__BREW_X64_ZIP_URL__', $env:BREW_X64_ZIP_URL).Replace('__BREW_X64_SHA256__', $env:BREW_X64_SHA256)
-        $body = $template.TrimEnd() + "`n`n" + $details.Trim() + "`n"
-        $body | Set-Content -Path "dist/homebrew-official/PR-TEMPLATE.md" -Encoding utf8
+        "@ | Set-Content -Path "dist/homebrew-tap/Casks/earthbackground.rb"
 
     - name: Generate apt repository metadata with apt-ftparchive
       run: |
@@ -548,7 +458,7 @@ jobs:
           EarthBackground-*.rpm
           EarthBackground-*-brew.zip
           dist/winget/**
-          dist/homebrew-official/**
+          dist/homebrew-tap/**
           dist/packages/**
 
     - name: Attach package artifacts to release
@@ -615,146 +525,48 @@ jobs:
         git commit -m "Publish package feeds for ${{ needs.package.outputs.version }}"
         git push -u origin HEAD:gh-pages
 
-  publish-homebrew-official-pr:
+  publish-homebrew-tap:
     needs: package
-    if: vars.HOMEBREW_CASK_FORK_REPOSITORY != ''
     runs-on: ubuntu-latest
-    env:
-      HOMEBREW_CASK_PAT: ${{ secrets.HOMEBREW_CASK_PAT }}
+    permissions:
+      contents: write
 
     steps:
-    - name: Require Homebrew PAT
-      if: env.HOMEBREW_CASK_PAT == ''
-      run: |
-        Write-Host 'HOMEBREW_CASK_PAT is not configured; skipping official Homebrew PR job steps.'
-        "official_pr_status=skipped_no_pat" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-
-    - name: Checkout fork of homebrew-cask
-      if: env.HOMEBREW_CASK_PAT != ''
+    - name: Checkout Homebrew tap default branch
       uses: actions/checkout@v7
       with:
-        repository: ${{ vars.HOMEBREW_CASK_FORK_REPOSITORY }}
-        token: ${{ env.HOMEBREW_CASK_PAT }}
-        path: homebrew-cask-fork
+        ref: ${{ github.event.repository.default_branch }}
+        path: homebrew-tap
         fetch-depth: 1
-        sparse-checkout: Casks/e
 
-    - name: Download official cask candidate artifacts
-      if: env.HOMEBREW_CASK_PAT != ''
+    - name: Download Homebrew tap cask artifact
       uses: actions/download-artifact@v8
       with:
         name: EarthBackground-packages-${{ github.sha }}
         path: package-artifacts
 
-    - name: Create or update Homebrew cask PR branch
-      if: env.HOMEBREW_CASK_PAT != ''
-      env:
-        GH_TOKEN: ${{ env.HOMEBREW_CASK_PAT }}
-        FORK_REPOSITORY: ${{ vars.HOMEBREW_CASK_FORK_REPOSITORY }}
+    - name: Publish Homebrew tap cask
       run: |
-        $forkParts = $env:FORK_REPOSITORY.Split('/')
-        if ($forkParts.Length -ne 2 -or [string]::IsNullOrWhiteSpace($forkParts[0])) {
-          throw 'Unable to derive fork owner from HOMEBREW_CASK_FORK_REPOSITORY.'
-        }
-        $forkOwner = $forkParts[0]
-        $branchName = "earthbackground-${{ needs.package.outputs.version }}"
-        $caskSource = "package-artifacts/dist/homebrew-official/Casks/e/earthbackground.rb"
-        $bodySource = "package-artifacts/dist/homebrew-official/PR-TEMPLATE.md"
-        if (-not (Test-Path -LiteralPath $caskSource -PathType Leaf)) { throw 'Official cask candidate file missing.' }
-        if (-not (Test-Path -LiteralPath $bodySource -PathType Leaf)) { throw 'Official PR template file missing.' }
-        $caskPath = (Resolve-Path -LiteralPath $caskSource).Path
-        $bodyPath = (Resolve-Path -LiteralPath $bodySource).Path
-
-        Set-Location homebrew-cask-fork
-        $remoteUrl = git remote get-url origin
-        if ($remoteUrl -notmatch [Regex]::Escape($env:FORK_REPOSITORY)) {
-          throw "Checked out fork does not match HOMEBREW_CASK_FORK_REPOSITORY: $remoteUrl"
-        }
-        gh auth status
-        $defaultBranch = gh repo view Homebrew/homebrew-cask --json defaultBranchRef --jq '.defaultBranchRef.name'
-        if ([string]::IsNullOrWhiteSpace($defaultBranch)) { throw 'Unable to resolve Homebrew/homebrew-cask default branch.' }
-        $defaultBranch = $defaultBranch.Trim()
-        $syncType = gh api --method POST "repos/$env:FORK_REPOSITORY/merge-upstream" -f "branch=$defaultBranch" --jq '.merge_type'
-        if ($LASTEXITCODE -ne 0) { throw "Unable to sync $env:FORK_REPOSITORY with Homebrew/homebrew-cask." }
-        Write-Host "Homebrew fork sync result: $syncType"
-        git fetch origin $defaultBranch --depth=1
-        if ($LASTEXITCODE -ne 0) { throw "Unable to fetch origin/$defaultBranch after syncing the fork." }
-        git checkout -B $branchName "origin/$defaultBranch"
-        if ($LASTEXITCODE -ne 0) { throw "Unable to create branch $branchName." }
-
-        New-Item -ItemType Directory -Force -Path Casks/e | Out-Null
-        Copy-Item -LiteralPath $caskPath -Destination "Casks/e/earthbackground.rb" -Force
+        New-Item -ItemType Directory -Force -Path homebrew-tap/Casks | Out-Null
+        Copy-Item -LiteralPath "package-artifacts/dist/homebrew-tap/Casks/earthbackground.rb" -Destination "homebrew-tap/Casks/earthbackground.rb" -Force
+        Set-Location homebrew-tap
         git config user.name github-actions
+        if ($LASTEXITCODE -ne 0) { throw '无法配置 Tap 提交用户名。' }
         git config user.email github-actions@github.com
-        git add Casks/e/earthbackground.rb
+        if ($LASTEXITCODE -ne 0) { throw '无法配置 Tap 提交邮箱。' }
+        git add Casks/earthbackground.rb
+        if ($LASTEXITCODE -ne 0) { throw '无法暂存 Homebrew Cask。' }
         git diff --cached --quiet
         if ($LASTEXITCODE -eq 0) {
-          "official_pr_status=no_changes" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "No official Homebrew cask changes for $branchName."
+          Write-Host 'Homebrew Cask 无变更，无需发布。'
           exit 0
         }
-        if ($LASTEXITCODE -ne 1) { throw 'Unable to inspect staged Homebrew changes.' }
+        if ($LASTEXITCODE -ne 1) { throw '无法检查 Homebrew Cask 暂存差异。' }
+        git commit -m "更新 EarthBackground Cask 至 ${{ needs.package.outputs.version }}"
+        if ($LASTEXITCODE -ne 0) { throw '无法提交 Homebrew Cask。' }
+        git push origin HEAD
+        if ($LASTEXITCODE -ne 0) { throw '无法推送 Homebrew Tap。' }
 
-        git commit -m "Add earthbackground cask ${{ needs.package.outputs.version }}"
-        if ($LASTEXITCODE -ne 0) { throw 'Unable to commit Homebrew cask changes.' }
-        git push --force --set-upstream origin HEAD
-        if ($LASTEXITCODE -ne 0) { throw 'Unable to push Homebrew cask branch.' }
-
-        $headRef = "${forkOwner}:$branchName"
-        $existingPrRecord = gh api --method GET "repos/Homebrew/homebrew-cask/pulls" `
-          -f state=all `
-          -f "base=$defaultBranch" `
-          -f "head=$headRef" `
-          --jq 'map(select(.merged_at == null)) | (.[0] // empty) | [.number, .html_url, .state] | @tsv'
-        if ($LASTEXITCODE -ne 0) { throw "Unable to look up an existing Homebrew PR for $headRef." }
-        if (-not [string]::IsNullOrWhiteSpace($existingPrRecord)) {
-          $existingPrFields = $existingPrRecord -split "`t", 3
-          if ($existingPrFields.Length -ne 3) { throw "Unexpected existing Homebrew PR response: $existingPrRecord" }
-          $existingPrNumber = $existingPrFields[0]
-          $existingPrUrl = $existingPrFields[1]
-          $existingPrState = $existingPrFields[2]
-          gh pr edit $existingPrNumber --repo Homebrew/homebrew-cask --title 'Add earthbackground cask' --body-file $bodyPath
-          if ($LASTEXITCODE -ne 0) { throw "Unable to update existing Homebrew PR $existingPrUrl." }
-          $existingStatus = if ($existingPrState -eq 'closed') { 'updated_closed' } else { 'updated_open' }
-          "official_pr_status=$existingStatus" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-          "official_pr_url=$existingPrUrl" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-          "official_pr_fork_owner=$forkOwner" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "Updated existing official Homebrew PR ($existingPrState): $existingPrUrl"
-          exit 0
-        }
-        $prUrl = gh pr create --repo Homebrew/homebrew-cask --base $defaultBranch --head $headRef --title 'Add earthbackground cask' --body-file $bodyPath
-        if ([string]::IsNullOrWhiteSpace($prUrl)) { throw 'gh pr create did not return a PR URL.' }
-        "official_pr_status=created" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-        "official_pr_url=$prUrl" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-        "official_pr_fork_owner=$forkOwner" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-        Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "Created official Homebrew PR: $prUrl"
-
-    - name: Write official PR result summary
-      if: always()
-      run: |
-        New-Item -ItemType Directory -Force -Path official-pr-result | Out-Null
-        $status = if ($env:official_pr_status) { $env:official_pr_status } else { 'unknown' }
-        $url = if ($env:official_pr_url) { $env:official_pr_url } else { '' }
-        $forkOwner = if ($env:official_pr_fork_owner) { $env:official_pr_fork_owner } else {
-          $forkParts = "${{ vars.HOMEBREW_CASK_FORK_REPOSITORY }}".Split('/')
-          if ($forkParts.Length -ge 1) { $forkParts[0] } else { '' }
-        }
-        @"
-        {
-          "status": "$status",
-          "url": "$url",
-          "forkRepository": "${{ vars.HOMEBREW_CASK_FORK_REPOSITORY }}",
-          "forkOwner": "$forkOwner",
-          "version": "${{ needs.package.outputs.version }}"
-        }
-        "@ | Set-Content -Path official-pr-result/homebrew-official-pr-result.json
-
-    - name: Upload official PR result artifact
-      if: always()
-      uses: actions/upload-artifact@v7
-      with:
-        name: homebrew-official-pr-result-${{ github.sha }}
-        path: official-pr-result/homebrew-official-pr-result.json
   publish-winget:
     needs: package
     runs-on: ubuntu-latest

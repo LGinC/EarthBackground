@@ -5,7 +5,7 @@
 GitHub Actions 拆成两个 workflow：
 
 - `.github/workflows/ci.yml`：`push` / `pull_request` 到 `master` 时跑 `build-test`
-- `.github/workflows/release.yml`：`release: published` 时跑 `build-test` → `publish` → `package` → feeds / Homebrew / winget
+- `.github/workflows/release.yml`：`release: published` 时跑 `build-test` → `publish` → `package` → feeds / 个人 Tap / winget
 
 ```mermaid
 flowchart LR
@@ -27,7 +27,7 @@ flowchart LR
     M --> P["package job"]
     P --> Q["nfpm 生成 .deb / .rpm"]
     P --> W["生成 winget manifest"]
-    P --> HB["生成 Homebrew 官方 cask 候选 + brew zip"]
+    P --> HB["生成个人 Tap cask + brew zip"]
     Q --> T["附加到 GitHub Release"]
     HB --> T
 ```
@@ -37,7 +37,7 @@ flowchart LR
   - `EarthBackground-<version>-linux-x64.deb`
   - `EarthBackground-<version>-linux-x64.rpm`
   - `dist/winget/...` 下的 `winget` manifest
-  - `dist/homebrew-official/**` 下的 Homebrew 官方 cask 候选材料
+  - `dist/homebrew-tap/Casks/earthbackground.rb`：个人 Tap 的 Cask
   - `dist/packages/apt` 与 `dist/packages/yum` 下的仓库元数据
 - `publish-package-feeds` 会把 `.deb` / `.rpm` 及其索引同步到仓库 `gh-pages` 分支：
   - `https://<owner>.github.io/<repo>/packages/apt`
@@ -48,24 +48,21 @@ flowchart LR
   - `PACKAGE_FEED_GPG_PRIVATE_KEY`：ASCII armored 私钥
   - `PACKAGE_FEED_GPG_PASSPHRASE`：私钥口令
   - `PACKAGE_FEED_GPG_KEY_ID`：可选，指定签名 key id
-- `publish-homebrew-official-pr` 在配置官方 fork 与 token 后会 best-effort 自动向 `Homebrew/homebrew-cask` 发起 PR。
+- `publish-homebrew-tap` 使用本仓库的 `GITHUB_TOKEN`，将 Cask 更新到默认分支的 `Casks/earthbackground.rb`，不再向 Homebrew 官方仓库提交 PR。
 - `publish-winget` 在配置 `secrets.WINGET_PAT` 后自动向 `winget-pkgs` 提交更新。
 
 ## 官方仓库与自建仓库建议
 
 ### Homebrew
 
-- 当前仓库已经可以自动生成 Homebrew 官方 cask 候选材料。
-- release 后会产出 `dist/homebrew-official/**`，并可在配置 fork/token 后 best-effort 自动向 `Homebrew/homebrew-cask` 发起 PR。
+- 本仓库同时作为个人 Tap，入口为 `lginc/earthbackground`，首次添加时需指定本仓库 URL，命令见下方安装示例。
+- release 后生成 `dist/homebrew-tap/Casks/earthbackground.rb`，再由 `publish-homebrew-tap` 普通推送到默认分支；无需另建 Tap 仓库或配置跨仓库 PAT。
 - macOS release 会把 `dotnet publish` 输出重新打包为标准 `EarthBackground.app` bundle，并同时生成 `.app.zip` 与 `.dmg`。
-- 构建脚本会优先尝试从现有 `earth.ico` 自动生成 `EarthBackground.icns`；若 runner 上图标转换失败，仍会保留可运行的 `.app`，但图标资源会退回到非标准状态。
-- 当前自动生成的 Homebrew cask 已包含：
-  - `app "EarthBackground.app"`
-  - `livecheck`
-  - `depends_on`
-  - 最小 `zap`
-- 其中 `zap` 路径基于 bundle identifier 推断，提交官方前仍应在真实 macOS 安装环境复核一次。
-- 官方收录仍取决于 Homebrew 审核，而不是本仓库 workflow 单方面决定。
+- 构建脚本会优先尝试从现有 `earth.ico` 自动生成 `EarthBackground.icns`；若 runner 上图标转换失败，仍会保留 `.app`，但缺少标准图标资源。
+- Cask 使用 `depends_on :macos`，下载 URL 的 release 标签与文件名均保留 Ruby `#{version}` 插值；生成器也保留无 `v` 前缀标签的格式。
+- `.github/workflows/homebrew.yml` 在 ARM64 与 Intel macOS Runner 上分别执行 style、online audit、安装、GUI 窗口检查和卸载/zap，并上传截图及路径证据。前一检查失败不会阻止后续可执行的验证，但 workflow 仍会报告失败。
+- 当前发行包未做 Developer ID 签名和 Apple 公证。不会通过关闭 Gatekeeper、移除隔离属性或跳过安全审计来伪造验证成功。
+- 官方仓库收录与个人 Tap 分发是两件事；当前不自动重提被关闭的官方 PR。
 
 ### APT / Debian / Ubuntu
 
@@ -98,7 +95,7 @@ flowchart LR
 
 按投入产出比，推荐顺序：
 
-1. Homebrew：优先走官方 cask 候选与 best-effort PR 流程
+1. Homebrew：维护本仓库的个人 Tap，验证通过后分发
 2. APT：持续维护自建仓库
 3. YUM：持续维护自建仓库
 
@@ -108,12 +105,9 @@ flowchart LR
 
 1. 启用 GitHub Releases。
 2. 启用 GitHub Pages，并将发布源指向 `gh-pages` 分支。
-3. 如需 best-effort 自动向 `Homebrew/homebrew-cask` 发起 PR：
-   - 先准备一个你自己名下的 `Homebrew/homebrew-cask` fork
-   - 配置 Repository variable：`HOMEBREW_CASK_FORK_REPOSITORY=<owner>/homebrew-cask`
-   - 配置 Repository secret：`HOMEBREW_CASK_PAT=<可写入该 fork 且可创建 PR 的 GitHub PAT>`
-   - `fork owner` 会从 `HOMEBREW_CASK_FORK_REPOSITORY` 自动解析
-   - 该流程属于 best-effort 自动化，仍可能因为官方仓库规则、重复 PR、review 要求或 gh CLI 行为差异而需要人工收尾
+3. 允许本仓库 GitHub Actions 写入 `contents`，并确保默认分支规则允许 `publish-homebrew-tap` 推送 Cask 更新。
+   - Tap 与应用共用当前仓库，无需创建官方 fork，也无需新增 PAT。
+   - 默认分支的 `Casks/earthbackground.rb` 是用户安装入口，release artifact 不是 Tap 的替代品。
 4. 如需 winget 自动提交：
    - 配置 `WINGET_PAT`
 5. 如需 APT / YUM 仓库签名：
@@ -130,15 +124,9 @@ flowchart LR
 - 先手工创建一次 GitHub Release，确认：
   - release zip 已上传
   - `gh-pages/packages/apt` 与 `gh-pages/packages/yum` 已生成
-  - 若配置了官方 PR 自动化：对应 fork 上已推送 `earthbackground-<version>` 分支，且 workflow summary 中能看到以下之一：
-    - `Created official Homebrew PR: <url>`
-    - `Existing official Homebrew PR: <url>`
-    - `No official Homebrew cask changes for earthbackground-<version>.`
-  - `dist/homebrew-official/Casks/earthbackground.rb` 已生成
-  - `dist/homebrew-official/README.txt` 已生成
-  - `dist/homebrew-official/PR-CHECKLIST.txt` 已生成
-  - `dist/homebrew-official/PR-TEMPLATE.md` 已生成
-  - 若配置了官方 PR 自动化：`homebrew-official-pr-result-<sha>` artifact 已生成，且其中 `forkOwner` 与 `HOMEBREW_CASK_FORK_REPOSITORY` 推导结果一致
+  - 默认分支的 `Casks/earthbackground.rb` 已更新
+  - `EarthBackground-packages-<sha>` artifact 中包含 `dist/homebrew-tap/Casks/earthbackground.rb`
+  - `publish-homebrew-tap` 显示提交已推送，或明确显示 Cask 无变更
 
 ### 每次 release 后检查
 
@@ -158,7 +146,7 @@ flowchart LR
   - `packages/yum/repodata/`
   - 签名启用时：`packages/yum/repodata/repomd.xml.asc`
   - 签名启用时：`packages/public.key`
-- 若启用了 Homebrew / winget 自动发布，再检查对应外部仓库或 PR 状态。
+- 若启用了 Homebrew / winget 自动发布，再分别检查个人 Tap 的 Cask 更新和 winget PR 状态。
 
 ### 常见失败与排查
 
@@ -170,46 +158,20 @@ flowchart LR
   - 仓库是否允许 GitHub Actions 写入 `contents`
   - GitHub Pages 是否已指向 `gh-pages`
 
-#### 官方 Homebrew Cask 提交说明
+#### Homebrew 验证与个人 Tap 发布失败
 
-- 当前 workflow 会生成官方 cask 候选文件和说明 artifact。
-- 若同时配置以下项，还会尝试自动向 `Homebrew/homebrew-cask` 发起 best-effort PR：
-  - `HOMEBREW_CASK_FORK_REPOSITORY`
-  - `HOMEBREW_CASK_PAT`
-- 我本次已用 Homebrew 官方文档核对并补齐候选文件中的这些关键元数据：
-  - `livecheck`
-  - `depends_on`
-  - `zap`
-- 其中 `zap` 路径目前是基于 `io.github.lginc.earthbackground` 推断出的最小集合，建议在 release 后的真实 macOS 安装环境中再核对一次。
-- 建议在 release 后检查 `EarthBackground-packages-<sha>` artifact 中的：
-  - `dist/homebrew-official/Casks/earthbackground.rb`
-  - `dist/homebrew-official/README.txt`
-  - `dist/homebrew-official/PR-CHECKLIST.txt`
-  - `dist/homebrew-official/PR-TEMPLATE.md`
-- 如果启用了官方 PR 自动化，再检查：
-  - `homebrew-official-pr-result-<sha>` artifact
-  - workflow summary 中的 created / existing / no_changes 状态
-  - `homebrew-official-pr-result.json` 中的 `forkOwner` 是否与 `HOMEBREW_CASK_FORK_REPOSITORY` 推导一致
-- 推荐提交流程：
-  1. 先按 `PR-CHECKLIST.txt` 完成本地检查
-  2. 再用 `PR-TEMPLATE.md` 作为向 `Homebrew/homebrew-cask` 提交 PR 的正文起点
-  3. 如果已启用自动 PR，检查 action 是否成功推送到 fork 并成功创建 PR
-  4. 根据 Homebrew maintainer 反馈继续调整 stanza 或 `zap` 路径
-- 这条自动 PR 流程仍是 best-effort：即使 workflow 成功执行，也不代表官方一定接受或合并。
+- 当前版本的 Cask 位于默认分支 `Casks/earthbackground.rb`；release 生成器位于 `.github/workflows/release.yml`。
+- `.github/workflows/homebrew.yml` 可手工运行，也会在 Cask 或其验证 workflow 变更时运行；覆盖 `macos-latest`（ARM64）与 `macos-15-intel`。
+- 真实 macOS 验证不得只看构建成功：需要确认 style、online audit、安装、应用窗口、卸载/zap 的每一步结果，并查看 `homebrew-<runner>` artifact 中的截图和路径记录。
+- 如 audit 或启动被 Gatekeeper 拒绝，记录原始失败；Developer ID 签名和 Apple 公证未完成时，不宣称完整验证通过。
+- `zap` 不删除用户自定义的壁纸导出目录；用户数据路径必须结合发行版本源码与真实运行证据核对。
+- `publish-homebrew-tap` 失败时，检查：
+  - `EarthBackground-packages-<sha>` artifact 是否包含 `dist/homebrew-tap/Casks/earthbackground.rb`
+  - GitHub Actions 是否具备本仓库 `contents: write` 权限
+  - 默认分支保护是否允许该 job 的普通推送
+  - 运行期间默认分支是否已有并发提交；推送冲突会明确失败，不强制覆盖
+- 若需询问官方 PR 的关闭原因，由贡献者本人联系维护者，不通过自动化代发或代答。
 
-#### `publish-homebrew-official-pr` 失败
-
-- 现象：没有推送到 fork、没有创建 PR，或 job 在 `gh` / `git` 步骤失败。
-- 优先检查：
-  - `HOMEBREW_CASK_FORK_REPOSITORY` 是否真的是你名下的 `homebrew-cask` fork
-  - `HOMEBREW_CASK_FORK_REPOSITORY` 是否满足 `<owner>/homebrew-cask` 格式，便于 workflow 自动解析 fork owner
-  - `HOMEBREW_CASK_PAT` 是否既能写 fork，又能用 GitHub CLI 创建 PR
-  - workflow summary 是否显示：
-    - `No official Homebrew cask changes ...`（说明候选 cask 与 fork 当前内容相同）
-    - `Existing official Homebrew PR: ...`（说明 PR 已存在）
-  - `dist/homebrew-official/Casks/earthbackground.rb` 与 `dist/homebrew-official/PR-TEMPLATE.md` 是否成功生成
-  - `homebrew-official-pr-result-<sha>` artifact 是否生成，并检查其中 `status` / `url` / `forkOwner`
-  - 若 `gh repo view Homebrew/homebrew-cask` 或 `gh pr create` 失败，通常需要回头检查 token 权限、fork 状态或 GitHub API 可用性
 
 #### macOS 打包相关失败
 
@@ -258,15 +220,17 @@ winget install LGinC.EarthBackground
 
 ### Homebrew
 
-本仓库当前以 **生成官方 cask 候选材料** 为主，不再维护自建 tap。
-
-若你要本地验证官方候选 cask，可在拿到候选文件后执行：
+本仓库直接提供个人 Tap，首次添加时指定实际 Git URL：
 
 ```bash
-brew install --cask ./earthbackground.rb
+brew tap lginc/earthbackground https://github.com/LGinC/EarthBackground.git
+brew install --cask lginc/earthbackground/earthbackground
+open -a EarthBackground
 ```
 
-向 `Homebrew/homebrew-cask` 提交时，优先使用 release 生成的 `PR-CHECKLIST.txt` 与 `PR-TEMPLATE.md`。
+使用完整 Cask 名称只信任该 Cask，不授予整个 Tap 的信任。后续通过 `brew update` 和 `brew upgrade --cask lginc/earthbackground/earthbackground` 更新。
+
+当前 macOS 发行包未做 Developer ID 签名和 Apple 公证；安装成功不等于 Gatekeeper 允许启动，不建议关闭系统安全保护。
 
 ### apt
 

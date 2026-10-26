@@ -58,33 +58,44 @@ jobs:
         run: brew install --cask "$CASK"
 
       - name: Launch installed app and verify its window
+        timeout-minutes: 2
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: |
           open -a /Applications/EarthBackground.app
-          osascript <<'APPLESCRIPT'
-          tell application "System Events"
-            repeat 30 times
-              if exists process "EarthBackground" then
-                if (count of windows of process "EarthBackground") > 0 then
-                  return name of every window of process "EarthBackground"
-                end if
-              end if
-              delay 1
-            end repeat
-          end tell
-          error "EarthBackground did not display a window within 30 seconds."
-          APPLESCRIPT
+          swift - <<'SWIFT'
+          import Foundation
+          import CoreGraphics
+
+          for _ in 0..<30 {
+            let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] ?? []
+            if let window = windows.first(where: {
+              $0[kCGWindowOwnerName as String] as? String == "EarthBackground" &&
+              $0[kCGWindowLayer as String] as? Int == 0
+            }) {
+              print(window)
+              exit(0)
+            }
+            Thread.sleep(forTimeInterval: 1)
+          }
+          fputs("EarthBackground did not display a window within 30 seconds.\n", stderr)
+          exit(1)
+          SWIFT
 
       - name: Capture window and user paths
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: |
           screencapture -x homebrew-evidence/screen.png
           for path in \
+            "/Applications/EarthBackground.app/Contents/MacOS/appsettings.json" \
+            "/Applications/EarthBackground.app/Contents/MacOS/images" \
+            "/Applications/EarthBackground.app/Contents/MacOS/loc-diag.txt" \
             "$HOME/Library/Application Support/EarthBackground" \
             "$HOME/Library/Preferences/io.github.lginc.earthbackground.plist" \
             "$HOME/Library/Saved Application State/io.github.lginc.earthbackground.savedState"; do
             if [ -e "$path" ]; then
               stat -f '%N' "$path" | tee -a homebrew-evidence/user-paths.txt
+            else
+              printf 'absent: %s\n' "$path" | tee -a homebrew-evidence/user-paths.txt
             fi
           done
 
