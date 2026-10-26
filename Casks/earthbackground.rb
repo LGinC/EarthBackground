@@ -18,4 +18,6 @@ cask "earthbackground" do
   depends_on :macos
 
   app "EarthBackground.app"
+
+  zap trash: "~/Library/Application Support/EarthBackground"
 end

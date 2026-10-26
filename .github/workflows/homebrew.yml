@@ -96,9 +96,9 @@ jobs:
         run: |
           screencapture -x homebrew-evidence/screen.png
           for path in \
-            "/Applications/EarthBackground.app/Contents/MacOS/appsettings.json" \
-            "/Applications/EarthBackground.app/Contents/MacOS/images" \
-            "/Applications/EarthBackground.app/Contents/MacOS/loc-diag.txt" \
+            "/Applications/EarthBackground.app/Contents/Resources/appsettings.json" \
+            "/Applications/EarthBackground.app/Contents/Resources/nlog.json" \
+            "$HOME/Library/Application Support/EarthBackground/appsettings.json" \
             "$HOME/Library/Application Support/EarthBackground" \
             "$HOME/Library/Preferences/io.github.lginc.earthbackground.plist" \
             "$HOME/Library/Saved Application State/io.github.lginc.earthbackground.savedState"; do
@@ -117,6 +117,7 @@ jobs:
           fi
           brew uninstall --cask --zap "$CASK"
           test ! -e /Applications/EarthBackground.app
+          test ! -e "$HOME/Library/Application Support/EarthBackground"
           test ! -e "$HOME/Library/Preferences/io.github.lginc.earthbackground.plist"
           test ! -e "$HOME/Library/Saved Application State/io.github.lginc.earthbackground.savedState"
 

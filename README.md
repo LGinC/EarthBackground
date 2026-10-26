@@ -180,14 +180,14 @@ sequenceDiagram
 - 发布流程、渠道说明、维护者手册、安装示例已移至 [`Release.md`](./Release.md)。
 - 日常开发和功能说明仍保留在本文件中。
 
-macOS 通过本仓库的个人 Tap 安装：
+macOS 个人 Tap 的预备安装命令（仅在发行包通过验证后启用）：
 
 ```bash
 brew tap lginc/earthbackground https://github.com/LGinC/EarthBackground.git
 brew install --cask lginc/earthbackground/earthbackground
 ```
 
-当前 macOS 包未做 Developer ID 签名和 Apple 公证，安装成功不代表 Gatekeeper 允许启动。验证流程与限制见 [`Release.md`](./Release.md#homebrew)。
+本次 macOS 打包与数据路径修复已通过 ARM64 / Intel Native AOT、真实 GUI、配置保留和运行后签名验证。按选择暂不发版，旧 v2.6.0 包仍有原签名缺陷；个人 Tap 待新版本启用，未公证应用需系统手动授权。详情见 [`Release.md`](./Release.md#homebrew)。
 
 ## 配置说明
 

@@ -2,11 +2,12 @@
 
 ## 发布流程
 
-GitHub Actions 分为构建、发布与 Homebrew 验证：
+GitHub Actions 分为构建、发布、macOS 包验证与 Homebrew 验证：
 
 - `.github/workflows/ci.yml`：`push` / `pull_request` 到 `master` 时跑 `build-test`
-- `.github/workflows/release.yml`：`release: published` 时跑 `build-test` → `publish` → `package` → feeds / 个人 Tap / winget
+- `.github/workflows/release.yml`：`release: published` 时跑构建 → `publish` → `verify-macos-bundle` → `package`，再更新软件源、个人 Tap 与 winget
 - `.github/workflows/homebrew.yml`：独立检查个人 Tap，也由 release 的 `verify-homebrew` 复用以验证待发布 Cask
+- `.github/workflows/macos-bundle.yml`：双架构 Native AOT 构建、代码/资源布局、归档签名、真实窗口、配置保留及运行后签名验证；release 复用它验证实际产出的 ZIP，不重复构建
 
 ```mermaid
 flowchart LR
@@ -25,13 +26,14 @@ flowchart LR
     J --> M
     K --> M
     L --> M
-    M --> P["package job"]
+    M --> MV["macOS 归档 / GUI / 配置验证"]
+    MV --> P["package job"]
     P --> Q["nfpm 生成 .deb / .rpm"]
     P --> W["生成 winget manifest"]
     P --> HB["生成个人 Tap cask + brew zip"]
     Q --> T["附加到 GitHub Release"]
     HB --> T
-    HB --> HV["ARM64 / Intel macOS 验证"]
+    HB --> HV["Homebrew 审计 / 签名 / 安装 / 卸载"]
     HV --> HT["更新默认分支 Casks"]
 ```
 
@@ -58,13 +60,15 @@ flowchart LR
 
 ### Homebrew
 
-- 本仓库同时作为个人 Tap，入口为 `lginc/earthbackground`，首次添加时需指定本仓库 URL，命令见下方安装示例。
+- 本仓库已准备个人 Tap 的目录与更新流程，入口为 `lginc/earthbackground`；本次选择暂不发版，正式安装入口待新版本发布后启用。
 - release 后生成 `dist/homebrew-tap/Casks/earthbackground.rb`，再由 `publish-homebrew-tap` 普通推送到默认分支；无需另建 Tap 仓库或配置跨仓库 PAT。
 - macOS release 会把 `dotnet publish` 输出重新打包为标准 `EarthBackground.app` bundle，并同时生成 `.app.zip` 与 `.dmg`。
+- `Contents/MacOS` 只存放可加载的 Mach-O 代码；JSON 等数据放在 `Contents/Resources`。先签嵌套原生代码，再签整个 bundle，最后执行严格验证。
+- macOS bundle 的可写配置、默认缓存、日志及诊断文件位于 `~/Library/Application Support/EarthBackground`；首次启动仅在用户配置不存在时复制默认配置，不在运行时修改签名包。
 - 构建脚本会优先尝试从现有 `earth.ico` 自动生成 `EarthBackground.icns`；若 runner 上图标转换失败，仍会保留 `.app`，但缺少标准图标资源。
 - Cask 使用 `depends_on :macos`，下载 URL 的 release 标签与文件名均保留 Ruby `#{version}` 插值；生成器也保留无 `v` 前缀标签的格式。
-- `.github/workflows/homebrew.yml` 在 ARM64 与 Intel macOS Runner 上分别执行 style、online audit、安装、GUI 窗口检查和卸载/zap，并上传截图及路径证据。release 复用同一 workflow 检查生成的候选 Cask，验证失败不更新 Tap；单项检查失败不会掩盖其他可执行检查的结果。
-- 当前发行包未做 Developer ID 签名和 Apple 公证。不会通过关闭 Gatekeeper、移除隔离属性或跳过安全审计来伪造验证成功。
+- `.github/workflows/homebrew.yml` 在 ARM64 与 Intel macOS Runner 上执行 style、online audit、安装、严格包签名校验、Gatekeeper 评估及卸载/zap；API 访问使用只读的内置 `github.token`，不新增 PAT。
+- 当前选择未公证的个人 Tap：Gatekeeper 拒绝会保留原始结果并显示警告，不宣称 Apple 信任；未获信任的安装包不自动绕过系统确认。包完整性、实际构建/归档启动与配置保留等硬检查失败仍阻止更新 Tap。
 - 官方仓库收录与个人 Tap 分发是两件事；当前不自动重提被关闭的官方 PR。
 
 ### APT / Debian / Ubuntu
@@ -117,9 +121,9 @@ flowchart LR
    - `PACKAGE_FEED_GPG_PRIVATE_KEY`
    - `PACKAGE_FEED_GPG_PASSPHRASE`
    - 需要时配置 `PACKAGE_FEED_GPG_KEY_ID`
-6. 当前 workflow 不再包含 macOS 签名与公证步骤。
-   - 无 Apple Developer 账号时，release 仍会生成可分发的 `.app.zip` 与 `.dmg`
-   - 但不会执行 `codesign`、`notarytool`、`stapler`
+6. macOS bundle 在全部资源组装后执行 ad-hoc 签名与 `codesign --verify --deep --strict`。
+   - ad-hoc 只封印完整性，不是 Developer ID 身份签名，也不是 Apple 公证。
+   - 当前不执行 `notarytool` 或 `stapler`；用户安装后需在 macOS 安全设置中手动授权，不关闭全局保护、不移除隔离属性。
 
 ### 首次初始化建议
 
@@ -140,7 +144,7 @@ flowchart LR
   - `.deb`
   - `.rpm`
   - `EarthBackground-<version>-osx-arm64-brew.zip`
-- macOS release 当前会生成未签名、未公证的 `.app` 与 `.dmg`
+- macOS `.app` 完成 ad-hoc 签名及严格校验，`.dmg` 承载该 app；当前没有 Developer ID 签名或 Apple 公证。
 - `gh-pages` 分支中应包含：
   - `packages/apt/Packages`
   - `packages/apt/Packages.gz`
@@ -166,8 +170,9 @@ flowchart LR
 - 当前版本的 Cask 位于默认分支 `Casks/earthbackground.rb`；release 生成器位于 `.github/workflows/release.yml`。
 - `.github/workflows/homebrew.yml` 可手工运行，也会在 Cask 或其验证 workflow 变更时运行；覆盖 `macos-latest`（ARM64）与 `macos-15-intel`。
 - 真实 macOS 验证不得只看构建成功：需要确认 style、online audit、安装、应用窗口、卸载/zap 的每一步结果，并查看 `homebrew-<runner>` artifact 中的截图和路径记录。
-- 如 audit 或启动被 Gatekeeper 拒绝，记录原始失败；Developer ID 签名和 Apple 公证未完成时，不宣称完整验证通过。
-- v2.6.0 公开源码将配置、默认图像缓存和诊断文件写在 `.app` 内，由普通卸载覆盖；当前不列出仅靠 bundle identifier 推断的 `zap` 路径，也不删除用户自选的 `SavePath` 或壁纸导出目录。
+- online audit 使用 `HOMEBREW_GITHUB_API_TOKEN: ${{ github.token }}`，避免共享 Runner 出口的匿名 API 限流；无需创建额外 PAT。
+- 按未公证分发策略，Gatekeeper 的拒绝是明确警告，不等于已受信任；`codesign` 完整性错误仍是发布阻断项。
+- 新 bundle 的 `zap` 仅清理已验证的 `~/Library/Application Support/EarthBackground`，不删除用户自选的 `SavePath` 或导出目录，也不保留仅靠 bundle identifier 猜测的清理路径。
 - `publish-homebrew-tap` 失败时，检查：
   - `EarthBackground-packages-<sha>` artifact 是否包含 `dist/homebrew-tap/Casks/earthbackground.rb`
   - GitHub Actions 是否具备本仓库 `contents: write` 权限
@@ -223,7 +228,7 @@ winget install LGinC.EarthBackground
 
 ### Homebrew
 
-本仓库直接提供个人 Tap，首次添加时指定实际 Git URL：
+本次按选择暂不发版，不修改现有 Release；个人 Tap 待包含本修复的新版本发布后启用。届时安装命令为：
 
 ```bash
 brew tap lginc/earthbackground https://github.com/LGinC/EarthBackground.git
@@ -233,7 +238,7 @@ open -a EarthBackground
 
 使用完整 Cask 名称只信任该 Cask，不授予整个 Tap 的信任。后续通过 `brew update` 和 `brew upgrade --cask lginc/earthbackground/earthbackground` 更新。
 
-当前 macOS 发行包未做 Developer ID 签名和 Apple 公证；安装成功不等于 Gatekeeper 允许启动，不建议关闭系统安全保护。
+修复后的源码已在 [ARM64 与 Intel macOS Runner](https://github.com/LGinC/EarthBackground/actions/runs/40264174807) 通过真实 GUI、配置重启保留和运行后签名校验。旧 v2.6.0 资产仍有原签名缺陷，源码修复不会自动替换它；新版本未公证，安装后仍需系统手动授权。
 
 ### apt
 

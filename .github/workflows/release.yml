@@ -394,6 +394,8 @@ jobs:
           depends_on :macos
 
           app "EarthBackground.app"
+
+          zap trash: "~/Library/Application Support/EarthBackground"
         end
         "@ | Set-Content -Path "dist/homebrew-tap/Casks/earthbackground.rb"
 
