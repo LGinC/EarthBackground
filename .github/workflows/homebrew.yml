@@ -1,0 +1,107 @@
+name: Homebrew
+
+on:
+  push:
+    paths:
+      - Casks/**
+      - .github/workflows/homebrew.yml
+  pull_request:
+    paths:
+      - Casks/**
+      - .github/workflows/homebrew.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, macos-15-intel]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    env:
+      CASK: lginc/earthbackground/earthbackground
+      HOMEBREW_NO_INSTALL_FROM_API: "1"
+      HOMEBREW_NO_AUTO_UPDATE: "1"
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Prepare personal tap
+        id: tap
+        run: |
+          mkdir -p homebrew-evidence
+          sw_vers
+          uname -m
+          brew update
+          brew tap lginc/earthbackground https://github.com/LGinC/EarthBackground.git
+          tap_path="$(brew --repository lginc/earthbackground)"
+          mkdir -p "$tap_path/Casks"
+          cp Casks/earthbackground.rb "$tap_path/Casks/earthbackground.rb"
+          brew trust --cask "$CASK"
+          brew info --cask --json=v2 "$CASK" > homebrew-evidence/cask.json
+
+      - name: Check Cask style
+        if: ${{ !cancelled() && steps.tap.outcome == 'success' }}
+        run: brew style "$CASK"
+
+      - name: Audit online
+        if: ${{ !cancelled() && steps.tap.outcome == 'success' }}
+        run: brew audit --cask --online "$CASK"
+
+      - name: Install from personal tap
+        id: install
+        if: ${{ !cancelled() && steps.tap.outcome == 'success' }}
+        run: brew install --cask "$CASK"
+
+      - name: Launch installed app and verify its window
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: |
+          open -a /Applications/EarthBackground.app
+          osascript <<'APPLESCRIPT'
+          tell application "System Events"
+            repeat 30 times
+              if exists process "EarthBackground" then
+                if (count of windows of process "EarthBackground") > 0 then
+                  return name of every window of process "EarthBackground"
+                end if
+              end if
+              delay 1
+            end repeat
+          end tell
+          error "EarthBackground did not display a window within 30 seconds."
+          APPLESCRIPT
+
+      - name: Capture window and user paths
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: |
+          screencapture -x homebrew-evidence/screen.png
+          for path in \
+            "$HOME/Library/Application Support/EarthBackground" \
+            "$HOME/Library/Preferences/io.github.lginc.earthbackground.plist" \
+            "$HOME/Library/Saved Application State/io.github.lginc.earthbackground.savedState"; do
+            if [ -e "$path" ]; then
+              stat -f '%N' "$path" | tee -a homebrew-evidence/user-paths.txt
+            fi
+          done
+
+      - name: Uninstall and verify zap cleanup
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: |
+          if pgrep -x EarthBackground; then
+            pkill -TERM -x EarthBackground
+          fi
+          brew uninstall --cask --zap "$CASK"
+          test ! -e /Applications/EarthBackground.app
+          test ! -e "$HOME/Library/Preferences/io.github.lginc.earthbackground.plist"
+          test ! -e "$HOME/Library/Saved Application State/io.github.lginc.earthbackground.savedState"
+
+      - name: Upload macOS evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: homebrew-${{ matrix.os }}
+          path: homebrew-evidence/
