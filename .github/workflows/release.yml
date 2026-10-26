@@ -525,8 +525,12 @@ jobs:
         git commit -m "Publish package feeds for ${{ needs.package.outputs.version }}"
         git push -u origin HEAD:gh-pages
 
-  publish-homebrew-tap:
+  verify-homebrew:
     needs: package
+    uses: ./.github/workflows/homebrew.yml
+
+  publish-homebrew-tap:
+    needs: [package, verify-homebrew]
     runs-on: ubuntu-latest
     permissions:
       contents: write

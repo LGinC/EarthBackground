@@ -10,6 +10,7 @@ on:
       - Casks/**
       - .github/workflows/homebrew.yml
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
@@ -24,11 +25,20 @@ jobs:
     timeout-minutes: 20
     env:
       CASK: lginc/earthbackground/earthbackground
+      CASK_SOURCE: ${{ github.event_name == 'release' && 'package-artifacts/dist/homebrew-tap/Casks/earthbackground.rb' || 'Casks/earthbackground.rb' }}
       HOMEBREW_NO_INSTALL_FROM_API: "1"
       HOMEBREW_NO_AUTO_UPDATE: "1"
+      HOMEBREW_GITHUB_API_TOKEN: ${{ github.token }}
 
     steps:
       - uses: actions/checkout@v7
+
+      - name: Download release Cask candidate
+        if: github.event_name == 'release'
+        uses: actions/download-artifact@v8
+        with:
+          name: EarthBackground-packages-${{ github.sha }}
+          path: package-artifacts
 
       - name: Prepare personal tap
         id: tap
@@ -40,7 +50,7 @@ jobs:
           brew tap lginc/earthbackground https://github.com/LGinC/EarthBackground.git
           tap_path="$(brew --repository lginc/earthbackground)"
           mkdir -p "$tap_path/Casks"
-          cp Casks/earthbackground.rb "$tap_path/Casks/earthbackground.rb"
+          cp "$CASK_SOURCE" "$tap_path/Casks/earthbackground.rb"
           brew trust --cask "$CASK"
           brew info --cask --json=v2 "$CASK" > homebrew-evidence/cask.json
 
@@ -57,9 +67,19 @@ jobs:
         if: ${{ !cancelled() && steps.tap.outcome == 'success' }}
         run: brew install --cask "$CASK"
 
+      - name: Verify installed code signature
+        id: signature
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: codesign --verify --deep --strict --verbose=2 /Applications/EarthBackground.app
+
+      - name: Assess Gatekeeper acceptance
+        id: gatekeeper
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: spctl --assess --type execute --verbose=4 /Applications/EarthBackground.app
+
       - name: Launch installed app and verify its window
         timeout-minutes: 2
-        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        if: ${{ !cancelled() && steps.signature.outcome == 'success' && steps.gatekeeper.outcome == 'success' }}
         run: |
           open -a /Applications/EarthBackground.app
           swift - <<'SWIFT'

@@ -2,10 +2,11 @@
 
 ## 发布流程
 
-GitHub Actions 拆成两个 workflow：
+GitHub Actions 分为构建、发布与 Homebrew 验证：
 
 - `.github/workflows/ci.yml`：`push` / `pull_request` 到 `master` 时跑 `build-test`
 - `.github/workflows/release.yml`：`release: published` 时跑 `build-test` → `publish` → `package` → feeds / 个人 Tap / winget
+- `.github/workflows/homebrew.yml`：独立检查个人 Tap，也由 release 的 `verify-homebrew` 复用以验证待发布 Cask
 
 ```mermaid
 flowchart LR
@@ -30,6 +31,8 @@ flowchart LR
     P --> HB["生成个人 Tap cask + brew zip"]
     Q --> T["附加到 GitHub Release"]
     HB --> T
+    HB --> HV["ARM64 / Intel macOS 验证"]
+    HV --> HT["更新默认分支 Casks"]
 ```
 
 - `publish` job 仍然是唯一构建来源，先生成各平台 `dotnet publish` 目录与 zip。
@@ -60,7 +63,7 @@ flowchart LR
 - macOS release 会把 `dotnet publish` 输出重新打包为标准 `EarthBackground.app` bundle，并同时生成 `.app.zip` 与 `.dmg`。
 - 构建脚本会优先尝试从现有 `earth.ico` 自动生成 `EarthBackground.icns`；若 runner 上图标转换失败，仍会保留 `.app`，但缺少标准图标资源。
 - Cask 使用 `depends_on :macos`，下载 URL 的 release 标签与文件名均保留 Ruby `#{version}` 插值；生成器也保留无 `v` 前缀标签的格式。
-- `.github/workflows/homebrew.yml` 在 ARM64 与 Intel macOS Runner 上分别执行 style、online audit、安装、GUI 窗口检查和卸载/zap，并上传截图及路径证据。前一检查失败不会阻止后续可执行的验证，但 workflow 仍会报告失败。
+- `.github/workflows/homebrew.yml` 在 ARM64 与 Intel macOS Runner 上分别执行 style、online audit、安装、GUI 窗口检查和卸载/zap，并上传截图及路径证据。release 复用同一 workflow 检查生成的候选 Cask，验证失败不更新 Tap；单项检查失败不会掩盖其他可执行检查的结果。
 - 当前发行包未做 Developer ID 签名和 Apple 公证。不会通过关闭 Gatekeeper、移除隔离属性或跳过安全审计来伪造验证成功。
 - 官方仓库收录与个人 Tap 分发是两件事；当前不自动重提被关闭的官方 PR。
 
@@ -164,7 +167,7 @@ flowchart LR
 - `.github/workflows/homebrew.yml` 可手工运行，也会在 Cask 或其验证 workflow 变更时运行；覆盖 `macos-latest`（ARM64）与 `macos-15-intel`。
 - 真实 macOS 验证不得只看构建成功：需要确认 style、online audit、安装、应用窗口、卸载/zap 的每一步结果，并查看 `homebrew-<runner>` artifact 中的截图和路径记录。
 - 如 audit 或启动被 Gatekeeper 拒绝，记录原始失败；Developer ID 签名和 Apple 公证未完成时，不宣称完整验证通过。
-- `zap` 不删除用户自定义的壁纸导出目录；用户数据路径必须结合发行版本源码与真实运行证据核对。
+- v2.6.0 公开源码将配置、默认图像缓存和诊断文件写在 `.app` 内，由普通卸载覆盖；当前不列出仅靠 bundle identifier 推断的 `zap` 路径，也不删除用户自选的 `SavePath` 或壁纸导出目录。
 - `publish-homebrew-tap` 失败时，检查：
   - `EarthBackground-packages-<sha>` artifact 是否包含 `dist/homebrew-tap/Casks/earthbackground.rb`
   - GitHub Actions 是否具备本仓库 `contents: write` 权限
