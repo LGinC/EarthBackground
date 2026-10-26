@@ -87,3 +87,7 @@ if command -v sips >/dev/null 2>&1 && command -v iconutil >/dev/null 2>&1 && [ -
     fi
   fi
 fi
+
+# ponytail: ad-hoc 只封印包完整性；通过 Gatekeeper 仍需 Developer ID 签名和公证。
+codesign --force --sign - "$APP_DIR"
+codesign --verify --deep --strict --verbose=2 "$APP_DIR"

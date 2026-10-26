@@ -1,0 +1,45 @@
+name: macOS bundle integrity smoke (not Gatekeeper)
+
+on:
+  push:
+    paths:
+      - packaging/macos/build-macos-app.sh
+      - .github/workflows/macos-bundle-smoke.yml
+
+permissions:
+  contents: read
+
+jobs:
+  integrity:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            arch: arm64
+            sha256: dfad51f042ba238e46bb5ea7b4055394dc55d0300b22917b3a6be13b9f6dead2
+          - os: macos-15-intel
+            arch: x64
+            sha256: 9d2ce43ec87797aa2073c99cf86995fde9b507dc18959b27ca6ddcf458bbca65
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    env:
+      ARCH: ${{ matrix.arch }}
+      SHA256: ${{ matrix.sha256 }}
+
+    steps:
+      - uses: actions/checkout@v7
+      - name: Download checksum-verified real Native AOT fixture
+        run: |
+          curl -fL "https://github.com/LGinC/EarthBackground/releases/download/v2.6.0/EarthBackground-2.6.0-osx-${ARCH}-brew.zip" -o release.zip
+          printf '%s  release.zip\n' "$SHA256" | shasum -a 256 -c -
+          ditto -x -k release.zip original
+      - name: Build complete bundle with the repaired production script
+        run: bash packaging/macos/build-macos-app.sh original/EarthBackground.app/Contents/MacOS repacked/EarthBackground.app 2.6.0 src/Assets/earth.ico
+      - name: Verify the actual distribution archive round trip
+        run: |
+          ditto -c -k --sequesterRsrc --keepParent repacked/EarthBackground.app candidate.zip
+          ditto -x -k candidate.zip roundtrip
+          test -f roundtrip/EarthBackground.app/Contents/_CodeSignature/CodeResources
+          codesign --verify --deep --strict --verbose=2 roundtrip/EarthBackground.app
+          codesign --display --verbose=4 roundtrip/EarthBackground.app
